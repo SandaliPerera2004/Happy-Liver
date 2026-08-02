@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:happy_liver/screens/settings/notification_screen.dart';
 import 'package:happy_liver/screens/settings/help_feedback_submitted_screen.dart';
+import 'package:happy_liver/screens/settings/about_us_screen.dart';
+
 void main() {
   runApp(const HappyLiverApp());
 }
@@ -13,8 +15,7 @@ class HappyLiverApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: const HelpFeedbackSubmittedScreen(),
-
+      home: const AboutUsScreen(),
     );
   }
 }
