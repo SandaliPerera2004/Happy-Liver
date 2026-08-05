@@ -1,6 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'About Us',
+      theme: ThemeData(
+        fontFamily: 'SF Pro Text',
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: const AboutUsScreen(),
+    );
+  }
+}
+
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
@@ -133,13 +154,19 @@ class AboutUsScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.black,
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SvgPicture.asset(
+                'assets/icons/Arrow left-circle.svg', // exact file name, underscore not space
+                width: 24,
+                height: 24,
+              ),
             ),
-            onPressed: () => Navigator.of(context).maybePop(),
           ),
+
+          const SizedBox(width: 12),
 
           const Text(
             'About us',

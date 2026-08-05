@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -78,10 +79,20 @@ class _NotificationsSettingsScreenState
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.of(context).maybePop(),
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SvgPicture.asset(
+                'assets/icons/Arrow left-circle.svg', // exact file name, underscore not space
+                width: 24,
+                height: 24,
+              ),
+            ),
           ),
+
+          const SizedBox(width: 12),
+
           const Text(
             'Notifications',
             style: TextStyle(
