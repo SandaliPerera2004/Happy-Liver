@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/screens/profile/change_password_screen.dart';
 
-// pubspec.yaml dependencies needed:
-//   flutter_svg: ^2.0.10+1
-//
-// Expected assets (declare these under `assets:` in pubspec.yaml):
-//   assets/images/profile_image.png
-//   assets/icons/Back.svg
-//   assets/icons/Logout.svg
-//   assets/icons/Edit.svg
-//   assets/icons/weekly report.png
-//   assets/icons/achieved goals.png
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
@@ -53,9 +44,15 @@ class UserProfileScreen extends StatelessWidget {
                           _CircleIconButton(
                             iconPath: 'assets/icons/Arrow left-circle.svg',
                             iconSize: 10,
-                            onTap: () => Navigator.of(context).maybePop(),
-                          ),
-
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ChangePasswordScreen(),
+                                ),
+                              );
+                            },
+                  ),
                           GestureDetector(
                             onTap: () {
                               // TODO: Handle logout
@@ -204,10 +201,7 @@ class UserProfileScreen extends StatelessWidget {
   }
 }
 
-// ---------- Reusable: circular icon button (back / logout on header) ----------
-// NOTE: no extra border/circle drawn here — the SVGs already include their
-// own circle outline. If you swap in icons that DON'T have a built-in
-// circle, re-add a BoxDecoration with a border here.
+
 class _CircleIconButton extends StatelessWidget {
   final String iconPath;
   final VoidCallback onTap;
@@ -242,10 +236,7 @@ class _CircleIconButton extends StatelessWidget {
   }
 }
 
-// ---------- Reusable: Weekly Report / Achieved Goals card ----------
-// NOTE: takes an SVG asset path (iconPath), not an IconData — this was the
-// mismatch causing the original code not to compile (_FeatureCard was
-// called with `iconPath:` but declared/used `icon: IconData`).
+
 class _FeatureCard extends StatelessWidget {
   final String iconPath;
   final String label;
@@ -264,7 +255,7 @@ class _FeatureCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 150, // reduced height
+        height: 150,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
@@ -283,7 +274,7 @@ class _FeatureCard extends StatelessWidget {
             children: [
               Image.asset(
                 iconPath,
-                width: 37, // reduced icon size
+                width: 37,
                 height: 37,
                 fit: BoxFit.contain,
               ),
@@ -295,7 +286,7 @@ class _FeatureCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 22, // reduced text size
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -307,7 +298,7 @@ class _FeatureCard extends StatelessWidget {
   }
 }
 
-// ---------- Reusable: Change Password / Premium Features / Log Out row ----------
+
 class _ProfileListTile extends StatelessWidget {
   final IconData icon;
   final String label;
