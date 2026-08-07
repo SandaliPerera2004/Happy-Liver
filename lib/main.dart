@@ -20,7 +20,7 @@ class HappyLiverApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: const DailyRoutineScreen(),
+      home: const UserProfileScreen(),
     );
   }
 }
