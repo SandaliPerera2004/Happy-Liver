@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:happy_liver/screens/dashboard/daily_routine_screen.dart';
+import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
+import 'package:happy_liver/screens/dashboard/daily%20routine/diet_plan_screen.dart';
 import 'package:happy_liver/screens/dashboard/profile_screen.dart';
 import 'package:happy_liver/screens/profile/change_password_screen.dart';
 import 'package:happy_liver/screens/profile/edit_profile_screen.dart';

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'diet_plan_screen.dart';
+
 
 
 class DailyRoutineScreen extends StatelessWidget {
@@ -202,19 +204,6 @@ class DailyRoutineScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-
-class DietPlanScreen extends StatelessWidget {
-  const DietPlanScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Diet Plan')),
-      body: const Center(child: Text('Diet Plan screen')),
     );
   }
 }
