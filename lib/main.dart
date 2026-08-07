@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happy_liver/screens/dashboard/daily_routine_screen.dart';
 import 'package:happy_liver/screens/dashboard/profile_screen.dart';
 import 'package:happy_liver/screens/profile/change_password_screen.dart';
 import 'package:happy_liver/screens/profile/edit_profile_screen.dart';
@@ -18,7 +19,7 @@ class HappyLiverApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: const EditProfileScreen(),
+      home: const DailyRoutineScreen(),
     );
   }
 }
