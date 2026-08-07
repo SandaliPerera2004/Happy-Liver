@@ -185,6 +185,17 @@ class DailyRoutineScreen extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    // Decorative only — tapping anywhere on the card
+                    // (via the InkWell above) already navigates.
+                    child: Image.asset(
+                      'assets/images/right arrow.png',
+                      width: 22,
+                      height: 22,
+                    ),
+                  ),
                 ],
               ),
             ),
