@@ -1,2 +1,3 @@
-# Happy-Liver
-Fatty liver and cholesterol risk assessment
+# Happy Liver
+
+Flutter application for fatty liver and cholesterol risk assessment.
