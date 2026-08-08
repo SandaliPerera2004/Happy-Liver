@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:happy_liver/screens/profile/change_password_screen.dart';
+import 'package:happy_liver/screens/profile/edit_profile_screen.dart';
+// import 'package:happy_liver/screens/auth/login_screen.dart';
 
+
+// TEMPORARY placeholder
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: Text('Login screen placeholder')),
+    );
+  }
+}
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
@@ -44,18 +58,18 @@ class UserProfileScreen extends StatelessWidget {
                           _CircleIconButton(
                             iconPath: 'assets/icons/Arrow left-circle.svg',
                             iconSize: 10,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ChangePasswordScreen(),
-                                ),
-                              );
-                            },
-                  ),
+
+                            onTap: () => Navigator.of(context).maybePop(),
+                          ),
                           GestureDetector(
                             onTap: () {
-                              // TODO: Handle logout
+
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                                    (route) => false,
+                              );
                             },
                             child: Image.asset(
                               'assets/images/logout.png',
@@ -103,7 +117,13 @@ class UserProfileScreen extends StatelessWidget {
                           const SizedBox(width: 6),
                           GestureDetector(
                             onTap: () {
-                              // TODO: handle edit name
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const EditProfileScreen(),
+                                ),
+                              );
                             },
                             child: SvgPicture.asset(
                               'assets/icons/Edit.svg',
@@ -137,20 +157,20 @@ class UserProfileScreen extends StatelessWidget {
                       Row(
                         children: [
                           Padding(
-                          padding: const EdgeInsets.only(left:27),
-                          child: SizedBox(
-                            width: 145,
-                            height: 135,
-                            child: _FeatureCard(
-                              iconPath: 'assets/images/image 19.png',
-                              label: 'Weekly\nReport',
-                              gradientColors: const [
-                                Color(0xFF4A6D7C),
-                                Color(0xFF96AEAE),
-                              ],
-                              onTap: () {},
+                            padding: const EdgeInsets.only(left:27),
+                            child: SizedBox(
+                              width: 145,
+                              height: 135,
+                              child: _FeatureCard(
+                                iconPath: 'assets/images/image 19.png',
+                                label: 'Weekly\nReport',
+                                gradientColors: const [
+                                  Color(0xFF4A6D7C),
+                                  Color(0xFF96AEAE),
+                                ],
+                                onTap: () {},
+                              ),
                             ),
-                          ),
                           ),
 
                           const SizedBox(width: 30),
@@ -176,7 +196,15 @@ class UserProfileScreen extends StatelessWidget {
                       _ProfileListTile(
                         icon: Icons.sync_alt,
                         label: 'Change Password',
-                        onTap: () {},
+                        onTap: () {
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ChangePasswordScreen(),
+                            ),
+                          );
+                        },
                       ),
                       _ProfileListTile(
                         icon: Icons.workspace_premium_outlined,
@@ -186,7 +214,14 @@ class UserProfileScreen extends StatelessWidget {
                       _ProfileListTile(
                         icon: Icons.logout,
                         label: 'Log Out',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                                (route) => false,
+                          );
+                        },
                         showDivider: false,
                       ),
                     ],
