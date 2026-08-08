@@ -220,11 +220,8 @@ class _AssessmentQuestionScreenState
               ),
             ),
             value: option,
-
-
-
-            groupValue:
-            answers[currentQuestionIndex],
+            groupValue: answers[currentQuestionIndex],
+            activeColor: Colors.green,
 
             // Makes the radio button larger
             visualDensity: const VisualDensity(
