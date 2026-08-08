@@ -226,12 +226,11 @@ class _AssessmentQuestionScreenState
             groupValue:
             answers[currentQuestionIndex],
 
-
-
-            activeColor:
-            Colors.green,
-
-
+            // Makes the radio button larger
+            visualDensity: const VisualDensity(
+              horizontal: 1.35,
+              vertical: 1.35,
+            ),
 
             onChanged:(value){
 
