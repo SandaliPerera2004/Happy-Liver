@@ -213,12 +213,12 @@ class _AssessmentQuestionScreenState
 
 
           return RadioListTile<String>(
-
-
-            title: Text(option),
-
-
-
+            title: Text(
+              option,
+              style: const TextStyle(
+                fontSize: 19,
+              ),
+            ),
             value: option,
 
 
