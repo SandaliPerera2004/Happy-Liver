@@ -283,39 +283,26 @@ class _AssessmentQuestionScreenState
 
           return CheckboxListTile(
 
-
-            title:
-            Text(option),
-
-
-
-            value:
-            selectedAnswers.contains(option),
-
-
-
-            activeColor:
-            Colors.green,
-
-
-
-            onChanged:(value){
-
-
-              setState((){
-
-
-                if(value == true){
-
-                  selectedAnswers.add(option);
-
-                }
-
-                else{
-
-                  selectedAnswers.remove(option);
-
-                }
+                answers[currentQuestionIndex] =
+                    selectedAnswers;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Transform.scale(
+                    scale: 1.35,
+                    child: Checkbox(
+                      value: isSelected,
+                      activeColor: Colors.green,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            selectedAnswers.add(option);
+                          } else {
+                            selectedAnswers.remove(option);
+                          }
 
 
 
