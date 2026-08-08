@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'diet_plan_screen.dart';
+import 'workout_plan_screen.dart';
 
 
 
@@ -208,15 +209,3 @@ class DailyRoutineScreen extends StatelessWidget {
   }
 }
 
-
-class WorkoutPlanScreen extends StatelessWidget {
-  const WorkoutPlanScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Workout Plan')),
-      body: const Center(child: Text('Workout Plan screen')),
-    );
-  }
-}
