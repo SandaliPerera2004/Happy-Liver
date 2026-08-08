@@ -316,6 +316,17 @@ class _AssessmentQuestionScreenState
             },
 
 
+                  Expanded(
+                    child: Text(
+                      option,
+                      style: const TextStyle(
+                        fontSize: 19,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
 
 
