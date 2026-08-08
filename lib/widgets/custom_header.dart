@@ -37,7 +37,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
               if (showBack) // only show back arrow when needed
                 IconButton(
                   icon: Image.asset(
-                    'assets/icons/back_arrow.png', // your custom Figma icon
+                    'assets/images/back_arrow.png',
                     height: 24,
                     width: 24,
                   ),
