@@ -8,7 +8,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   const CustomHeader({
     super.key,
     required this.title,
-    this.showBack = false, // default: no back arrow
+    this.showBack = false,
   });
 
   @override
