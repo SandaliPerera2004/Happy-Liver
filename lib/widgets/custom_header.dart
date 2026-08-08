@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool showBack; // control whether back arrow is shown
+  final bool showBack;
 
   const CustomHeader({
     super.key,
@@ -34,7 +34,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           height: kToolbarHeight,
           child: Row(
             children: [
-              if (showBack) // only show back arrow when needed
+              if (showBack)
                 IconButton(
                   icon: Image.asset(
                     'assets/images/back_arrow.png',
@@ -43,14 +43,12 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
                 ),
               ),
             ],
@@ -63,3 +61,4 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
+

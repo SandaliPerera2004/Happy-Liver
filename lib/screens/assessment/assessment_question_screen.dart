@@ -229,22 +229,11 @@ class _AssessmentQuestionScreenState
               vertical: 1.35,
             ),
 
-            onChanged:(value){
-
-
-              setState((){
-
-
-                answers[currentQuestionIndex]
-                = value;
-
-
+            onChanged: (value) {
+              setState(() {
+                answers[currentQuestionIndex] = value;
               });
-
-
             },
-
-
           );
 
 
@@ -264,24 +253,25 @@ class _AssessmentQuestionScreenState
     // CHECKBOX QUESTIONS
 
 
-    if(question.type ==
-        QuestionType.multipleChoice){
+    // CHECKBOX QUESTIONS
 
-
-
+    if (question.type == QuestionType.multipleChoice) {
       List selectedAnswers =
           answers[currentQuestionIndex] ?? [];
 
-
-
       return ListView(
+        children: question.options.map((option) {
+          final bool isSelected =
+          selectedAnswers.contains(option);
 
-        children:
-
-        question.options.map((option){
-
-
-          return CheckboxListTile(
+          return InkWell(
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  selectedAnswers.remove(option);
+                } else {
+                  selectedAnswers.add(option);
+                }
 
                 answers[currentQuestionIndex] =
                     selectedAnswers;
@@ -304,17 +294,14 @@ class _AssessmentQuestionScreenState
                             selectedAnswers.remove(option);
                           }
 
+                          answers[currentQuestionIndex] =
+                              selectedAnswers;
+                        });
+                      },
+                    ),
+                  ),
 
-
-                answers[currentQuestionIndex]
-                = selectedAnswers;
-
-
-              });
-
-
-            },
-
+                  const SizedBox(width: 8),
 
                   Expanded(
                     child: Text(
@@ -328,18 +315,9 @@ class _AssessmentQuestionScreenState
               ),
             ),
           );
-
-
         }).toList(),
-
       );
-
-
     }
-
-
-
-
 
 
 

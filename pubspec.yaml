@@ -72,6 +72,7 @@ flutter:
     - assets/videos/fatty_liver.mp4
     - assets/images/fatty_liver_thumbnail.png
     - assets/images/cholesterol_thumbnail.png
+    - assets/images/back_arrow.png
 
 
 
