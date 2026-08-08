@@ -378,7 +378,7 @@ class AssessmentResultScreen extends StatelessWidget {
 
 
 
-      appBar: const CustomHeader(title: 'Assessment Result'),
+      appBar: const CustomHeader(title: 'Assessment Result', showBack: true,),
 
 
 
