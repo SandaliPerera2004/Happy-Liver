@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../authentication/login_screen.dart';
+import 'package:happy_liver/screens/authentication/login_screen.dart';
+
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -28,8 +29,7 @@ class _LanguageSelectionScreenState
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-          const LoginScreen(),
+          builder: (context) => const LoginScreen(),
         ),
       );
 
@@ -121,7 +121,7 @@ class _LanguageSelectionScreenState
 
                   style: ElevatedButton.styleFrom(
 
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.green[900],
 
                     foregroundColor: Colors.white,
 

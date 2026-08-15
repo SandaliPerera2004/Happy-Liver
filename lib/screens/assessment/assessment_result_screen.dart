@@ -471,9 +471,7 @@ class AssessmentResultScreen extends StatelessWidget {
 
             ),
 
-
-
-
+            const SizedBox(height: 30),
 
 
             riskCard(
@@ -499,7 +497,7 @@ class AssessmentResultScreen extends StatelessWidget {
 
 
 
-            const SizedBox(height:20),
+            const SizedBox(height:40),
 
 
 
@@ -538,7 +536,7 @@ class AssessmentResultScreen extends StatelessWidget {
 
 
                 backgroundColor:
-                Colors.green,
+                Colors.green[900],
 
 
 
