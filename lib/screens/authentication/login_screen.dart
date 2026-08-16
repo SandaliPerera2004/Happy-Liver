@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../dashboard/dashboard_screen.dart';
 import 'forgot_password_screen.dart';
@@ -18,11 +19,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   static const Color darkGreen = Color(0xFF155D1B);
-
   static const Color backgroundGreen = Color(0xFFFFFFFF);
 
   bool obscurePassword = true;
   bool isLoading = false;
+
+  // Google Sign-In initialization
+  late Future<void> googleSignInInitialization;
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+
+    googleSignInInitialization =
+        GoogleSignIn.instance.initialize(
+          serverClientId:
+          '208141816996-1p3u0kvmbapksqndr1qhgcj218rtpr7c.apps.googleusercontent.com',
+        );
+  }
 
   @override
   void dispose() {
@@ -30,6 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
     passwordController.dispose();
     super.dispose();
   }
+
+  // ============================================================
+  // EMAIL / PASSWORD LOGIN
+  // ============================================================
 
   Future<void> login() async {
     if (emailController.text.trim().isEmpty ||
@@ -97,11 +116,15 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } catch (e) {
+      debugPrint('EMAIL LOGIN ERROR: $e');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Something went wrong. Please try again.'),
+          content: Text(
+            'Something went wrong. Please try again.',
+          ),
         ),
       );
     } finally {
@@ -112,6 +135,197 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+
+  // ============================================================
+  // GOOGLE SIGN-IN
+  // ============================================================
+
+  Future<void> signInWithGoogle() async {
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // ----------------------------------------------------------
+      // 1. Initialize Google Sign-In
+      // ----------------------------------------------------------
+
+      await googleSignInInitialization;
+
+      // ----------------------------------------------------------
+      // 2. Start Google account selection
+      // ----------------------------------------------------------
+
+      final GoogleSignInAccount googleUser =
+      await GoogleSignIn.instance.authenticate();
+
+      // ----------------------------------------------------------
+      // 3. Get Google authentication information
+      // ----------------------------------------------------------
+
+      final GoogleSignInAuthentication googleAuth =
+          googleUser.authentication;
+
+      // ----------------------------------------------------------
+      // 4. Check ID token
+      // ----------------------------------------------------------
+
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null || idToken.isEmpty) {
+        throw FirebaseAuthException(
+          code: 'missing-google-id-token',
+          message: 'Google did not return an ID token.',
+        );
+      }
+
+      // ----------------------------------------------------------
+      // 5. Create Firebase credential
+      // ----------------------------------------------------------
+
+      final OAuthCredential credential =
+      GoogleAuthProvider.credential(
+        idToken: idToken,
+      );
+
+      // ----------------------------------------------------------
+      // 6. Sign in to Firebase
+      // ----------------------------------------------------------
+
+      await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+
+      debugPrint(
+        'GOOGLE SIGN-IN SUCCESS: ${googleUser.email}',
+      );
+
+      // ----------------------------------------------------------
+      // 7. Navigate to Dashboard
+      // ----------------------------------------------------------
+
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DashboardScreen(),
+        ),
+            (route) => false,
+      );
+    }
+
+    // ==========================================================
+    // GOOGLE SIGN-IN ERROR
+    // ==========================================================
+
+    on GoogleSignInException catch (e) {
+      debugPrint('====================================');
+      debugPrint('GOOGLE SIGN-IN ERROR');
+      debugPrint('Code: ${e.code}');
+      debugPrint('Description: ${e.description}');
+      debugPrint('Exception: $e');
+      debugPrint('====================================');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Google Error Code: ${e.code}\n'
+                'Description: ${e.description ?? "No description"}',
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
+
+    // ==========================================================
+    // FIREBASE AUTH ERROR
+    // ==========================================================
+
+    on FirebaseAuthException catch (e) {
+      debugPrint('FIREBASE GOOGLE AUTH ERROR');
+      debugPrint('Code: ${e.code}');
+      debugPrint('Message: ${e.message}');
+
+      if (!mounted) return;
+
+      String message;
+
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          message =
+          'An account already exists with a different sign-in method.';
+          break;
+
+        case 'invalid-credential':
+          message =
+          'The Google account credentials are invalid.';
+          break;
+
+        case 'operation-not-allowed':
+          message =
+          'Google Sign-In is not enabled in Firebase.';
+          break;
+
+        case 'invalid-verification-code':
+          message =
+          'The Google verification code is invalid.';
+          break;
+
+        case 'network-request-failed':
+          message =
+          'Network error. Please check your internet connection.';
+          break;
+
+        default:
+          message =
+              e.message ?? 'Firebase Google Sign-In failed.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+
+    // ==========================================================
+    // OTHER ERROR
+    // ==========================================================
+
+    catch (e, stackTrace) {
+      debugPrint('UNKNOWN GOOGLE SIGN-IN ERROR: $e');
+      debugPrint('STACK TRACE: $stackTrace');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Google Sign-In error: $e',
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+
+    finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  // ============================================================
+  // TEXT FIELD
+  // ============================================================
 
   Widget buildTextField({
     required TextEditingController controller,
@@ -190,9 +404,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ============================================================
+  // SOCIAL BUTTON
+  // ============================================================
+
   Widget buildSocialButton({
     required String text,
     required String iconPath,
+    required VoidCallback onTap,
   }) {
     return SizedBox(
       width: double.infinity,
@@ -204,7 +423,7 @@ class _LoginScreenState extends State<LoginScreen> {
         shadowColor: Colors.black.withValues(alpha: 1),
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          onTap: () {},
+          onTap: isLoading ? null : onTap,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
@@ -235,6 +454,10 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -361,7 +584,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding:
+                    EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'OR',
                       style: TextStyle(fontSize: 10),
@@ -377,16 +601,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 20),
 
+              // GOOGLE BUTTON
               buildSocialButton(
                 text: 'Continue with Google',
                 iconPath: 'assets/icons/google.svg',
+                onTap: signInWithGoogle,
               ),
 
               const SizedBox(height: 15),
 
+              // APPLE BUTTON
               buildSocialButton(
                 text: 'Continue with Apple',
                 iconPath: 'assets/icons/apple.svg',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Apple Sign-In is not available yet.',
+                      ),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 220),
