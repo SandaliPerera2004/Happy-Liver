@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'login_screen.dart';
 
@@ -12,55 +13,54 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState
     extends State<ForgotPasswordScreen> {
-  final TextEditingController newPasswordController =
-  TextEditingController();
-
-  final TextEditingController confirmPasswordController =
+  final TextEditingController emailController =
   TextEditingController();
 
   static const Color darkGreen = Color(0xFF155D1B);
 
-  // Very light green background
   static const Color backgroundGreen = Color(0xFFFFFFFF);
 
-  bool obscureNewPassword = true;
-  bool obscureConfirmPassword = true;
+  bool isLoading = false;
 
   @override
   void dispose() {
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 
-  void resetPassword() {
-    if (newPasswordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty) {
+  Future<void> resetPassword() async {
+    if (emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in both fields'),
+          content: Text('Please enter your email address'),
         ),
       );
       return;
     }
 
-    if (newPasswordController.text !=
-        confirmPasswordController.text) {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: emailController.text.trim(),
+      );
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Passwords do not match'),
+          content: Text(
+            'Password reset email sent. Please check your inbox.',
+          ),
         ),
       );
-      return;
-    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Password reset successfully'),
-      ),
-    );
+      await Future.delayed(
+        const Duration(milliseconds: 1200),
+      );
 
-    Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
 
       Navigator.pushAndRemoveUntil(
@@ -70,15 +70,50 @@ class _ForgotPasswordScreenState
         ),
             (route) => false,
       );
-    });
+    } on FirebaseAuthException catch (e) {
+      String message;
+
+      switch (e.code) {
+        case 'invalid-email':
+          message = 'Please enter a valid email address.';
+          break;
+
+        case 'user-not-found':
+          message = 'No account found with this email.';
+          break;
+
+        default:
+          message =
+              e.message ?? 'Could not send password reset email.';
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Something went wrong. Please try again.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
-  Widget buildPasswordField({
-    required TextEditingController controller,
-    required String hintText,
-    required bool obscureText,
-    required VoidCallback onVisibilityTap,
-  }) {
+  Widget buildEmailField() {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
@@ -91,28 +126,18 @@ class _ForgotPasswordScreenState
         ],
       ),
       child: TextField(
-        controller: controller,
-        obscureText: obscureText,
+        controller: emailController,
+        keyboardType: TextInputType.emailAddress,
         decoration: InputDecoration(
-          hintText: hintText,
+          hintText: 'Email',
           hintStyle: TextStyle(
             fontSize: 12,
             color: Colors.grey.shade600,
           ),
           prefixIcon: Icon(
-            Icons.lock_outline,
+            Icons.email_outlined,
             size: 18,
             color: Colors.grey.shade700,
-          ),
-          suffixIcon: IconButton(
-            onPressed: onVisibilityTap,
-            icon: Icon(
-              obscureText
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              size: 18,
-              color: Colors.grey.shade700,
-            ),
           ),
           filled: true,
           fillColor: Colors.white,
@@ -152,10 +177,8 @@ class _ForgotPasswordScreenState
           ),
           child: Column(
             children: [
-
               const SizedBox(height: 80),
 
-              // Centered title
               const Center(
                 child: Text(
                   'Forgot your password?',
@@ -168,36 +191,23 @@ class _ForgotPasswordScreenState
                 ),
               ),
 
+              const SizedBox(height: 15),
+
+              const Text(
+                'Enter your email address and we will send you a link to reset your password.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+
               const SizedBox(height: 30),
 
-              buildPasswordField(
-                controller: newPasswordController,
-                hintText: 'New Password',
-                obscureText: obscureNewPassword,
-                onVisibilityTap: () {
-                  setState(() {
-                    obscureNewPassword = !obscureNewPassword;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 25),
-
-              buildPasswordField(
-                controller: confirmPasswordController,
-                hintText: 'Confirm Password',
-                obscureText: obscureConfirmPassword,
-                onVisibilityTap: () {
-                  setState(() {
-                    obscureConfirmPassword =
-                    !obscureConfirmPassword;
-                  });
-                },
-              ),
+              buildEmailField(),
 
               const SizedBox(height: 40),
 
-              // Reset Password button with drop shadow
               Container(
                 width: double.infinity,
                 height: 48,
@@ -212,17 +222,28 @@ class _ForgotPasswordScreenState
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: resetPassword,
+                  onPressed: isLoading ? null : resetPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkGreen,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: darkGreen,
+                    disabledForegroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    'Reset Password',
+                  child: isLoading
+                      ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Text(
+                    'Send Reset Link',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -230,7 +251,6 @@ class _ForgotPasswordScreenState
                   ),
                 ),
               ),
-
             ],
           ),
         ),
