@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:video_player/video_player.dart';
+import 'exercise_timer_screen.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
   const WorkoutDetailScreen({super.key});
@@ -383,10 +384,16 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                       height: 50,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          if (_videoController.value.isInitialized) {
-                            _videoController.play();
-                            setState(() {});
-                          }
+                          _videoController.pause();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ExerciseTimerScreen(
+                                workoutName: 'March in Place',
+                                totalDuration: Duration(minutes: 30),
+                              ),
+                            ),
+                          );
                         },
                         icon: const Icon(
                           Icons.play_arrow,

@@ -5,232 +5,321 @@ class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  State<ChangePasswordScreen> createState() =>
-      _ChangePasswordScreenState();
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState
-    extends State<ChangePasswordScreen> {
-  final TextEditingController currentPasswordController =
-  TextEditingController();
-  final TextEditingController newPasswordController =
-  TextEditingController();
-  final TextEditingController confirmPasswordController =
-  TextEditingController();
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _obscureCurrent = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+
+  static const Color _green = Color(0xFF2E7D32);
+  static const Color _grayNav = Color(0xFF9AA29D);
 
   @override
   void dispose() {
-    currentPasswordController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
+      backgroundColor: const Color(0xFFF5F6F8),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 60,
-              color: const Color(0xFFE6F7DA),
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                children: [
-                  _CircleIconButton(
-                    iconPath: 'assets/icons/Arrow left-circle.svg',
-                    iconSize: 32,
-                    onTap: () => Navigator.of(context).maybePop(),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Change Password",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel('Current Password'),
+                    const SizedBox(height: 8),
+                    _buildPasswordField(
+                      controller: _currentPasswordController,
+                      hint: 'Enter your current password',
+                      iconAsset: 'assets/icons/lock.svg',
+                      obscure: _obscureCurrent,
+                      onToggle: () =>
+                          setState(() => _obscureCurrent = !_obscureCurrent),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    _buildLabel('New Password'),
+                    const SizedBox(height: 8),
+                    _buildPasswordField(
+                      controller: _newPasswordController,
+                      hint: 'Create a strong password',
+                      iconAsset: 'assets/icons/key.svg',
+                      obscure: _obscureNew,
+                      onToggle: () =>
+                          setState(() => _obscureNew = !_obscureNew),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLabel('Confirm New Password'),
+                    const SizedBox(height: 8),
+                    _buildPasswordField(
+                      controller: _confirmPasswordController,
+                      hint: 'Re-enter your new password',
+                      iconAsset: 'assets/icons/check-circle.svg',
+                      obscure: _obscureConfirm,
+                      onToggle: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Use 8+ characters with a mix of letters, numbers, and symbols.',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Colors.black54,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 25,
-            vertical: 25,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              const Text(
-                "Current Password",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              _passwordField(currentPasswordController),
-
-              const SizedBox(height: 35),
-
-              const Text(
-                "New Password",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              _passwordField(newPasswordController),
-
-              const SizedBox(height: 35),
-
-              const Text(
-                "Confirm New Password",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              _passwordField(confirmPasswordController),
-
-              const Spacer(),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-
-                    if (newPasswordController.text !=
-                        confirmPasswordController.text) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                          Text("Passwords do not match"),
-                        ),
-                      );
-                      return;
-                    }
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                        Text("Password changed successfully"),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                      BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    "Confirm",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 25),
-            ],
-          ),
+            _buildConfirmButton(),
+            const SizedBox(height: 12),
+          ],
         ),
       ),
-          ],
+
+      // ============================================================
+      // BOTTOM NAVIGATION BAR
+      // ============================================================
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: Colors.black.withOpacity(0.06)),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _bottomItem(
+                  icon: Icons.home_outlined,
+                  label: 'Home',
+                  selected: true,
+                ),
+                _bottomItem(
+                  icon: Icons.calendar_today_outlined,
+                  label: 'Daily Routine',
+                  selected: false,
+                ),
+                _bottomItem(
+                  icon: Icons.person_outline,
+                  label: 'Profile',
+                  selected: false,
+                ),
+                _bottomItem(
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  selected: false,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _passwordField(TextEditingController controller) {
-    bool isVisible = false;
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: const BoxDecoration(
+        color: Color(0xFFDFF3D8),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: SvgPicture.asset(
+              'assets/icons/Arrow left-circle.svg',
+              width: 30,
+              height: 30,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Change Password',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return SizedBox(
-          height: 45,
-          child: TextField(
-            controller: controller,
-            obscureText: !isVisible,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+      ),
+    );
+  }
 
-              suffixIcon: IconButton(
-                icon: Icon(
-                  isVisible ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-                onPressed: () {
-                  setState(() {
-                    isVisible = !isVisible;
-                  });
-                },
-              ),
-
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade400,
-                ),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.green,
-                  width: 2,
-                ),
+  // NOTE: parameter is `iconAsset` (String path to an SVG), not `icon` (IconData).
+  // This must match how the method is called above.
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String hint,
+    required String iconAsset,
+    required bool obscure,
+    required VoidCallback onToggle,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        style: const TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(14),
+            child: SvgPicture.asset(
+              iconAsset,
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                Colors.black45,
+                BlendMode.srcIn,
               ),
             ),
           ),
-        );
-      },
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: Colors.black38,
+              size: 20,
+            ),
+            onPressed: onToggle,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+          const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        ),
+      ),
     );
-  }   // End _passwordField
+  }
 
-}   // 👈 ADD THIS! End _ChangePasswordScreenState
+  Widget _buildConfirmButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: () {
+            // Handle password change confirmation
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2E7D32),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/icons/shield-check.svg',
+                width: 18,
+                height: 18,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Confirm',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-
-class _CircleIconButton extends StatelessWidget {
-  final String iconPath;
-  final double iconSize;
-  final VoidCallback onTap;
-
-  const _CircleIconButton({
-    required this.iconPath,
-    required this.iconSize,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  // ==============================================================
+  // BOTTOM NAV ITEM
+  // ==============================================================
+  Widget _bottomItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+  }) {
     return GestureDetector(
-      onTap: onTap,
-      child: SvgPicture.asset(
-        iconPath,
-        width: iconSize,
-        height: iconSize,
+      onTap: () {
+        // Add your navigation here
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 22,
+            color: selected ? _green : _grayNav,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+              color: selected ? _green : _grayNav,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,382 +1,394 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:happy_liver/screens/profile/change_password_screen.dart';
-import 'package:happy_liver/screens/profile/edit_profile_screen.dart';
-// import 'package:happy_liver/screens/auth/login_screen.dart';
-
-
-// TEMPORARY placeholder
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Login screen placeholder')),
-    );
-  }
-}
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
 
+  static const Color _green = Color(0xFF2DCB59);
+  static const Color _darkGreen = Color(0xFF1B5E20);
+  static const Color _darkText = Color(0xFF263A31);
+  static const Color _grayText = Color(0xFF8A948E);
+
+  // Consistent horizontal margin used by every section below the header.
+  static const double _hPad = 20;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F6F8),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ---------- Green gradient header ----------
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF0B3D0B),
-                      Color(0xFF136319),
-                      Color(0xFF10A518),
-                    ],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    top: 8,
-                    left: 16,
-                    right: 16,
-                    bottom: 40,
-                  ),
-                  child: Column(
-                    children: [
-                      // Top row: back button + logout icon
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _CircleIconButton(
-                            iconPath: 'assets/icons/Arrow left-circle.svg',
-                            iconSize: 10,
-
-                            onTap: () => Navigator.of(context).maybePop(),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                                    (route) => false,
-                              );
-                            },
-                            child: Image.asset(
-                              'assets/images/logout.png',
-                              width: 45,
-                              height: 45,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Avatar
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 3,
-                          ),
-                        ),
-                        child: const ClipOval(
-                          child: Image(
-                            image: AssetImage('assets/images/profile_image.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Name + edit icon
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Shehani Liyanage',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () {
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const EditProfileScreen(),
-                                ),
-                              );
-                            },
-                            child: SvgPicture.asset(
-                              'assets/icons/Edit.svg',
-                              width: 26,
-                              height: 26,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ---------- White rounded content area ----------
-              Transform.translate(
-                offset: const Offset(0, -24),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(28),
-                      topRight: Radius.circular(28),
-                    ),
-                  ),
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ---------- Two feature cards ----------
-                      Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left:27),
-                            child: SizedBox(
-                              width: 145,
-                              height: 135,
-                              child: _FeatureCard(
-                                iconPath: 'assets/images/image 19.png',
-                                label: 'Weekly\nReport',
-                                gradientColors: const [
-                                  Color(0xFF4A6D7C),
-                                  Color(0xFF96AEAE),
-                                ],
-                                onTap: () {},
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(width: 30),
-                          SizedBox(
-                            width: 145,
-                            height: 135,
-                            child: _FeatureCard(
-                              iconPath: 'assets/images/image 20.png',
-                              label: 'Achieved\nGoals',
-                              gradientColors: const [
-                                Color(0xFF9C9A0A),
-                                Color(0xFFCAE650),
-                              ],
-                              onTap: () {},
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // ---------- List items ----------
-                      _ProfileListTile(
-                        icon: Icons.sync_alt,
-                        label: 'Change Password',
-                        onTap: () {
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChangePasswordScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _ProfileListTile(
-                        icon: Icons.workspace_premium_outlined,
-                        label: 'Premium Features',
-                        onTap: () {},
-                      ),
-                      _ProfileListTile(
-                        icon: Icons.logout,
-                        label: 'Log Out',
-                        onTap: () {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                                (route) => false,
-                          );
-                        },
-                        showDivider: false,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class _CircleIconButton extends StatelessWidget {
-  final String iconPath;
-  final VoidCallback onTap;
-  final double iconSize;
-
-  const _CircleIconButton({
-    required this.iconPath,
-    required this.onTap,
-    this.iconSize = 36,
-  });
-
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: SvgPicture.asset(
-          iconPath,
-          width: 36,
-          height: 36,
-          colorFilter: const ColorFilter.mode(
-            Colors.white,
-            BlendMode.srcIn,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class _FeatureCard extends StatelessWidget {
-  final String iconPath;
-  final String label;
-  final List<Color> gradientColors;
-  final VoidCallback onTap;
-
-  const _FeatureCard({
-    required this.iconPath,
-    required this.label,
-    required this.gradientColors,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 150,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: gradientColors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 12,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                iconPath,
-                width: 37,
-                height: 37,
-                fit: BoxFit.contain,
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class _ProfileListTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool showDivider;
-
-  const _ProfileListTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.showDivider = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, color: Colors.black87, size: 32),
-                const SizedBox(width: 14),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeader(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        _hPad,
+                        24,
+                        _hPad,
+                        0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildStatsRow(),
+                          const SizedBox(height: 26),
+                          const Text(
+                            'Account Settings',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: _darkText,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildAccountSettingsCard(context),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            if (showDivider) ...[
-              const SizedBox(height: 14),
-              const Divider(height: 3
-                  , color: Color(0xFFDDDDDD)),
-            ],
           ],
         ),
+      ),
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  // ================================================================
+  // HEADER
+  // ================================================================
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 24, bottom: 28),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [_darkGreen, _green],
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black, width: 3),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/profile_image.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Shehani Liyanage',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              // Navigate to edit profile
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/Edit.png',
+                    width: 16,
+                    height: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _darkGreen,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // STATS ROW
+  // ================================================================
+  Widget _buildStatsRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _statCard(
+            imageAsset: 'assets/images/weekly.png',
+            label: 'WEEKLY REPORT',
+            value: '85%',
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: _statCard(
+            imageAsset: 'assets/images/target.png',
+            label: 'ACHIEVED GOALS',
+            value: '12/15',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _statCard({
+    required String imageAsset,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            imageAsset,
+            width: 70,
+            height: 70,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
+              color: _grayText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: _darkText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // ACCOUNT SETTINGS CARD
+  // ================================================================
+  Widget _buildAccountSettingsCard(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _settingsRow(
+            iconAsset: 'assets/images/change.png',
+            iconBg: const Color(0xFFE9F9EE),
+            label: 'Change Password',
+            onTap: () {
+              // Navigate to ChangePasswordScreen
+            },
+          ),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+          _settingsRow(
+            iconAsset: 'assets/images/crown.png',
+            iconBg: const Color(0xFFFFF6DE),
+            label: 'Premium Features',
+            onTap: () {
+              // Navigate to premium screen
+            },
+          ),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+          _settingsRow(
+            iconAsset: 'assets/images/logout.png',
+            iconBg: const Color(0xFFFCEAEA),
+            label: 'Log Out',
+            labelColor: const Color(0xFFE3453A),
+            onTap: () {
+              // Handle logout
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _settingsRow({
+    required String iconAsset,
+    required Color iconBg,
+    required String label,
+    required VoidCallback onTap,
+    Color labelColor = _darkText,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Image.asset(
+                  iconAsset,
+                  width: 18,
+                  height: 18,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: labelColor,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: _grayText,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // BOTTOM NAVIGATION BAR
+  // ================================================================
+  Widget _buildBottomNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Colors.black.withOpacity(0.06)),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _bottomItem(
+                icon: Icons.home_outlined,
+                label: 'Home',
+                selected: true,
+              ),
+              _bottomItem(
+                icon: Icons.calendar_today_outlined,
+                label: 'Daily Routine',
+                selected: false,
+              ),
+              _bottomItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                selected: false,
+              ),
+              _bottomItem(
+                icon: Icons.settings_outlined,
+                label: 'Settings',
+                selected: false,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        // Add your navigation here
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 22,
+            color: selected ? _green : _grayText,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? _green : _grayText,
+            ),
+          ),
+        ],
       ),
     );
   }

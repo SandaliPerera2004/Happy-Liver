@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/screens/dashboard/profile_screen.dart';
 
 
 class EditProfileScreen extends StatefulWidget {
@@ -75,7 +76,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const UserProfileScreen(),
+                          ),
+                        );
+                      },
                       icon: SvgPicture.asset(
                         'assets/icons/Arrow left-circle.svg',
                         width: 26,
