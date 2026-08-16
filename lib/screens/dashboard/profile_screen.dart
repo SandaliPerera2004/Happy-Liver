@@ -384,7 +384,7 @@ class UserProfileScreen extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 10,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
               color: selected ? _green : _grayText,
             ),
           ),
