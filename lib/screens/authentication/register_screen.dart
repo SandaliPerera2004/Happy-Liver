@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'login_screen.dart';
 
@@ -24,11 +26,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   static const Color darkGreen = Color(0xFF155D1B);
 
-  // Very light green background
   static const Color backgroundGreen = Color(0xFFFFFFFF);
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
+
+  bool isLoading = false;
 
   @override
   void dispose() {
@@ -39,7 +42,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void register() {
+  Future<void> register() async {
+    // Check empty fields
     if (usernameController.text.trim().isEmpty ||
         emailController.text.trim().isEmpty ||
         passwordController.text.isEmpty ||
@@ -52,6 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // Check passwords
     if (passwordController.text !=
         confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,15 +67,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Registration successful. Please log in.',
-        ),
-      ),
-    );
+    setState(() {
+      isLoading = true;
+    });
 
-    Future.delayed(const Duration(milliseconds: 800), () {
+    try {
+      // 1. Create account in Firebase Authentication
+      final UserCredential userCredential =
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      // Get the Firebase user
+      final User? user = userCredential.user;
+
+      if (user == null) {
+        throw Exception('User account could not be created.');
+      }
+
+      // 2. Save user information in Cloud Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
+        'username': usernameController.text.trim(),
+        'email': emailController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+
+      // 3. Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Account created successfully. Please log in.',
+          ),
+        ),
+      );
+
+      // 4. Go to Login screen
+      await Future.delayed(
+        const Duration(milliseconds: 800),
+      );
+
       if (!mounted) return;
 
       Navigator.pushAndRemoveUntil(
@@ -80,7 +121,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
             (route) => false,
       );
-    });
+    } on FirebaseAuthException catch (e) {
+      String message;
+
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = 'An account already exists with this email.';
+          break;
+
+        case 'invalid-email':
+          message = 'Please enter a valid email address.';
+          break;
+
+        case 'weak-password':
+          message = 'Password is too weak.';
+          break;
+
+        case 'operation-not-allowed':
+          message = 'Email/password authentication is not enabled.';
+          break;
+
+        default:
+          message = e.message ?? 'Registration failed.';
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not save your account information: ${e.message}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Something went wrong: $e',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   Widget buildTextField({
@@ -134,7 +232,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureConfirmPassword =
                   !obscureConfirmPassword;
                 } else {
-                  obscurePassword = !obscurePassword;
+                  obscurePassword =
+                  !obscurePassword;
                 }
               });
             },
@@ -178,10 +277,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           child: Column(
             children: [
-
               const SizedBox(height: 80),
 
-              // Centered title
               const Center(
                 child: Text(
                   'Hello! Register to get started',
@@ -231,7 +328,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               const SizedBox(height: 70),
 
-              // Register button with drop shadow
               Container(
                 width: double.infinity,
                 height: 48,
@@ -246,16 +342,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: register,
+                  onPressed: isLoading ? null : register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkGreen,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: darkGreen,
+                    disabledForegroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
+                  child: isLoading
+                      ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Text(
                     'Register',
                     style: TextStyle(
                       fontSize: 18,
