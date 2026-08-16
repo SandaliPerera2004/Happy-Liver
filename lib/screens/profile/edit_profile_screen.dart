@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:happy_liver/screens/dashboard/profile_screen.dart';
-
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -12,16 +9,35 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  static const Color _green = Color(0xFF2E7D32);
+  static const Color _lightGreenHeader = Color(0xFFDFF3D8);
+  static const Color _darkText = Color(0xFF263A31);
+  static const Color _grayText = Color(0xFF8A948E);
+  static const Color _fieldFill = Color(0xFFF2F3F5);
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _heightController =
+  TextEditingController(text: '170');
+  final TextEditingController _weightController =
+  TextEditingController(text: '65');
 
   String _gender = 'Female';
 
-  static const Color kGreen = Color(0xFF2E7D32);
-  static const Color kLightGreenAppBar = Color(0xFFDDF2DD);
-  static const Color kFieldBorder = Color(0xFFD9D9D9);
+  double get _bmi {
+    final height = double.tryParse(_heightController.text);
+    final weight = double.tryParse(_weightController.text);
+    if (height == null || weight == null || height <= 0) return 0;
+    final heightInMeters = height / 100;
+    return weight / (heightInMeters * heightInMeters);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _heightController.addListener(() => setState(() {}));
+    _weightController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
@@ -32,83 +48,471 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _resetForm() {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6F8),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildAvatar(),
+                    const SizedBox(height: 24),
+                    _buildBasicInfoCard(),
+                    const SizedBox(height: 16),
+                    _buildBmiCard(),
+                    const SizedBox(height: 14),
+                    TextButton(
+                      onPressed: _resetFields,
+                      child: const Text(
+                        'Reset',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _grayText,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _buildSaveButton(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  void _resetFields() {
     setState(() {
       _nameController.clear();
       _ageController.clear();
-      _heightController.clear();
-      _weightController.clear();
+      _heightController.text = '170';
+      _weightController.text = '65';
       _gender = 'Female';
     });
   }
 
-  void _saveProfile() {
-    // TODO: wire up save logic (API call / local storage / state mgmt)
-    final profile = {
-      'name': _nameController.text,
-      'age': _ageController.text,
-      'gender': _gender,
-      'height': _heightController.text,
-      'weight': _weightController.text,
-    };
-    debugPrint('Saving profile: $profile');
+  // ================================================================
+  // HEADER
+  // ================================================================
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      color: _lightGreenHeader,
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: SvgPicture.asset(
+              'assets/icons/Arrow left-circle.svg',
+              width: 34,
+              height: 34,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Edit Profile',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: _darkText,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.transparent,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Column(
-            children: [
-              // Green header bar — starts below the status bar
-              Container(
-                width: double.infinity,
-                color: kLightGreenAppBar,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 10,
+  // ================================================================
+  // AVATAR
+  // ================================================================
+  Widget _buildAvatar() {
+    return Column(
+      children: [
+        Stack(
+          children: [
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/profile_image.png'),
+                  fit: BoxFit.cover,
                 ),
-                child: Row(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {
+                  // Handle photo change
+                },
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFE5EAE7)),
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_outlined,
+                    size: 15,
+                    color: _darkText,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'Tap to change photo',
+          style: TextStyle(
+            fontSize: 13,
+            color: _grayText,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ================================================================
+  // BASIC INFORMATION CARD
+  // ================================================================
+  Widget _buildBasicInfoCard() {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Basic Information',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: _darkText,
+            ),
+          ),
+          const SizedBox(height: 18),
+          _fieldLabel('Name'),
+          const SizedBox(height: 8),
+          _textField(
+            controller: _nameController,
+            hint: 'Enter your name',
+          ),
+          const SizedBox(height: 18),
+          _fieldLabel('Age'),
+          const SizedBox(height: 8),
+          _textField(
+            controller: _ageController,
+            hint: 'Enter your age',
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 18),
+          _fieldLabel('Gender'),
+          const SizedBox(height: 8),
+          _genderToggle(),
+        ],
+      ),
+    );
+  }
+
+  Widget _genderToggle() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: _fieldFill,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _genderOption('Female')),
+          Expanded(child: _genderOption('Male')),
+        ],
+      ),
+    );
+  }
+
+  Widget _genderOption(String label) {
+    final bool selected = _gender == label;
+    return GestureDetector(
+      onTap: () => setState(() => _gender = label),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
+          boxShadow: selected
+              ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: selected ? _darkText : _grayText,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // BMI CARD
+  // ================================================================
+  Widget _buildBmiCard() {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Text(
+                'BMI',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _darkText,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _bmi > 0 ? _bmi.toStringAsFixed(1) : '--',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: _darkText,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 3),
+                child: Text(
+                  'kg/m²',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: _grayText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const UserProfileScreen(),
-                          ),
-                        );
-                      },
-                      icon: SvgPicture.asset(
-                        'assets/icons/Arrow left-circle.svg',
-                        width: 26,
-                        height: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Edit Profile',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
+                    _fieldLabel('Height'),
+                    const SizedBox(height: 8),
+                    _unitField(
+                      controller: _heightController,
+                      unit: 'cm',
                     ),
                   ],
                 ),
               ),
-              // Scrollable form content
+              const SizedBox(width: 14),
               Expanded(
-                child: SingleChildScrollView(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
-                  child: _buildForm(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _fieldLabel('Weight'),
+                    const SizedBox(height: 8),
+                    _unitField(
+                      controller: _weightController,
+                      unit: 'kg',
+                    ),
+                  ],
                 ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // SAVE BUTTON
+  // ================================================================
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: () {
+          // Handle save
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _green,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: const Text(
+          'Save Changes',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // SHARED WIDGETS
+  // ================================================================
+  Widget _card({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _fieldLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: _darkText,
+      ),
+    );
+  }
+
+  Widget _textField({
+    required TextEditingController controller,
+    required String hint,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: const TextStyle(fontSize: 14, color: _darkText),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
+        filled: true,
+        fillColor: _fieldFill,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _unitField({
+    required TextEditingController controller,
+    required String unit,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(fontSize: 14, color: _darkText),
+      decoration: InputDecoration(
+        suffixText: unit,
+        suffixStyle: const TextStyle(color: _grayText, fontSize: 13),
+        filled: true,
+        fillColor: _fieldFill,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  // ================================================================
+  // BOTTOM NAVIGATION BAR
+  // ================================================================
+  Widget _buildBottomNavBar() {
+    return Material(
+      elevation: 0,
+      color: Colors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _bottomItem(
+                icon: Icons.home_outlined,
+                label: 'Home',
+                selected: true,
+              ),
+              _bottomItem(
+                icon: Icons.calendar_today_outlined,
+                label: 'Daily Routine',
+                selected: false,
+              ),
+              _bottomItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                selected: false,
+              ),
+              _bottomItem(
+                icon: Icons.settings_outlined,
+                label: 'Settings',
+                selected: false,
               ),
             ],
           ),
@@ -117,197 +521,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel('Name'),
-        _buildTextField(controller: _nameController),
-        const SizedBox(height: 20),
-
-        _buildLabel('Age'),
-        _buildTextField(
-          controller: _ageController,
-          keyboardType: TextInputType.number,
-        ),
-        const SizedBox(height: 20),
-
-        _buildLabel('Gender'),
-        const SizedBox(height: 4),
-        _buildGenderOption('Female'),
-        _buildGenderOption('Male'),
-        const SizedBox(height: 12),
-
-        const Text(
-          'BMI',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        _buildLabelWithUnit('Height', 'cm'),
-        _buildTextField(
-          controller: _heightController,
-          keyboardType: TextInputType.number,
-          highlighted: true,
-        ),
-        const SizedBox(height: 20),
-
-        _buildLabelWithUnit('Weight', 'kg'),
-        _buildTextField(
-          controller: _weightController,
-          keyboardType: TextInputType.number,
-          highlighted: true,
-        ),
-        const SizedBox(height: 40),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildButton(
-              label: 'Reset',
-              color: Colors.grey.shade400,
-              onPressed: _resetForm,
-            ),
-            const SizedBox(width: 20),
-            _buildButton(
-              label: 'Save',
-              color: kGreen,
-              onPressed: _saveProfile,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabelWithUnit(String label, String unit) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _bottomItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        // Add your navigation here
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Icon(
+            icon,
+            size: 22,
+            color: selected ? _green : _grayText,
+          ),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: Text(
-              unit,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade700,
-              ),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+              color: selected ? _green : _grayText,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    TextInputType keyboardType = TextInputType.text,
-    bool highlighted = false,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(
-            color: highlighted ? kGreen : kFieldBorder,
-            width: highlighted ? 1.5 : 1,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(
-            color: highlighted ? kGreen : kFieldBorder,
-            width: highlighted ? 1.5 : 1.5,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: kGreen, width: 1),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenderOption(String value) {
-    return InkWell(
-      onTap: () => setState(() => _gender = value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0),
-        child: Row(
-          children: [
-            Radio<String>(
-              value: value,
-              groupValue: _gender,
-              activeColor: kGreen,
-              onChanged: (val) => setState(() => _gender = val!),
-            ),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButton({
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      width: 130,
-      height: 44,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-        ),
       ),
     );
   }
