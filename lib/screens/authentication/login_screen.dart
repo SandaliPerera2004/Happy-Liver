@@ -70,6 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
         email: emailController.text.trim(),
         password: passwordController.text,
       );
+      print('LOGIN USER: ${FirebaseAuth.instance.currentUser}');
+      print('LOGIN UID: ${FirebaseAuth.instance.currentUser?.uid}');
 
       if (!mounted) return;
 

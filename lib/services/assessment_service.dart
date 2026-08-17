@@ -1,879 +1,473 @@
 import '../models/question_model.dart';
 import '../models/risk_level.dart';
 
-
-
 class AssessmentService {
-
-
-
-  // =====================================================
-  // 14 ASSESSMENT QUESTIONS
-  // =====================================================
-
-
-  static List<QuestionModel> getQuestions(){
-
-
-    return [
-
-
-
-      QuestionModel(
-
-        question:
-        "Have you ever been diagnosed with fatty liver disease or cholesterol by a doctor?",
-
-        type: QuestionType.singleChoice,
-
-        options:[
-
-          "Fatty liver",
-
-          "Cholesterol",
-
-          "Both",
-
-          "None"
-
-        ],
-
-
-        scores:[
-
-          5,
-
-          5,
-
-          6,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "Do you have a family history of any of the following?",
-
-        type: QuestionType.multipleChoice,
-
-
-        options:[
-
-          "Liver disease",
-
-          "Heart disease",
-
-          "Cholesterol",
-
-          "Diabetes",
-
-          "None"
-
-        ],
-
-
-        scores:[
-
-          3,
-
-          3,
-
-          3,
-
-          3,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "Have you been diagnosed with any of these conditions?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Diabetes",
-
-          "High blood pressure",
-
-          "Both",
-
-          "None"
-
-        ],
-
-
-        scores:[
-
-          4,
-
-          3,
-
-          5,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How often do you eat fried or fast food?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Never",
-
-          "1-2 times a week",
-
-          "3-4 times a week",
-
-          "5 or more times a week"
-
-        ],
-
-
-        scores:[
-
-          0,
-
-          1,
-
-          2,
-
-          3
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How many servings of fruits and vegetables do you eat each day?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "None",
-
-          "1-2 servings",
-
-          "3-4 servings",
-
-          "5 or more servings"
-
-        ],
-
-
-        scores:[
-
-          3,
-
-          2,
-
-          1,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How often do you drink sugary beverages?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Never",
-
-          "Occasionally",
-
-          "3-4 times a week",
-
-          "Daily"
-
-        ],
-
-
-        scores:[
-
-          0,
-
-          1,
-
-          2,
-
-          3
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How many days each week do you exercise for at least 30 minutes?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Never",
-
-          "1-2 days",
-
-          "3-5 days",
-
-          "Every day"
-
-        ],
-
-
-        scores:[
-
-          3,
-
-          2,
-
-          1,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How long do you usually spend sitting each day?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Less than 4 hours",
-
-          "4-6 hours",
-
-          "6-8 hours",
-
-          "More than 8 hours"
-
-        ],
-
-
-        scores:[
-
-          0,
-
-          1,
-
-          2,
-
-          3
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "Do you smoke or consume alcohol?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Neither",
-
-          "Smoke only",
-
-          "Alcohol only",
-
-          "Both"
-
-        ],
-
-
-        scores:[
-
-          0,
-
-          2,
-
-          2,
-
-          4
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "Enter height and weight to calculate BMI",
-
-        type: QuestionType.bmi,
-
-
-        options:[],
-
-
-        scores:[],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How often do you have a medical checkup or blood test?",
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Every 6 months",
-
-          "Once a year",
-
-          "Every few years",
-
-          "Never"
-
-        ],
-
-
-        scores:[
-
-          0,
-
-          1,
-
-          2,
-
-          3
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "Are you currently taking medication for any of these following?",
-
-
-        type: QuestionType.multipleChoice,
-
-
-        options:[
-
-          "Cholesterol",
-
-          "Diabetes",
-
-          "Liver disease",
-
-          "None"
-
-        ],
-
-
-        scores:[
-
-          3,
-
-          3,
-
-          3,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "Have you experienced any of these symptoms recently?",
-
-
-        type: QuestionType.multipleChoice,
-
-
-        options:[
-
-          "Fatigue",
-
-          "Abdominal discomfort",
-
-          "Weight gain",
-
-          "None"
-
-        ],
-
-
-        scores:[
-
-          2,
-
-          3,
-
-          2,
-
-          0
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-
-      QuestionModel(
-
-        question:
-        "How would you describe your overall lifestyle?",
-
-
-        type: QuestionType.singleChoice,
-
-
-        options:[
-
-          "Healthy",
-
-          "Moderately healthy",
-
-          "Unhealthy"
-
-        ],
-
-
-        scores:[
-
-          0,
-
-          2,
-
-          4
-
-        ],
-
-
-      ),
-
-
-
-    ];
-
-
-  }
-
-
-
-
-
-
-
-  // =====================================================
-  // BMI CALCULATION
-  // =====================================================
-
-
-  static double calculateBMI(
-
-      double heightCm,
-
-      double weightKg
-
-      ){
-
-
-    double heightMeter =
-        heightCm / 100;
-
-
-    return weightKg /
-        (heightMeter * heightMeter);
-
-
-  }
-
-
-
-
-
-
-
-  static int calculateBMIScore(double bmi){
-
-
-    if(bmi < 18.5){
-
-      return 1;
-
-    }
-
-    else if(bmi < 25){
-
-      return 0;
-
-    }
-
-    else if(bmi < 30){
-
-      return 2;
-
-    }
-
-    else{
-
-      return 3;
-
-    }
-
-  }
-
-
-
-
-
-
-
-  // =====================================================
-  // FATTY LIVER SCORE
-  // =====================================================
-
-
-  static int calculateFattyLiverScore(
-
-      Map<int,dynamic> answers,
-
-      double bmiScore
-
-      ){
-
-
-
-    return calculateScore(
-        answers,
-        bmiScore,
-        true
-    );
-
-
-  }
-
-
-
-
-
-
-
-  // =====================================================
-  // CHOLESTEROL SCORE
-  // =====================================================
-
-
-  static int calculateCholesterolScore(
-
-      Map<int,dynamic> answers
-
-      ){
-
-
-    return calculateScore(
-
-        answers,
-
-        0,
-
-        false
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-  static int calculateScore(
-
-      Map<int,dynamic> answers,
-
-      double bmiScore,
-
-      bool fattyLiver
-
-      ){
-
-
-    int totalScore = 0;
-
-
-    List<QuestionModel> questions =
-    getQuestions();
-
-
-
-
-    answers.forEach((index,value){
-
-
-
-      QuestionModel question =
-      questions[index];
-
-
-
-      if(question.type ==
-          QuestionType.singleChoice){
-
-
-
-        int optionIndex =
-        question.options.indexOf(value);
-
-
-
-        if(optionIndex >= 0){
-
-
-          totalScore +=
-          question.scores[optionIndex];
-
-
-        }
-
-
+  static const List<AssessmentQuestion> questions = [
+
+    // =========================================================
+    // LIFESTYLE & WORK
+    // =========================================================
+
+    AssessmentQuestion(
+      id: 1,
+      section: 'Lifestyle & Work',
+      sectionIcon: '👨‍💼',
+      question: 'What type of work do you do?',
+      options: [
+        AnswerOption(
+          text: 'Active\n(moving/standing)',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'Mixed\n(some sitting, some moving)',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'Sedentary\n(mostly sitting)',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 3,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 2,
+      section: 'Lifestyle & Work',
+      sectionIcon: '👨‍💼',
+      question: 'How often do you exercise or engage in physical activity?',
+      options: [
+        AnswerOption(
+          text: '5 or more than days/week',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: '2–4 days/week',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: '1 or less than day/week',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 3,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 3,
+      section: 'Lifestyle & Work',
+      sectionIcon: '👨‍💼',
+      question: 'How many hours of sleep do you usually get per night?',
+      options: [
+        AnswerOption(
+          text: '7–8 hours',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: '5–6 hours',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: '4 or less than hours',
+          fattyLiverPoints: 2,
+          cholesterolPoints: 2,
+        ),
+      ],
+    ),
+
+    // =========================================================
+    // DIET & EATING HABITS
+    // =========================================================
+
+    AssessmentQuestion(
+      id: 4,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽',
+      question: 'Do you prefer home-cooked meals or restaurant/fast food?',
+      options: [
+        AnswerOption(
+          text: 'Mostly home-cooked',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'Mixed',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'Mostly restaurant/fast food',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 3,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 5,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽',
+      question: 'How often do you eat fried or oily foods per week?',
+      options: [
+        AnswerOption(
+          text: '0–1 times',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: '2–3 times',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 2,
+        ),
+        AnswerOption(
+          text: '4 or more than times',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 3,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 6,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽',
+      question: 'How often do you eat red meat (beef, pork, mutton)?',
+      options: [
+        AnswerOption(
+          text: 'Rarely\n(1 or less than time/week)',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'Sometimes\n(2–3 times/week)',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 2,
+        ),
+        AnswerOption(
+          text: 'Often\n(4 or more than times/week)',
+          fattyLiverPoints: 2,
+          cholesterolPoints: 3,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 7,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽',
+      question: 'Do you regularly eat fish or lean protein (chicken, pulses, beans)?',
+      options: [
+        AnswerOption(
+          text: 'Daily',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: '2–3 times/week',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'Rarely/Never',
+          fattyLiverPoints: 2,
+          cholesterolPoints: 2,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 8,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽️',
+      question: 'How many servings of fruits and vegetables do you eat daily?',
+      options: [
+        AnswerOption(
+          text: '5 or more than servings',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: '2–4 servings',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: '1 or less than serving',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 2,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 9,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽',
+      question: 'What type of cooking oil do you mostly use at home?',
+      options: [
+        AnswerOption(
+          text: 'Olive/coconut oil\n(moderate use)',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'Sunflower/canola oil',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'Palm oil/reused fried oil',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 3,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 10,
+      section: 'Diet & Eating Habits',
+      sectionIcon: '🍽',
+      question: 'Do you often eat processed/packaged foods (chips, biscuits, instant noodles)?',
+      options: [
+        AnswerOption(
+          text: 'Rarely',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'Sometimes',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'Frequently',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 2,
+        ),
+      ],
+    ),
+
+    // =========================================================
+    // LIFESTYLE CHOICES
+    // =========================================================
+
+    AssessmentQuestion(
+      id: 11,
+      section: 'Lifestyle Choices',
+      sectionIcon: '🥤',
+      question: 'Do you consume alcohol?',
+      options: [
+        AnswerOption(
+          text: 'Yes',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'No',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 12,
+      section: 'Lifestyle Choices',
+      sectionIcon: '🥤',
+      question: 'Do you drink tea, coffee, or sugary drinks daily?',
+      options: [
+        AnswerOption(
+          text: '0–1 cups',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: '2–3 cups',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: '4 or more than cups',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 2,
+        ),
+      ],
+    ),
+
+    // =========================================================
+    // MEDICAL & FAMILY HISTORY
+    // MULTIPLE CHOICE
+    // =========================================================
+
+    AssessmentQuestion(
+      id: 13,
+      section: 'Medical & Family History',
+      sectionIcon: '🖊',
+      question: 'Do you have a family history of these diseases?',
+      isMultipleChoice: true,
+      options: [
+        AnswerOption(
+          text: 'Fatty Liver',
+          fattyLiverPoints: 2,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'High Cholesterol',
+          fattyLiverPoints: 0,
+          cholesterolPoints: 2,
+        ),
+        AnswerOption(
+          text: 'Heart Disease',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 2,
+        ),
+        AnswerOption(
+          text: 'None',
+          isNone: true,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 14,
+      section: 'Medical & Family History',
+      sectionIcon: '🖊',
+      question: 'Have you ever been diagnosed with diabetes, hypertension or metabolic syndrome?',
+      isMultipleChoice: true,
+      options: [
+        AnswerOption(
+          text: 'Diabetes',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 2,
+        ),
+        AnswerOption(
+          text: 'Hypertension\n(High Blood Pressure)',
+          fattyLiverPoints: 1,
+          cholesterolPoints: 3,
+        ),
+        AnswerOption(
+          text: 'Metabolic Syndrome\n(combo of BP, sugar & fat)',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 3,
+        ),
+        AnswerOption(
+          text: 'None',
+          isNone: true,
+        ),
+      ],
+    ),
+
+    AssessmentQuestion(
+      id: 15,
+      section: 'Medical & Family History',
+      sectionIcon: '🖊',
+      question: 'Which of the following do you experience?',
+      isMultipleChoice: true,
+      options: [
+        AnswerOption(
+          text: 'Frequent fatigue',
+          fattyLiverPoints: 2,
+          cholesterolPoints: 1,
+        ),
+        AnswerOption(
+          text: 'Abdominal discomfort',
+          fattyLiverPoints: 2,
+          cholesterolPoints: 0,
+        ),
+        AnswerOption(
+          text: 'Unexplained weight gain',
+          fattyLiverPoints: 3,
+          cholesterolPoints: 2,
+        ),
+        AnswerOption(
+          text: 'None',
+          isNone: true,
+        ),
+      ],
+    ),
+  ];
+
+  static AssessmentResult calculateResult(
+      Map<int, List<int>> answers,
+      ) {
+    int fattyLiverScore = 0;
+    int cholesterolScore = 0;
+
+    int fattyLiverMaxScore = 0;
+    int cholesterolMaxScore = 0;
+
+    for (final question in questions) {
+      final selectedIndexes = answers[question.id] ?? [];
+
+      // Calculate selected answer scores
+      for (final index in selectedIndexes) {
+        final option = question.options[index];
+
+        fattyLiverScore += option.fattyLiverPoints;
+        cholesterolScore += option.cholesterolPoints;
       }
 
+      // Calculate maximum possible score for normalization.
+      if (question.isMultipleChoice) {
+        fattyLiverMaxScore += question.options
+            .where((option) => !option.isNone)
+            .fold(
+          0,
+              (sum, option) => sum + option.fattyLiverPoints,
+        );
 
+        cholesterolMaxScore += question.options
+            .where((option) => !option.isNone)
+            .fold(
+          0,
+              (sum, option) => sum + option.cholesterolPoints,
+        );
+      } else {
+        fattyLiverMaxScore += question.options
+            .map((option) => option.fattyLiverPoints)
+            .reduce((a, b) => a > b ? a : b);
 
-
-
-      else if(question.type ==
-          QuestionType.multipleChoice){
-
-
-
-        for(String answer in value){
-
-
-
-          int optionIndex =
-          question.options.indexOf(answer);
-
-
-
-          if(optionIndex >= 0){
-
-
-            totalScore +=
-            question.scores[optionIndex];
-
-
-          }
-
-
-        }
-
-
+        cholesterolMaxScore += question.options
+            .map((option) => option.cholesterolPoints)
+            .reduce((a, b) => a > b ? a : b);
       }
-
-
-
-    });
-
-
-
-
-
-    if(fattyLiver){
-
-      totalScore +=
-          bmiScore.toInt();
-
     }
 
-
-
-    return totalScore;
-
-
+    return AssessmentResult(
+      fattyLiverScore: fattyLiverScore,
+      fattyLiverMaxScore: fattyLiverMaxScore,
+      cholesterolScore: cholesterolScore,
+      cholesterolMaxScore: cholesterolMaxScore,
+      fattyLiverRisk: _getRiskLevel(
+        fattyLiverScore,
+        fattyLiverMaxScore,
+      ),
+      cholesterolRisk: _getRiskLevel(
+        cholesterolScore,
+        cholesterolMaxScore,
+      ),
+    );
   }
 
+  static RiskLevel _getRiskLevel(
+      int score,
+      int maxScore,
+      ) {
+    if (maxScore == 0) return RiskLevel.low;
 
+    final percentage = (score / maxScore) * 100;
 
-
-
-
-
-
-  // =====================================================
-  // RISK LEVEL
-  // =====================================================
-
-
-  static RiskLevel getRiskLevel(int score){
-
-
-
-    if(score <= 10){
-
-
+    if (percentage < 34) {
       return RiskLevel.low;
-
-
-    }
-
-
-    else if(score <= 20){
-
-
+    } else if (percentage < 67) {
       return RiskLevel.moderate;
-
-
-    }
-
-
-    else{
-
-
+    } else {
       return RiskLevel.high;
-
-
     }
-
-
-
   }
-
-
-
 }

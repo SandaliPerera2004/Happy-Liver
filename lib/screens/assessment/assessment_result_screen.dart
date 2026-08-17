@@ -1,629 +1,129 @@
 import 'package:flutter/material.dart';
+
 import '../../models/risk_level.dart';
-import '../../widgets/custom_header.dart';
-
-
-
 
 class AssessmentResultScreen extends StatelessWidget {
-
-
   final RiskLevel fattyLiverRisk;
-
   final RiskLevel cholesterolRisk;
-
-
   final int fattyLiverScore;
-
   final int cholesterolScore;
 
-
-
-
-
   const AssessmentResultScreen({
-
-
     super.key,
-
-
     required this.fattyLiverRisk,
-
-
     required this.cholesterolRisk,
-
-
     required this.fattyLiverScore,
-
-
     required this.cholesterolScore,
-
-
   });
 
-
-
-
-
-
-
-
-
-  String getRiskText(RiskLevel risk){
-
-
-    switch(risk){
-
-
+  String _riskText(RiskLevel level) {
+    switch (level) {
       case RiskLevel.low:
-
-        return "LOW RISK";
-
+        return 'Low Risk';
 
       case RiskLevel.moderate:
-
-        return "MODERATE RISK";
-
+        return 'Moderate Risk';
 
       case RiskLevel.high:
-
-        return "HIGH RISK";
-
-
+        return 'High Risk';
     }
-
-
   }
-
-
-
-
-
-
-
-
-
-  Color getRiskColor(RiskLevel risk){
-
-
-    switch(risk){
-
-
-      case RiskLevel.low:
-
-        return Colors.green;
-
-
-      case RiskLevel.moderate:
-
-        return Colors.orange;
-
-
-      case RiskLevel.high:
-
-        return Colors.red;
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-
-  Widget riskCard(
-
-      String title,
-
-      RiskLevel risk,
-
-      int score
-
-      ){
-
-
-
-    return Container(
-
-
-
-      width: double.infinity,
-
-
-
-      padding:
-      const EdgeInsets.all(20),
-
-
-
-
-      margin:
-      const EdgeInsets.only(bottom:20),
-
-
-
-
-
-      decoration: BoxDecoration(
-
-
-        color:
-        Colors.white,
-
-
-        borderRadius:
-        BorderRadius.circular(20),
-
-
-
-        boxShadow: [
-
-
-          BoxShadow(
-
-
-            color:
-            Colors.grey.shade300,
-
-
-            blurRadius:10,
-
-
-            offset:
-            const Offset(0,5),
-
-
-          )
-
-        ],
-
-
-      ),
-
-
-
-
-
-
-      child: Column(
-
-
-
-        children: [
-
-
-
-          Text(
-
-
-
-            title,
-
-
-
-            style:
-            const TextStyle(
-
-
-
-              fontSize:20,
-
-
-              fontWeight:
-              FontWeight.bold,
-
-
-            ),
-
-
-
-          ),
-
-
-
-
-
-
-          const SizedBox(height:15),
-
-
-
-
-
-
-          Container(
-
-
-
-            padding:
-            const EdgeInsets.symmetric(
-
-
-              horizontal:25,
-
-
-              vertical:12,
-
-
-            ),
-
-
-
-            decoration: BoxDecoration(
-
-
-              color:
-              getRiskColor(risk)
-                  .withOpacity(0.15),
-
-
-
-              borderRadius:
-              BorderRadius.circular(30),
-
-
-            ),
-
-
-
-            child: Text(
-
-
-
-              getRiskText(risk),
-
-
-
-
-              style: TextStyle(
-
-
-
-                color:
-                getRiskColor(risk),
-
-
-
-                fontSize:18,
-
-
-                fontWeight:
-                FontWeight.bold,
-
-
-              ),
-
-
-
-            ),
-
-
-
-          ),
-
-
-
-
-
-
-          const SizedBox(height:15),
-
-
-
-
-
-
-          Text(
-
-
-            "Score: $score",
-
-
-
-            style:
-            const TextStyle(
-
-
-
-              fontSize:16,
-
-
-
-            ),
-
-
-
-          ),
-
-
-
-        ],
-
-
-      ),
-
-
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return Scaffold(
-
-
-
-      backgroundColor:
-      Colors.grey.shade100,
-
-
-
-
-      appBar: const CustomHeader(title: 'Assessment Result', showBack: true,),
-
-
-
-
-
-
-
-
-
-
-      body: SingleChildScrollView(
-
-
-
-        padding:
-        const EdgeInsets.all(20),
-
-
-
-
-
-        child: Column(
-
-
-
-          children: [
-
-
-
-
-
-            const SizedBox(height:20),
-
-
-
-
-
-            const Text(
-
-
-
-              "Your Health Risk Assessment",
-
-
-
-              style: TextStyle(
-
-
-
-                fontSize:24,
-
-
-                fontWeight:
-                FontWeight.bold,
-
-
-              ),
-
-
-
-            ),
-
-
-
-
-
-
-            const SizedBox(height:30),
-
-
-
-
-
-
-
-            riskCard(
-
-
-
-              "Fatty Liver Risk",
-
-
-
-              fattyLiverRisk,
-
-
-
-              fattyLiverScore,
-
-
-            ),
-
-            const SizedBox(height: 30),
-
-
-            riskCard(
-
-
-
-              "Cholesterol Risk",
-
-
-
-              cholesterolRisk,
-
-
-
-              cholesterolScore,
-
-
-            ),
-
-
-
-
-
-
-
-            const SizedBox(height:40),
-
-
-
-
-
-
-
-            ElevatedButton(
-
-
-
-              onPressed: (){
-
-
-
-                Navigator.popUntil(
-
-
-                  context,
-
-
-                      (route)=>route.isFirst,
-
-
-                );
-
-
-
-              },
-
-
-
-              style:
-              ElevatedButton.styleFrom(
-
-
-
-                backgroundColor:
-                Colors.green[900],
-
-
-
-                padding:
-                const EdgeInsets.symmetric(
-
-
-
-                  horizontal:50,
-
-
-                  vertical:15,
-
-
+      backgroundColor: const Color(0xFFF9FAF9),
+
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(30),
+
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+
+              children: [
+                const Text(
+                  'Your Assessment Result',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
+                const SizedBox(height: 40),
 
-
-                shape:
-                RoundedRectangleBorder(
-
-
-
-                  borderRadius:
-                  BorderRadius.circular(30),
-
-
+                _resultCard(
+                  title: 'Fatty Liver Risk',
+                  score: '$fattyLiverScore',
+                  risk: _riskText(fattyLiverRisk),
                 ),
 
+                const SizedBox(height: 20),
 
-
-              ),
-
-
-
-
-
-              child:
-              const Text(
-
-
-
-                "Back to Home",
-
-
-
-                style: TextStyle(
-
-
-
-                  color:
-                  Colors.white,
-
-
-                  fontSize:16,
-
-
+                _resultCard(
+                  title: 'Cholesterol Risk',
+                  score: '$cholesterolScore',
+                  risk: _riskText(cholesterolRisk),
                 ),
-
-
-
-              ),
-
-
-
-            )
-
-
-
-
-
-          ],
-
-
+              ],
+            ),
+          ),
         ),
-
-
-
       ),
-
-
-
     );
-
-
   }
 
+  Widget _resultCard({
+    required String title,
+    required String score,
+    required String risk,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
 
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F3D7),
+        borderRadius: BorderRadius.circular(16),
 
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          Text(
+            risk,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1C5A3C),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            'Score: $score',
+          ),
+        ],
+      ),
+    );
+  }
 }
