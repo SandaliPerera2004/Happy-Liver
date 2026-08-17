@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../dashboard/daily routine/daily_routine_screen.dart';
+
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -89,7 +91,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
@@ -483,7 +485,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // ================================================================
   // BOTTOM NAVIGATION BAR
   // ================================================================
-  Widget _buildBottomNavBar() {
+  Widget _buildBottomNavBar(BuildContext context) {
     return Material(
       elevation: 0,
       color: Colors.white,
@@ -498,21 +500,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: true,
+                onTap: () {
+                  // Already on Home/Dashboard
+                },
               ),
               _bottomItem(
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const DailyRoutineScreen(),
+                    ),
+                  );
+                },
               ),
               _bottomItem(
                 icon: Icons.person_outline,
                 label: 'Profile',
                 selected: false,
+                onTap: () {
+                  // Navigate to Profile screen
+                },
               ),
               _bottomItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 selected: false,
+                onTap: () {
+                  // Navigate to Settings screen
+                },
               ),
             ],
           ),
@@ -525,11 +544,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required IconData icon,
     required String label,
     required bool selected,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: () {
-        // Add your navigation here
-      },
+      onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

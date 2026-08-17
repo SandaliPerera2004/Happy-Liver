@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
+import '../profile/edit_profile_screen.dart';
+import '../profile/change_password_screen.dart';
+import 'daily routine/daily_routine_screen.dart';
+import '../../models/user_model.dart';
+import '../../services/user_service.dart';
 
-class UserProfileScreen extends StatelessWidget {
+
+class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
+
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+
 
   static const Color _green = Color(0xFF2DCB59);
   static const Color _darkGreen = Color(0xFF1B5E20);
@@ -10,6 +23,44 @@ class UserProfileScreen extends StatelessWidget {
 
   // Consistent horizontal margin used by every section below the header.
   static const double _hPad = 20;
+
+  final UserService _userService = UserService();
+
+  UserModel? _user;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+  Future<void> _loadUserProfile() async {
+    print('LOAD USER PROFILE CALLED');
+    try {
+      final user = await _userService.getCurrentUserProfile();
+      print('USER RESULT: $user');
+
+      if (!mounted) return;
+
+      setState(() {
+        _user = user;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load profile: $e'),
+        ),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +76,7 @@ class UserProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildHeader(),
+                    _buildHeader(context),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         _hPad,
@@ -58,14 +109,14 @@ class UserProfileScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
   // ================================================================
   // HEADER
   // ================================================================
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 24, bottom: 28),
@@ -91,8 +142,8 @@ class UserProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Shehani Liyanage',
+          Text(
+            _user?.username ?? 'User',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w900,
@@ -102,7 +153,12 @@ class UserProfileScreen extends StatelessWidget {
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
-              // Navigate to edit profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const EditProfileScreen(),
+                ),
+              );
             },
             child: Container(
               padding: const EdgeInsets.symmetric(
@@ -238,7 +294,12 @@ class UserProfileScreen extends StatelessWidget {
             iconBg: const Color(0xFFE9F9EE),
             label: 'Change Password',
             onTap: () {
-              // Navigate to ChangePasswordScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ChangePasswordScreen(),
+                ),
+              );
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
@@ -319,7 +380,7 @@ class UserProfileScreen extends StatelessWidget {
   // ================================================================
   // BOTTOM NAVIGATION BAR
   // ================================================================
-  Widget _buildBottomNavBar() {
+  Widget _buildBottomNavBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -337,22 +398,39 @@ class UserProfileScreen extends StatelessWidget {
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
-                selected: true,
+                selected: false,
+                onTap: () {
+                  // Navigate to Home screen
+                },
               ),
               _bottomItem(
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const DailyRoutineScreen(),
+                    ),
+                  );
+                },
               ),
               _bottomItem(
                 icon: Icons.person_outline,
                 label: 'Profile',
-                selected: false,
+                selected: true,
+                onTap: () {
+                  // Already on Profile screen
+                },
               ),
               _bottomItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 selected: false,
+                onTap: () {
+                  // Navigate to Settings screen
+                },
               ),
             ],
           ),
@@ -365,11 +443,10 @@ class UserProfileScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required bool selected,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: () {
-        // Add your navigation here
-      },
+      onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
