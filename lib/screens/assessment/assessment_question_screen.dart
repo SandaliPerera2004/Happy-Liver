@@ -6,7 +6,10 @@ import '../../services/assessment_service.dart';
 import 'assessment_result_loading_screen.dart';
 
 class AssessmentQuestionScreen extends StatefulWidget {
-  const AssessmentQuestionScreen({super.key, required int questionIndex});
+  const AssessmentQuestionScreen({
+    super.key,
+    required int questionIndex,
+  });
 
   @override
   State<AssessmentQuestionScreen> createState() =>
@@ -28,12 +31,6 @@ class _AssessmentQuestionScreenState
 
   int _currentQuestionIndex = 0;
 
-  /// Example:
-  ///
-  /// {
-  ///   1: [0],
-  ///   13: [0, 2],
-  /// }
   final Map<int, List<int>> _answers = {};
 
   List<AssessmentQuestion> get _questions =>
@@ -47,6 +44,10 @@ class _AssessmentQuestionScreenState
 
     return answers != null && answers.isNotEmpty;
   }
+
+  // =========================================================
+  // PROGRESS STEP
+  // =========================================================
 
   int _getProgressStep() {
     if (_currentQuestionIndex <= 2) {
@@ -64,32 +65,39 @@ class _AssessmentQuestionScreenState
     return 4;
   }
 
+  // =========================================================
+  // SELECT ANSWER
+  // =========================================================
+
   void _selectAnswer(int optionIndex) {
     final question = _currentQuestion;
 
     setState(() {
+      // Single choice questions
       if (!question.isMultipleChoice) {
         _answers[question.id] = [optionIndex];
         return;
       }
 
+      // Multiple choice questions
       final currentAnswers =
       List<int>.from(_answers[question.id] ?? []);
 
       final selectedOption =
       question.options[optionIndex];
 
-      // If "None" is selected, remove all other answers.
+      // If "None" is selected, remove all other answers
       if (selectedOption.isNone) {
         _answers[question.id] = [optionIndex];
         return;
       }
 
-      // Remove "None" if another option is selected.
+      // Remove "None" if another answer is selected
       currentAnswers.removeWhere(
             (index) => question.options[index].isNone,
       );
 
+      // Toggle selected answer
       if (currentAnswers.contains(optionIndex)) {
         currentAnswers.remove(optionIndex);
       } else {
@@ -99,6 +107,10 @@ class _AssessmentQuestionScreenState
       _answers[question.id] = currentAnswers;
     });
   }
+
+  // =========================================================
+  // NEXT QUESTION
+  // =========================================================
 
   void _goNext() {
     if (!_isAnswered) return;
@@ -112,6 +124,10 @@ class _AssessmentQuestionScreenState
     }
   }
 
+  // =========================================================
+  // PREVIOUS QUESTION
+  // =========================================================
+
   void _goPrevious() {
     if (_currentQuestionIndex == 0) return;
 
@@ -119,6 +135,10 @@ class _AssessmentQuestionScreenState
       _currentQuestionIndex--;
     });
   }
+
+  // =========================================================
+  // SUBMIT ASSESSMENT
+  // =========================================================
 
   void _submitAssessment() {
     final AssessmentResult result =
@@ -135,6 +155,10 @@ class _AssessmentQuestionScreenState
     );
   }
 
+  // =========================================================
+  // MAIN SCREEN
+  // =========================================================
+
   @override
   Widget build(BuildContext context) {
     final question = _currentQuestion;
@@ -146,17 +170,17 @@ class _AssessmentQuestionScreenState
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: 430,
+              maxWidth: 500,
             ),
 
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: 28,
+                horizontal: 20,
               ),
 
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
                   // =====================================================
                   // PROGRESS INDICATOR
@@ -164,7 +188,7 @@ class _AssessmentQuestionScreenState
 
                   _buildProgressIndicator(),
 
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 35),
 
                   // =====================================================
                   // SECTION TITLE
@@ -175,13 +199,13 @@ class _AssessmentQuestionScreenState
                     textAlign: TextAlign.center,
 
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF314337),
                     ),
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 35),
 
                   // =====================================================
                   // QUESTION NUMBER
@@ -189,14 +213,15 @@ class _AssessmentQuestionScreenState
 
                   Text(
                     'Question ${question.id}/15',
+
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF3D4140),
                     ),
                   ),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 23),
 
                   // =====================================================
                   // QUESTION CARD
@@ -208,7 +233,7 @@ class _AssessmentQuestionScreenState
                         children: [
                           _buildQuestionCard(question),
 
-                          const SizedBox(height: 22),
+                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
@@ -220,7 +245,7 @@ class _AssessmentQuestionScreenState
 
                   _buildNavigationButtons(),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                 ],
               ),
             ),
@@ -230,19 +255,27 @@ class _AssessmentQuestionScreenState
     );
   }
 
+  // =========================================================
+  // PROGRESS INDICATOR
+  // =========================================================
+
   Widget _buildProgressIndicator() {
     final activeStep = _getProgressStep();
 
     return SizedBox(
-      height: 30,
+      height: 42,
+
       child: Stack(
         alignment: Alignment.center,
+
         children: [
           Container(
-            height: 2,
+            height: 3,
+
             margin: const EdgeInsets.symmetric(
-              horizontal: 18,
+              horizontal: 22,
             ),
+
             color: const Color(0xFFB6CDBA),
           ),
 
@@ -257,8 +290,8 @@ class _AssessmentQuestionScreenState
                   step <= activeStep;
 
               return Container(
-                width: 20,
-                height: 20,
+                width: 34,
+                height: 34,
 
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -271,7 +304,7 @@ class _AssessmentQuestionScreenState
                     BoxShadow(
                       color: Colors.black.withOpacity(0.20),
                       blurRadius: 10,
-                      offset: const Offset(0, 1),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -282,7 +315,7 @@ class _AssessmentQuestionScreenState
                   '$step',
 
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 19,
                     fontWeight: FontWeight.w700,
 
                     color: isCompleted
@@ -298,6 +331,10 @@ class _AssessmentQuestionScreenState
     );
   }
 
+  // =========================================================
+  // BIG QUESTION CARD
+  // =========================================================
+
   Widget _buildQuestionCard(
       AssessmentQuestion question,
       ) {
@@ -305,57 +342,65 @@ class _AssessmentQuestionScreenState
       width: double.infinity,
 
       constraints: const BoxConstraints(
-        minHeight: 180,
+        minHeight: 330,
       ),
 
       padding: const EdgeInsets.fromLTRB(
-        14,
-        16,
-        14,
-        18,
+        22,
+        26,
+        22,
+        26,
       ),
 
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAF8),
 
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
 
         border: Border.all(
           color: _questionBorder,
-          width: 1.3,
+          width: 1.5,
         ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.20),
-            blurRadius: 5,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.50),
+            blurRadius: 8,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
 
       child: Column(
         children: [
+          // =================================================
+          // QUESTION TEXT
+          // =================================================
+
           Text(
             question.question,
             textAlign: TextAlign.left,
 
             style: const TextStyle(
-              fontSize: 13,
-              height: 1.45,
+              fontSize: 22,
+              height: 1.4,
               fontWeight: FontWeight.w600,
               color: Color(0xFF45554A),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 30),
+
+          // =================================================
+          // ANSWER OPTIONS
+          // =================================================
 
           ...List.generate(
             question.options.length,
                 (index) {
               return Padding(
                 padding: const EdgeInsets.only(
-                  bottom: 10,
+                  bottom: 16,
                 ),
 
                 child: _buildAnswerOption(
@@ -369,6 +414,10 @@ class _AssessmentQuestionScreenState
       ),
     );
   }
+
+  // =========================================================
+  // BIG ANSWER BUTTON
+  // =========================================================
 
   Widget _buildAnswerOption(
       AssessmentQuestion question,
@@ -394,12 +443,12 @@ class _AssessmentQuestionScreenState
         width: double.infinity,
 
         constraints: const BoxConstraints(
-          minHeight: 42,
+          minHeight: 68,
         ),
 
         padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 9,
+          horizontal: 20,
+          vertical: 14,
         ),
 
         decoration: BoxDecoration(
@@ -407,35 +456,35 @@ class _AssessmentQuestionScreenState
               ? const Color(0xFFB8E4B1)
               : _optionGreen,
 
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(10),
 
           border: Border.all(
             color: selected
                 ? _mediumGreen
                 : _optionBorder,
 
-            width: selected ? 1.5 : 1,
+            width: selected ? 2 : 1.3,
           ),
 
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.20),
-              blurRadius: 4,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 6,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
 
         child: Row(
           children: [
-            // =================================================
-            // CHECKBOX ONLY FOR MULTIPLE-CHOICE QUESTIONS
-            // =================================================
+            // =============================================
+            // CHECKBOX FOR MULTIPLE CHOICE QUESTIONS
+            // =============================================
 
             if (question.isMultipleChoice) ...[
               Container(
-                width: 15,
-                height: 15,
+                width: 26,
+                height: 26,
 
                 decoration: BoxDecoration(
                   color: selected
@@ -443,25 +492,29 @@ class _AssessmentQuestionScreenState
                       : Colors.transparent,
 
                   borderRadius:
-                  BorderRadius.circular(2),
+                  BorderRadius.circular(4),
 
                   border: Border.all(
                     color: const Color(0xFF6D8D74),
-                    width: 1.3,
+                    width: 2,
                   ),
                 ),
 
                 child: selected
                     ? const Icon(
                   Icons.check,
-                  size: 15,
+                  size: 21,
                   color: Colors.white,
                 )
                     : null,
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
             ],
+
+            // =============================================
+            // ANSWER TEXT
+            // =============================================
 
             Expanded(
               child: Text(
@@ -473,9 +526,9 @@ class _AssessmentQuestionScreenState
                     : TextAlign.center,
 
                 style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.35,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 18,
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF46634A),
                 ),
               ),
@@ -485,6 +538,10 @@ class _AssessmentQuestionScreenState
       ),
     );
   }
+
+  // =========================================================
+  // NAVIGATION BUTTONS
+  // =========================================================
 
   Widget _buildNavigationButtons() {
     final isFirstQuestion =
@@ -506,7 +563,7 @@ class _AssessmentQuestionScreenState
           ),
 
         if (!isFirstQuestion)
-          const SizedBox(width: 14),
+          const SizedBox(width: 18),
 
         Expanded(
           child: _buildNavigationButton(
@@ -525,19 +582,23 @@ class _AssessmentQuestionScreenState
     );
   }
 
+  // =========================================================
+  // BIG NAVIGATION BUTTON
+  // =========================================================
+
   Widget _buildNavigationButton({
     required String text,
     required VoidCallback? onPressed,
     required bool isPrimary,
   }) {
     return SizedBox(
-      height: 34,
+      height: 58,
 
       child: ElevatedButton(
         onPressed: onPressed,
 
         style: ElevatedButton.styleFrom(
-          elevation: 3,
+          elevation: 4,
 
           backgroundColor: isPrimary
               ? _darkGreen
@@ -557,7 +618,7 @@ class _AssessmentQuestionScreenState
           Colors.black.withOpacity(0.20),
 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
 
@@ -565,8 +626,8 @@ class _AssessmentQuestionScreenState
           text,
 
           style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

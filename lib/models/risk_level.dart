@@ -7,6 +7,7 @@ enum RiskLevel {
 class AssessmentResult {
   final int fattyLiverScore;
   final int fattyLiverMaxScore;
+
   final int cholesterolScore;
   final int cholesterolMaxScore;
 
