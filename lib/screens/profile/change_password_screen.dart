@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../dashboard/daily routine/daily_routine_screen.dart';
+import '../../services/auth_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -11,6 +12,7 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final AuthService _authService = AuthService();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -270,8 +272,76 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         width: double.infinity,
         height: 52,
         child: ElevatedButton(
-          onPressed: () {
-            // Handle password change confirmation
+          onPressed: () async {
+            final currentPassword =
+            _currentPasswordController.text.trim();
+
+            final newPassword =
+            _newPasswordController.text.trim();
+
+            final confirmPassword =
+            _confirmPasswordController.text.trim();
+
+            // Check all fields
+            if (currentPassword.isEmpty ||
+                newPassword.isEmpty ||
+                confirmPassword.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please fill in all password fields.'),
+                ),
+              );
+              return;
+            }
+
+            // Check new password length
+            if (newPassword.length < 8) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'New password must be at least 8 characters.',
+                  ),
+                ),
+              );
+              return;
+            }
+
+            // Check passwords match
+            if (newPassword != confirmPassword) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('New passwords do not match.'),
+                ),
+              );
+              return;
+            }
+
+            try {
+              await _authService.changePassword(
+                currentPassword,
+                newPassword,
+              );
+
+              if (!mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Password changed successfully.'),
+                ),
+              );
+
+              Navigator.pop(context);
+            } catch (e) {
+              if (!mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Failed to change password: ${e.toString()}',
+                  ),
+                ),
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2E7D32),

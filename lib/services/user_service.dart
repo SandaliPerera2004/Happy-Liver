@@ -11,21 +11,13 @@ class UserService {
       FirebaseAuth.instance;
 
   Future<UserModel?> getCurrentUserProfile() async {
-    final currentUser = _auth.currentUser;
-
-    print('CURRENT FIREBASE USER: $currentUser');
-
-
-    if (currentUser == null) {
-      return null;
-    }
+    const testUid = '4VoTBC0IfbTH5DviH2SNC6QJyrH2';
 
     final document = await _firestore
         .collection('users')
-        .doc(currentUser.uid)
+        .doc(testUid)
         .get();
 
-    print('UID: ${currentUser.uid}');
     print('DOCUMENT EXISTS: ${document.exists}');
     print('DATA: ${document.data()}');
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/exercise_timer_screen.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
+import 'package:happy_liver/screens/dashboard/daily%20routine/workout_plan_screen.dart';
 import 'package:happy_liver/services/user_service.dart';
 import 'firebase_options.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
@@ -31,7 +32,7 @@ class HappyLiverApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: const AboutUsScreen()
+      home: const ChangePasswordScreen()
     );
   }
 }
