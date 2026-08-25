@@ -30,9 +30,9 @@ class DashboardScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 100),
 
-              const Text(
-                'Hello Shehani,',
-                style: TextStyle(
+              Text(
+                'Hello $userName,',
+                style: const TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF252A25),
