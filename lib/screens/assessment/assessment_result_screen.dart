@@ -33,6 +33,10 @@ class AssessmentResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAF9),
+      appBar: CustomHeader(
+        title: 'Assessment Result',
+        showBack: true,
+      ),
 
       body: SafeArea(
         child: Center(
