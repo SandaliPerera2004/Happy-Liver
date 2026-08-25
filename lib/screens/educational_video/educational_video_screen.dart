@@ -111,17 +111,13 @@ class _EducationalVideoScreenState
 
                   const SizedBox(width: 15),
 
-                  const Text(
-                    'Explore Learning',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF252A25),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      // =========================================================
+      // CUSTOM HEADER
+      // =========================================================
+      appBar: const CustomHeader(
+        title: 'Explore Learning',
+        showBack: true,
+      ),
 
             Expanded(
               child: SingleChildScrollView(
