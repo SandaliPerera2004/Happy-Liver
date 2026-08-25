@@ -515,4 +515,40 @@ class AssessmentService {
       return RiskLevel.high;
     }
   }
+
+  // =========================================================
+  // BUILD READABLE ANSWER SUMMARY
+  // =========================================================
+
+  static Map<String, dynamic> buildAnswerSummary(
+      Map<int, List<int>> answers,
+      ) {
+    final Map<String, dynamic> result = {};
+
+    for (final question in questions) {
+      final selectedIndexes =
+          answers[question.id] ?? [];
+
+      final selectedAnswers = <String>[];
+
+      for (final index in selectedIndexes) {
+        if (index < 0 ||
+            index >= question.options.length) {
+          continue;
+        }
+
+        selectedAnswers.add(
+          question.options[index].text,
+        );
+      }
+
+      result['Q${question.id}'] = {
+        'question': question.question,
+        'section': question.section,
+        'answers': selectedAnswers,
+      };
+    }
+
+    return result;
+  }
 }
