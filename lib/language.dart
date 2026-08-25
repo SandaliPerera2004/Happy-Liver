@@ -15,73 +15,113 @@ class _LanguageScreenState extends State<LanguageScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFE5F8D8),
-        elevation: 0,
-
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-
-        title: const Text(
-          "Language",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: 28,
-          top: 45,
-          right: 20,
-        ),
-
+      // =========================
+      // BODY
+      // =========================
+      body: SafeArea(
+        top: true,
+        bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildHeader(context),
 
-            // English
-            languageOption(
-              language: "English",
-              value: "English",
-            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 28,
+                  top: 45,
+                  right: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    // English
+                    languageOption(
+                      language: "English",
+                      value: "English",
+                    ),
 
-            const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-            // Sinhala
-            languageOption(
-              language: "Sinhala",
-              value: "Sinhala",
-            ),
+                    // Sinhala
+                    languageOption(
+                      language: "Sinhala",
+                      value: "Sinhala",
+                    ),
 
-            const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-            // Tamil
-            languageOption(
-              language: "Tamil",
-              value: "Tamil",
+                    // Tamil
+                    languageOption(
+                      language: "Tamil",
+                      value: "Tamil",
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
+
+      // =========================
+      // BOTTOM NAVIGATION
+      // =========================
+      bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
+  // =========================
+  // HEADER
+  // =========================
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFFE5F8D8),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(
+              Icons.arrow_back,
+              size: 30,
+              color: Colors.black,
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          const Text(
+            "Language",
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================
+  // LANGUAGE OPTION
+  // =========================
   Widget languageOption({
     required String language,
     required String value,
   }) {
-    final bool isSelected = selectedLanguage == value;
+    final bool isSelected =
+        selectedLanguage == value;
 
     return GestureDetector(
       onTap: () {
@@ -89,17 +129,13 @@ class _LanguageScreenState extends State<LanguageScreen> {
           selectedLanguage = value;
         });
       },
-
       child: Row(
         children: [
-
           Icon(
             isSelected
                 ? Icons.radio_button_checked
                 : Icons.radio_button_unchecked,
-
             size: 22,
-
             color: const Color(0xFF55B85A),
           ),
 
@@ -111,6 +147,107 @@ class _LanguageScreenState extends State<LanguageScreen> {
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================
+  // BOTTOM NAVIGATION
+  // =========================
+  Widget _buildBottomNavBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: Colors.black.withOpacity(0.06),
+          ),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 8,
+          ),
+          child: Row(
+            mainAxisAlignment:
+            MainAxisAlignment.spaceAround,
+            children: [
+              _bottomItem(
+                icon: Icons.home_outlined,
+                label: 'Home',
+                selected: false,
+                onTap: () {
+                  Navigator.popUntil(
+                    context,
+                        (route) => route.isFirst,
+                  );
+                },
+              ),
+
+              _bottomItem(
+                icon: Icons.calendar_today_outlined,
+                label: 'Daily Routine',
+                selected: false,
+                onTap: () {},
+              ),
+
+              _bottomItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                selected: false,
+                onTap: () {},
+              ),
+
+              _bottomItem(
+                icon: Icons.settings_outlined,
+                label: 'Settings',
+                selected: true,
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =========================
+  // BOTTOM NAV ITEM
+  // =========================
+  Widget _bottomItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 22,
+            color:
+            selected ? Colors.green : Colors.grey,
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: selected
+                  ? FontWeight.w800
+                  : FontWeight.w700,
+              color:
+              selected ? Colors.green : Colors.grey,
             ),
           ),
         ],
