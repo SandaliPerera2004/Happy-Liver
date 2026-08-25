@@ -11,6 +11,11 @@ class DashboardScreen extends StatelessWidget {
   static const Color darkGreen = Color(0xFF1B6B1A);
   static const Color borderGreen = Color(0xFFA8D7A0);
 
+  String get userName {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.displayName ?? 'User';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
