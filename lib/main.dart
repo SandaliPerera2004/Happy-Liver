@@ -32,7 +32,7 @@ class HappyLiverApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: const ChangePasswordScreen()
+      home: const NotificationSettingsScreen()
     );
   }
 }

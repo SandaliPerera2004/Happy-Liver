@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class HelpFeedbackScreen extends StatefulWidget {
-  const HelpFeedbackScreen({super.key});
+class NotificationSettingsScreen extends StatefulWidget {
+  const NotificationSettingsScreen({super.key});
 
   @override
-  State<HelpFeedbackScreen> createState() => _HelpFeedbackScreenState();
+  State<NotificationSettingsScreen> createState() =>
+      _NotificationSettingsScreenState();
 }
 
-class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
-  static const Color _green = Color(0xFF2E7D32);
-  static const Color _lightGreenHeader = Color(0xFFDFF3D8);
-  static const Color _darkText = Color(0xFF1B1F1D);
-  static const Color _grayText = Color(0xFF8A948E);
-  static const Color _grayNav = Color(0xFF9AA29D);
-
+class _NotificationSettingsScreenState
+    extends State<NotificationSettingsScreen> {
   bool _allowNotifications = true;
   bool _healthTips = true;
   bool _routineReminder = true;
+
+  int _selectedNavIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -26,29 +24,29 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
       body: SafeArea(
         bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(context),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                 child: _buildSettingsCard(),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(context),
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
-  // ================================================================
-  // HEADER
-  // ================================================================
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      color: _lightGreenHeader,
+      decoration: const BoxDecoration(
+        color: Color(0xFFDFF3D8),
+      ),
       child: Row(
         children: [
           GestureDetector(
@@ -61,7 +59,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Help & Feedback',
+            'Notifications',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -73,44 +71,40 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
     );
   }
 
-  // ================================================================
-  // SETTINGS CARD
-  // ================================================================
   Widget _buildSettingsCard() {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          _toggleRow(
+          _buildToggleRow(
             title: 'Allow notifications',
-            description:
-            'Receive alerts, reminders, and important updates.',
+            subtitle: 'Receive alerts, reminders, and important updates.',
             value: _allowNotifications,
             onChanged: (v) => setState(() => _allowNotifications = v),
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          _toggleRow(
+          const Divider(height: 1, color: Color(0xFFECECEC)),
+          _buildToggleRow(
             title: 'Health Tips',
-            description:
-            'Daily wellness advice and lifestyle recommendations.',
+            subtitle: 'Daily wellness advice and lifestyle recommendations.',
             value: _healthTips,
             onChanged: (v) => setState(() => _healthTips = v),
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          _toggleRow(
+          const Divider(height: 1, color: Color(0xFFECECEC)),
+          _buildToggleRow(
             title: 'Routine Reminder',
-            description:
-            "Get notified when it's time to take your medication.",
+            subtitle: 'Get notified when it\'s time to take your medication.',
             value: _routineReminder,
             onChanged: (v) => setState(() => _routineReminder = v),
           ),
@@ -119,16 +113,16 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
     );
   }
 
-  Widget _toggleRow({
+  Widget _buildToggleRow({
     required String title,
-    required String description,
+    required String subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -139,15 +133,15 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: _darkText,
+                    color: Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  subtitle,
                   style: const TextStyle(
-                    fontSize: 12.5,
-                    color: _grayText,
+                    fontSize: 13,
+                    color: Colors.black45,
                     height: 1.35,
                   ),
                 ),
@@ -159,100 +153,67 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
             value: value,
             onChanged: onChanged,
             activeColor: Colors.white,
-            activeTrackColor: _green,
+            activeTrackColor: const Color(0xFF3FBE6B),
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFFD9DDD9),
+            inactiveTrackColor: const Color(0xFFD9D9D9),
           ),
         ],
       ),
     );
   }
 
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                  // Navigate to Home screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: false,
-                onTap: () {
-                  // Navigate to Daily Routine screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: false,
-                onTap: () {
-                  // Navigate to Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: true,
-                onTap: () {
-                  // Already on Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildBottomNavBar() {
+    final items = [
+      _NavItemData(icon: Icons.home_rounded, label: 'Home'),
+      _NavItemData(icon: Icons.calendar_today_rounded, label: 'Daily Routine'),
+      _NavItemData(icon: Icons.person_outline_rounded, label: 'Profile'),
+      _NavItemData(icon: Icons.settings_outlined, label: 'Settings'),
+    ];
 
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayNav,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
-            ),
-          ),
-        ],
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(items.length, (index) {
+            final isSelected = index == _selectedNavIndex;
+            final color =
+            isSelected ? const Color(0xFF3FBE6B) : Colors.black45;
+
+            return GestureDetector(
+              onTap: () => setState(() => _selectedNavIndex = index),
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(items[index].icon, size: 22, color: color),
+                  const SizedBox(height: 4),
+                  Text(
+                    items[index].label,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
+}
+
+class _NavItemData {
+  final IconData icon;
+  final String label;
+
+  _NavItemData({required this.icon, required this.label});
 }

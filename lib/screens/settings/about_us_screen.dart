@@ -78,7 +78,6 @@ class AboutUsScreen extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      color: _lightGreenHeader,
       child: Row(
         children: [
           GestureDetector(
