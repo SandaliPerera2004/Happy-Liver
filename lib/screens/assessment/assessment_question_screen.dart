@@ -144,15 +144,49 @@ class _AssessmentQuestionScreenState
     final AssessmentResult result =
     AssessmentService.calculateResult(_answers);
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            AssessmentResultLoadingScreen(
-              result: result,
-            ),
-      ),
-    );
+    try {
+      debugPrint('========================================');
+      debugPrint('Starting assessment save...');
+      debugPrint('Number of answered questions: ${_answers.length}');
+      debugPrint('Answers: $_answers');
+
+      await AssessmentFirestoreService.saveAssessment(
+        answers: _answers,
+        result: result,
+      );
+
+      debugPrint('Assessment saved successfully!');
+      debugPrint('========================================');
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              AssessmentResultLoadingScreen(
+                result: result,
+              ),
+        ),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('========================================');
+      debugPrint('ASSESSMENT SAVE ERROR');
+      debugPrint('Error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('========================================');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Save error: $e',
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
   }
 
   // =========================================================
