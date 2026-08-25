@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/risk_level.dart';
 import 'assessment_result_screen.dart';
@@ -37,7 +38,6 @@ class _AssessmentResultLoadingScreenState
   void initState() {
     super.initState();
 
-    // Hourglass animation
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -53,24 +53,20 @@ class _AssessmentResultLoadingScreenState
       ),
     );
 
-    // Show loading screen for 3 seconds
-    Timer(
-      const Duration(seconds: 3),
-          () {
-        if (!mounted) return;
+    Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => AssessmentResultScreen(
-              fattyLiverRisk: widget.result.fattyLiverRisk,
-              cholesterolRisk: widget.result.cholesterolRisk,
-              fattyLiverScore: widget.result.fattyLiverScore,
-              cholesterolScore: widget.result.cholesterolScore,
-            ),
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => AssessmentResultScreen(
+            fattyLiverRisk: widget.result.fattyLiverRisk,
+            cholesterolRisk: widget.result.cholesterolRisk,
+            fattyLiverScore: widget.result.fattyLiverScore,
+            cholesterolScore: widget.result.cholesterolScore,
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   }
 
   @override
@@ -83,25 +79,18 @@ class _AssessmentResultLoadingScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundGreen,
-
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 30,
-            ),
-
+            padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // =====================================================
-                // GOOD JOB TEXT
-                // =====================================================
-
-                const Text(
-                  'Good Job Shehani !',
+                // Good Job + User Name
+                Text(
+                  'Good Job $userName !',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: textColor,
@@ -110,15 +99,9 @@ class _AssessmentResultLoadingScreenState
 
                 const SizedBox(height: 30),
 
-                // =====================================================
-                // ASSESSMENT COMPLETED CARD
-                // =====================================================
-
                 Container(
                   width: double.infinity,
-                  constraints: const BoxConstraints(
-                    maxWidth: 320,
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 320),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 30,
@@ -132,13 +115,12 @@ class _AssessmentResultLoadingScreenState
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
+                        color: Colors.black.withValues(alpha: 0.12),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-
                   child: Column(
                     children: [
                       const Text(
@@ -153,15 +135,12 @@ class _AssessmentResultLoadingScreenState
 
                       const SizedBox(height: 28),
 
-                      // =================================================
-                      // SAND CLOCK / HOURGLASS
-                      // =================================================
-
                       AnimatedBuilder(
                         animation: _rotationAnimation,
                         builder: (context, child) {
                           return Transform.rotate(
-                            angle: _rotationAnimation.value * 6.28318,
+                            angle:
+                            _rotationAnimation.value * 6.28318,
                             child: child,
                           );
                         },
@@ -170,7 +149,8 @@ class _AssessmentResultLoadingScreenState
                           height: 70,
                           decoration: BoxDecoration(
                             color: const Color(0xFFF4F6F3),
-                            borderRadius: BorderRadius.circular(35),
+                            borderRadius:
+                            BorderRadius.circular(35),
                           ),
                           child: Image.asset(
                             'assets/images/hourglass.png',

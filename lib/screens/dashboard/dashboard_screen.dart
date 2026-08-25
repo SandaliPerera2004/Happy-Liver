@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../assessment/assessment_intro_screen.dart';
 import '../educational_video/educational_video_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
   static const Color backgroundColor = Color(0xFFF8FBF7);
   static const Color cardColor = Color(0xFFE4F6DF);
   static const Color darkGreen = Color(0xFF1B6B1A);
@@ -23,10 +30,8 @@ class DashboardScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
               const SizedBox(height: 100),
 
@@ -117,19 +122,11 @@ class _DashboardCard extends StatelessWidget {
   static const Color borderGreen = Color(0xFFA8D7A0);
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(
-        minHeight: 180,
-      ),
-      padding: const EdgeInsets.fromLTRB(
-        18,
-        16,
-        18,
-        16,
-      ),
+      constraints: const BoxConstraints(minHeight: 180),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -145,11 +142,9 @@ class _DashboardCard extends StatelessWidget {
           ),
         ],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // Book/Bulb image and title
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,9 +155,7 @@ class _DashboardCard extends StatelessWidget {
                 height: 40,
                 fit: BoxFit.contain,
               ),
-
               const SizedBox(width: 15),
-
               Expanded(
                 child: Text(
                   title,
@@ -180,22 +173,18 @@ class _DashboardCard extends StatelessWidget {
           // Subtitle
           if (subtitle.isNotEmpty) ...[
             const SizedBox(height: 12),
-
-            Transform.translate(
-              offset: const Offset(0, 0),
-              child: Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 17,
-                  color: Color(0xFF536053),
-                ),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 17,
+                color: Color(0xFF536053),
               ),
             ),
           ],
 
           const SizedBox(height: 16),
 
-          // Button centered in the WHOLE card
+          // Button
           Align(
             alignment: Alignment.center,
             child: SizedBox(
@@ -206,12 +195,9 @@ class _DashboardCard extends StatelessWidget {
                   backgroundColor: darkGreen,
                   foregroundColor: Colors.white,
                   elevation: 5,
-                  shadowColor: Colors.black.withValues(
-                    alpha: 1,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 50,
-                  ),
+                  shadowColor: Colors.black.withValues(alpha: 1),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -226,9 +212,7 @@ class _DashboardCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     SvgPicture.asset(
                       'assets/icons/arrow.svg',
                       width: 18,
