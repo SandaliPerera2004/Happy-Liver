@@ -28,6 +28,11 @@ class _AssessmentResultLoadingScreenState
   static const Color backgroundGreen = Color(0xFFEAF6E4);
   static const Color textColor = Color(0xFF314337);
 
+  String get userName {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.displayName ?? 'User';
+  }
+
   @override
   void initState() {
     super.initState();
