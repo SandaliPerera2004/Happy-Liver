@@ -15,7 +15,6 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -29,7 +28,7 @@ class DashboardScreen extends StatelessWidget {
               const Text(
                 'Hello Shehani,',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 30,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF252A25),
                 ),

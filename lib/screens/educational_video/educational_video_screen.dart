@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:happy_liver/widgets/custom_header.dart';
 
 class EducationalVideoScreen extends StatefulWidget {
   const EducationalVideoScreen({super.key});
@@ -85,31 +86,6 @@ class _EducationalVideoScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              height: 45,
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-              ),
-              decoration: const BoxDecoration(
-                color: Color(0xFFDDF2D7),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      size: 24,
-                    ),
-                  ),
-
-                  const SizedBox(width: 15),
 
       // =========================================================
       // CUSTOM HEADER
@@ -119,67 +95,62 @@ class _EducationalVideoScreenState
         showBack: true,
       ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  16,
-                  10,
-                  16,
-                  30,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Do you know Fatty Liver?',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF252A25),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _VideoCard(
-                      controller: fattyLiverController,
-                      isReady: fattyLiverReady,
-                      thumbnailPath:
-                      'assets/images/fatty_liver_thumbnail.png',
-                      onPlayPressed: _toggleFattyLiver,
-                      points: const [
-                        'Preventable with healthy diet, exercise, and weight control.',
-                        'Can progress to inflammation, fibrosis, or cirrhosis.',
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      'Do you know Cholesterol?',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF252A25),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _VideoCard(
-                      controller: cholesterolController,
-                      isReady: cholesterolReady,
-                      thumbnailPath:
-                      'assets/images/cholesterol_thumbnail.png',
-                      onPlayPressed: _toggleCholesterol,
-                      points: const [
-                        'Managed through balanced diet, physical activity, and medication if needed.',
-                        'High LDL increases risk of heart disease and stroke.',
-                      ],
-                    ),
-                  ],
-                ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          10,
+          16,
+          30,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Do you know Fatty Liver?',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF252A25),
               ),
+            ),
+
+            const SizedBox(height: 12),
+
+            _VideoCard(
+              controller: fattyLiverController,
+              isReady: fattyLiverReady,
+              thumbnailPath:
+              'assets/images/fatty_liver_thumbnail.png',
+              onPlayPressed: _toggleFattyLiver,
+              points: const [
+                'Preventable with healthy diet, exercise, and weight control.',
+                'Can progress to inflammation, fibrosis, or cirrhosis.',
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'Do you know Cholesterol?',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF252A25),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            _VideoCard(
+              controller: cholesterolController,
+              isReady: cholesterolReady,
+              thumbnailPath:
+              'assets/images/cholesterol_thumbnail.png',
+              onPlayPressed: _toggleCholesterol,
+              points: const [
+                'Managed through balanced diet, physical activity, and medication if needed.',
+                'High LDL increases risk of heart disease and stroke.',
+              ],
             ),
           ],
         ),
@@ -231,7 +202,12 @@ class _VideoCard extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            padding: const EdgeInsets.fromLTRB(
+              12,
+              12,
+              12,
+              0,
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(50),
               child: AspectRatio(
@@ -262,7 +238,9 @@ class _VideoCard extends StatelessWidget {
 
                       if (!isPlaying)
                         Container(
-                          color: Colors.black.withValues(alpha: 0.10),
+                          color: Colors.black.withValues(
+                            alpha: 0.10,
+                          ),
                         ),
 
                       if (!isPlaying)
@@ -270,12 +248,19 @@ class _VideoCard extends StatelessWidget {
                           width: 54,
                           height: 54,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.88),
+                            color: Colors.white.withValues(
+                              alpha: 0.88,
+                            ),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1,
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.50),
+                                color: Colors.black.withValues(
+                                  alpha: 0.50,
+                                ),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),

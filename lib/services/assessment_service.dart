@@ -146,12 +146,12 @@ class AssessmentService {
       'How often do you eat red meat (beef, pork, mutton)?',
       options: [
         AnswerOption(
-          text: 'Rarely\n(0–1 time/week)',
+          text: 'Never/Rarely',
           fattyLiverPoints: 0,
           cholesterolPoints: 0,
         ),
         AnswerOption(
-          text: 'Sometimes\n(2–3 times/week)',
+          text: 'Sometimes\n(1–3 times/week)',
           fattyLiverPoints: 1,
           cholesterolPoints: 2,
         ),
@@ -430,19 +430,29 @@ class AssessmentService {
       final selectedIndexes =
           answers[question.id] ?? [];
 
-      // Calculate selected answer scores
+      // =====================================================
+      // CALCULATE SELECTED ANSWER SCORES
+      // =====================================================
+
       for (final index in selectedIndexes) {
-        if (index < 0 || index >= question.options.length) {
+        if (index < 0 ||
+            index >= question.options.length) {
           continue;
         }
 
         final option = question.options[index];
 
-        fattyLiverScore += option.fattyLiverPoints;
-        cholesterolScore += option.cholesterolPoints;
+        fattyLiverScore +=
+            option.fattyLiverPoints;
+
+        cholesterolScore +=
+            option.cholesterolPoints;
       }
 
-      // Calculate maximum possible score
+      // =====================================================
+      // CALCULATE MAXIMUM POSSIBLE SCORE
+      // =====================================================
+
       if (question.isMultipleChoice) {
         fattyLiverMaxScore += question.options
             .where((option) => !option.isNone)

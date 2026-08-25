@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:happy_liver/widgets/custom_header.dart';
 import 'assessment_question_screen.dart';
 
 class AssessmentIntroScreen extends StatelessWidget {
@@ -13,6 +13,10 @@ class AssessmentIntroScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: CustomHeader(
+        title: 'Assessment',
+        showBack: true,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(

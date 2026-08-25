@@ -97,7 +97,7 @@ class _AssessmentResultLoadingScreenState
                   'Good Job Shehani !',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: textColor,
                   ),
@@ -140,7 +140,7 @@ class _AssessmentResultLoadingScreenState
                         'Assessment Completed !',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: textColor,
                         ),
@@ -182,7 +182,7 @@ class _AssessmentResultLoadingScreenState
                         'Please wait',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: textColor,
                         ),
@@ -191,10 +191,10 @@ class _AssessmentResultLoadingScreenState
                       const SizedBox(height: 10),
 
                       const Text(
-                        'We are analyzing your results...',
+                        'Generating your results...',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF66726A),
                         ),

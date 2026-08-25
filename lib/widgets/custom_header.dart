@@ -48,7 +48,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 24,
                 ),
               ),
             ],

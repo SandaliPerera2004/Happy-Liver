@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../services/assessment_firestore_service.dart';
 import '../../models/question_model.dart';
 import '../../models/risk_level.dart';
 import '../../services/assessment_service.dart';
@@ -140,7 +140,7 @@ class _AssessmentQuestionScreenState
   // SUBMIT ASSESSMENT
   // =========================================================
 
-  void _submitAssessment() {
+  Future<void> _submitAssessment() async {
     final AssessmentResult result =
     AssessmentService.calculateResult(_answers);
 
