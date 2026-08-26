@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import 'firebase_options.dart';
+
+// Member 1
+import 'package:happy_liver/screens/splash/splash_screen.dart';
+
+// Member 3 screens
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/exercise_timer_screen.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout_plan_screen.dart';
 import 'package:happy_liver/services/user_service.dart';
 import 'package:happy_liver/settings.dart';
-import 'firebase_options.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/diet_plan_screen.dart';
 import 'package:happy_liver/screens/dashboard/profile_screen.dart';
@@ -32,8 +38,10 @@ class HappyLiverApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: "Happy Liver",
 
-      home: const EditProfileScreen()
+      // Member 1's SplashScreen
+      home: const SplashScreen(),
     );
   }
 }
