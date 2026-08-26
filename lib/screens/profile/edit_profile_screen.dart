@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../dashboard/daily routine/daily_routine_screen.dart';
 import '../../../services/user_service.dart';
-import '../../../services/user_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -29,6 +28,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final UserService _userService = UserService();
 
   String _gender = 'Female';
+  bool _isSaving = false;
 
   double get _bmi {
     final height = double.tryParse(_heightController.text);
@@ -58,6 +58,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
+    setState(() {
+      _isSaving = true;
+    });
+
     try {
       await _userService.updateUserProfile(
         username: name,
@@ -85,14 +89,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           content: Text('Failed to update profile: $e'),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
+
     _heightController.addListener(() => setState(() {}));
     _weightController.addListener(() => setState(() {}));
+
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final user = await _userService.getCurrentUserProfile();
+
+      if (!mounted || user == null) return;
+
+      setState(() {
+        _nameController.text = user.username;
+
+        if (user.age != null) {
+          _ageController.text = user.age.toString();
+        }
+
+        if (user.height != null) {
+          _heightController.text = user.height!.toString();
+        }
+
+        if (user.weight != null) {
+          _weightController.text = user.weight!.toString();
+        }
+
+        if (user.gender != null &&
+            (user.gender == 'Male' || user.gender == 'Female')) {
+          _gender = user.gender!;
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load profile: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -430,7 +480,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: _saveProfile,
+        onPressed: _isSaving ? null : _saveProfile,
         style: ElevatedButton.styleFrom(
           backgroundColor: _green,
           elevation: 0,
@@ -438,7 +488,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: const Text(
+        child: _isSaving
+            ? const SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white,
+          ),
+        )
+            : const Text(
           'Save Changes',
           style: TextStyle(
             color: Colors.white,
