@@ -15,7 +15,7 @@ class _NotificationSettingsScreenState
   bool _healthTips = true;
   bool _routineReminder = true;
 
-  int _selectedNavIndex = 0;
+  int _selectedNavIndex = 3;
 
   @override
   Widget build(BuildContext context) {

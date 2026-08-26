@@ -4,6 +4,7 @@ import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/exe
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout_plan_screen.dart';
 import 'package:happy_liver/services/user_service.dart';
+import 'package:happy_liver/settings.dart';
 import 'firebase_options.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/diet_plan_screen.dart';
@@ -32,7 +33,7 @@ class HappyLiverApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: const NotificationSettingsScreen()
+      home: const EditProfileScreen()
     );
   }
 }

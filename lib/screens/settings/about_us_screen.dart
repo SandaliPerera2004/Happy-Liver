@@ -240,7 +240,7 @@ class AboutUsScreen extends StatelessWidget {
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
-                selected: true,
+                selected: false,
                 onTap: () {
                   Navigator.popUntil(context, (route) => route.isFirst);
                 },

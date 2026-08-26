@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../dashboard/daily routine/daily_routine_screen.dart';
+import '../../../services/user_service.dart';
+import '../../../services/user_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -24,6 +26,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _weightController =
   TextEditingController(text: '65');
 
+  final UserService _userService = UserService();
+
   String _gender = 'Female';
 
   double get _bmi {
@@ -32,6 +36,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (height == null || weight == null || height <= 0) return 0;
     final heightInMeters = height / 100;
     return weight / (heightInMeters * heightInMeters);
+  }
+
+  Future<void> _saveProfile() async {
+    final name = _nameController.text.trim();
+    final age = int.tryParse(_ageController.text.trim());
+    final height = double.tryParse(_heightController.text.trim());
+    final weight = double.tryParse(_weightController.text.trim());
+
+    if (name.isEmpty ||
+        age == null ||
+        height == null ||
+        weight == null ||
+        height <= 0 ||
+        weight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter valid profile information.'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await _userService.updateUserProfile(
+        username: name,
+        age: age,
+        gender: _gender,
+        height: height,
+        weight: weight,
+        bmi: _bmi,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated successfully!'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update profile: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -376,9 +430,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: () {
-          // Handle save
-        },
+        onPressed: _saveProfile,
         style: ElevatedButton.styleFrom(
           backgroundColor: _green,
           elevation: 0,
@@ -499,9 +551,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
-                selected: true,
+                selected: false,
                 onTap: () {
-                  // Already on Home/Dashboard
                 },
               ),
               _bottomItem(
@@ -520,7 +571,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               _bottomItem(
                 icon: Icons.person_outline,
                 label: 'Profile',
-                selected: false,
+                selected: true,
                 onTap: () {
                   // Navigate to Profile screen
                 },
