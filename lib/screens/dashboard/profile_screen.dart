@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../assessment/assessment_result_screen.dart';
 import '../profile/edit_profile_screen.dart';
 import '../profile/change_password_screen.dart';
 import 'daily routine/daily_routine_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
+import '../settings/settings.dart';
 
 
 class UserProfileScreen extends StatefulWidget {
@@ -377,96 +380,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                  // Navigate to Home screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const DailyRoutineScreen(),
-                    ),
-                  );
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: true,
-                onTap: () {
-                  // Already on Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-                onTap: () {
-                  // Navigate to Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _onBottomNavTapped(int index) {
+    if (index == 2) return; // Already on Profile
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssessmentResultScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DailyRoutineScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+        break;
+    }
   }
 
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayText,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayText,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildBottomNavBar(BuildContext context) {
+    return CustomBottomNavBar(
+      currentIndex: 2,
+      onTap: _onBottomNavTapped,
     );
   }
 }

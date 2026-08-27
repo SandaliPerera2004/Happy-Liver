@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import '../dashboard/daily routine/daily_routine_screen.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../assessment/assessment_result_screen.dart';
+import '../dashboard/daily%20routine/daily_routine_screen.dart';
+import '../dashboard/profile_screen.dart';
+import '../settings/settings.dart';
 import '../../services/auth_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -20,9 +23,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obscureCurrent = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
-
-  static const Color _green = Color(0xFF2E7D32);
-  static const Color _grayNav = Color(0xFF9AA29D);
 
   @override
   void dispose() {
@@ -101,63 +101,42 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       // ============================================================
       // BOTTOM NAVIGATION BAR
       // ============================================================
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            top: BorderSide(color: Colors.black.withOpacity(0.06)),
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _bottomItem(
-                  icon: Icons.home_outlined,
-                  label: 'Home',
-                  selected: true,
-                  onTap: () {
-                    // Already on Home/Dashboard
-                  },
-                ),
-                _bottomItem(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Daily Routine',
-                  selected: false,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DailyRoutineScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _bottomItem(
-                  icon: Icons.person_outline,
-                  label: 'Profile',
-                  selected: false,
-                  onTap: () {
-                    // Navigate to Profile screen
-                  },
-                ),
-                _bottomItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  selected: false,
-                  onTap: () {
-                    // Navigate to Settings screen
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 2,
+        onTap: _onBottomNavTapped,
       ),
     );
+  }
+
+  void _onBottomNavTapped(int index) {
+    if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+      );
+      return;
+    }
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssessmentResultScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DailyRoutineScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+        break;
+    }
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -374,40 +353,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ==============================================================
-  // BOTTOM NAV ITEM
-  // ==============================================================
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayNav,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
-            ),
-          ),
-        ],
       ),
     );
   }

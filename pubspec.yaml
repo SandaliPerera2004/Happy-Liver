@@ -28,11 +28,20 @@ dependencies:
 
     # Local storage
     shared_preferences: ^2.5.3
+    http: ^1.6.0
+    flutter_markdown: ^0.7.7+1
 
 dev_dependencies:
     flutter_test:
         sdk: flutter
     flutter_lints: ^6.0.0
+    flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+    android: "ic_launcher"
+    ios: true
+    image_path: "assets/images/logo-wrap.png"
+    min_sdk_android: 21
 
 flutter:
     uses-material-design: true

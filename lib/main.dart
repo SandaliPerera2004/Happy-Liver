@@ -2,24 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
-
-// Member 1
-import 'package:happy_liver/screens/splash/splash_screen.dart';
-
-// Member 3 screens
-import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/exercise_timer_screen.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/workout_plan_screen.dart';
-import 'package:happy_liver/services/user_service.dart';
-import 'package:happy_liver/settings.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/diet_plan_screen.dart';
-import 'package:happy_liver/screens/dashboard/profile_screen.dart';
-import 'package:happy_liver/screens/profile/change_password_screen.dart';
-import 'package:happy_liver/screens/profile/edit_profile_screen.dart';
-import 'package:happy_liver/screens/settings/notification_screen.dart';
-import 'package:happy_liver/screens/settings/help_feedback_submitted_screen.dart';
-import 'package:happy_liver/screens/settings/about_us_screen.dart';
+import 'screens/splash/splash_screen.dart';
+import 'services/theme_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +11,8 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await ThemeService.init();
 
   runApp(const HappyLiverApp());
 }
@@ -36,12 +22,34 @@ class HappyLiverApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: "Happy Liver",
-
-      // Member 1's SplashScreen
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeService.themeModeNotifier,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: "Happy Liver",
+          themeMode: themeMode,
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF146B0B),
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: Colors.white,
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF146B0B),
+              brightness: Brightness.dark,
+            ),
+            scaffoldBackgroundColor: const Color(0xFF121212),
+          ),
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

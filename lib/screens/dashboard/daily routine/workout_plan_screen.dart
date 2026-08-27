@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
 
+import '../../../widgets/custom_bottom_nav.dart';
+import '../../assessment/assessment_result_screen.dart';
+import '../profile_screen.dart';
+import '../../settings/settings.dart';
+import 'daily_routine_screen.dart';
 import 'workout plan/workout_plan_details.dart';
 
 class WorkoutPlanScreen extends StatefulWidget {
@@ -372,91 +376,41 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
     );
   }
 
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: true,
-                onTap: () {
-                  // Navigate to Daily Routine screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: false,
-                onTap: () {
-                  // Navigate to Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-                onTap: () {
-                  // Navigate to Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _onBottomNavTapped(int index) {
+    if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DailyRoutineScreen()),
+      );
+      return;
+    }
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssessmentResultScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+        break;
+    }
   }
 
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayNav,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildBottomNavBar(BuildContext context) {
+    return CustomBottomNavBar(
+      currentIndex: 1,
+      onTap: _onBottomNavTapped,
     );
   }
 }

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../assessment/assessment_result_screen.dart';
+import '../dashboard/daily%20routine/daily_routine_screen.dart';
+import '../dashboard/profile_screen.dart';
+import 'settings.dart';
 
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
 
-  static const Color _green = Color(0xFF2E7D32);
-  static const Color _lightGreenHeader = Color(0xFFDFF3D8);
   static const Color _darkText = Color(0xFF1B1F1D);
   static const Color _grayText = Color(0xFF6B756E);
-  static const Color _grayNav = Color(0xFF9AA29D);
   static const Color _borderColor = Color(0xFFE5EAE7);
 
   @override
@@ -219,91 +221,41 @@ class AboutUsScreen extends StatelessWidget {
     );
   }
 
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: false,
-                onTap: () {
-                  // Navigate to Daily Routine screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: false,
-                onTap: () {
-                  // Navigate to Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: true,
-                onTap: () {
-                  // Navigate to Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _onBottomNavTapped(BuildContext context, int index) {
+    if (index == 3) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+      );
+      return;
+    }
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssessmentResultScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DailyRoutineScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        );
+        break;
+    }
   }
 
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayNav,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildBottomNavBar(BuildContext context) {
+    return CustomBottomNavBar(
+      currentIndex: 3,
+      onTap: (index) => _onBottomNavTapped(context, index),
     );
   }
 }

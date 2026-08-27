@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import '../dashboard/daily routine/daily_routine_screen.dart';
-import '../../../services/user_service.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../assessment/assessment_result_screen.dart';
+import '../dashboard/daily%20routine/daily_routine_screen.dart';
+import '../dashboard/profile_screen.dart';
+import '../settings/settings.dart';
+import '../../services/user_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -596,88 +599,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // ================================================================
   // BOTTOM NAVIGATION BAR
   // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Material(
-      elevation: 0,
-      color: Colors.white,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const DailyRoutineScreen(),
-                    ),
-                  );
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: true,
-                onTap: () {
-                  // Navigate to Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-                onTap: () {
-                  // Navigate to Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _onBottomNavTapped(int index) {
+    if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+      );
+      return;
+    }
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssessmentResultScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DailyRoutineScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        );
+        break;
+    }
   }
 
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayText,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayText,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildBottomNavBar(BuildContext context) {
+    return CustomBottomNavBar(
+      currentIndex: 2,
+      onTap: _onBottomNavTapped,
     );
   }
 }

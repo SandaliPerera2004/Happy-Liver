@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../services/settings_firestore_service.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../assessment/assessment_result_screen.dart';
+import '../dashboard/daily%20routine/daily_routine_screen.dart';
+import '../dashboard/profile_screen.dart';
+import 'settings.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -14,24 +20,82 @@ class _NotificationSettingsScreenState
   bool _allowNotifications = true;
   bool _healthTips = true;
   bool _routineReminder = true;
+  bool _isLoading = true;
 
-  int _selectedNavIndex = 3;
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreferences();
+  }
+
+  Future<void> _loadNotificationPreferences() async {
+    final prefs = await SettingsFirestoreService.getNotificationPreferences();
+    if (mounted) {
+      setState(() {
+        _allowNotifications = prefs['allowNotifications'] ?? true;
+        _healthTips = prefs['healthTips'] ?? true;
+        _routineReminder = prefs['routineReminder'] ?? true;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _updatePreferences({
+    bool? allowNotifications,
+    bool? healthTips,
+    bool? routineReminder,
+  }) async {
+    final newAllow = allowNotifications ?? _allowNotifications;
+    final newTips = healthTips ?? _healthTips;
+    final newReminder = routineReminder ?? _routineReminder;
+
+    setState(() {
+      _allowNotifications = newAllow;
+      _healthTips = newTips;
+      _routineReminder = newReminder;
+    });
+
+    await SettingsFirestoreService.saveNotificationPreferences(
+      allowNotifications: newAllow,
+      healthTips: newTips,
+      routineReminder: newReminder,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Notification settings updated'),
+          duration: Duration(milliseconds: 1500),
+          backgroundColor: Color(0xFF146B0B),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F6F8),
       body: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isDark),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                child: _buildSettingsCard(),
-              ),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFF146B0B)),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                      child: _buildSettingsCard(isDark),
+                    ),
             ),
           ],
         ),
@@ -40,12 +104,12 @@ class _NotificationSettingsScreenState
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: const BoxDecoration(
-        color: Color(0xFFDFF3D8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2D1E) : const Color(0xFFDFF3D8),
       ),
       child: Row(
         children: [
@@ -58,12 +122,12 @@ class _NotificationSettingsScreenState
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
+          Text(
             'Notifications',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
         ],
@@ -71,16 +135,19 @@ class _NotificationSettingsScreenState
     );
   }
 
-  Widget _buildSettingsCard() {
+  Widget _buildSettingsCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -92,21 +159,30 @@ class _NotificationSettingsScreenState
             title: 'Allow notifications',
             subtitle: 'Receive alerts, reminders, and important updates.',
             value: _allowNotifications,
-            onChanged: (v) => setState(() => _allowNotifications = v),
+            isDark: isDark,
+            onChanged: (v) => _updatePreferences(allowNotifications: v),
           ),
-          const Divider(height: 1, color: Color(0xFFECECEC)),
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white12 : const Color(0xFFECECEC),
+          ),
           _buildToggleRow(
             title: 'Health Tips',
             subtitle: 'Daily wellness advice and lifestyle recommendations.',
             value: _healthTips,
-            onChanged: (v) => setState(() => _healthTips = v),
+            isDark: isDark,
+            onChanged: (v) => _updatePreferences(healthTips: v),
           ),
-          const Divider(height: 1, color: Color(0xFFECECEC)),
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white12 : const Color(0xFFECECEC),
+          ),
           _buildToggleRow(
             title: 'Routine Reminder',
-            subtitle: 'Get notified when it\'s time to take your medication.',
+            subtitle: 'Get notified when it\'s time to complete daily routines.',
             value: _routineReminder,
-            onChanged: (v) => setState(() => _routineReminder = v),
+            isDark: isDark,
+            onChanged: (v) => _updatePreferences(routineReminder: v),
           ),
         ],
       ),
@@ -117,6 +193,7 @@ class _NotificationSettingsScreenState
     required String title,
     required String subtitle,
     required bool value,
+    required bool isDark,
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
@@ -130,18 +207,18 @@ class _NotificationSettingsScreenState
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Colors.black45,
+                    color: isDark ? Colors.white54 : Colors.black45,
                     height: 1.35,
                   ),
                 ),
@@ -152,68 +229,49 @@ class _NotificationSettingsScreenState
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.white,
-            activeTrackColor: const Color(0xFF3FBE6B),
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFFD9D9D9),
+            activeThumbColor: const Color(0xFF146B0B),
+            activeTrackColor: const Color(0xFFCFF7D3),
           ),
         ],
       ),
     );
   }
 
+  void _onBottomNavTapped(int index) {
+    if (index == 3) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+      );
+      return;
+    }
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AssessmentResultScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DailyRoutineScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        );
+        break;
+    }
+  }
+
   Widget _buildBottomNavBar() {
-    final items = [
-      _NavItemData(icon: Icons.home_rounded, label: 'Home'),
-      _NavItemData(icon: Icons.calendar_today_rounded, label: 'Daily Routine'),
-      _NavItemData(icon: Icons.person_outline_rounded, label: 'Profile'),
-      _NavItemData(icon: Icons.settings_outlined, label: 'Settings'),
-    ];
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(items.length, (index) {
-            final isSelected = index == _selectedNavIndex;
-            final color =
-            isSelected ? const Color(0xFF3FBE6B) : Colors.black45;
-
-            return GestureDetector(
-              onTap: () => setState(() => _selectedNavIndex = index),
-              behavior: HitTestBehavior.opaque,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(items[index].icon, size: 22, color: color),
-                  const SizedBox(height: 4),
-                  Text(
-                    items[index].label,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
+    return CustomBottomNavBar(
+      currentIndex: 3,
+      onTap: _onBottomNavTapped,
     );
   }
-}
-
-class _NavItemData {
-  final IconData icon;
-  final String label;
-
-  _NavItemData({required this.icon, required this.label});
 }
