@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/risk_level.dart';
 import '../../services/assessment_firestore_service.dart';
+import '../../services/personalized_recommendation_service.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../dashboard/daily%20routine/daily_routine_screen.dart';
 import '../dashboard/profile_screen.dart';
@@ -67,11 +68,18 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
   late int _fattyLiverScore;
   late int _cholesterolScore;
 
+  static int _toPercentage(int score, RiskLevel? riskLevel) {
+    if (score <= 25 && riskLevel != null && score > 0) {
+      return ((score / 25) * 100).round().clamp(0, 100);
+    }
+    return score.clamp(0, 100);
+  }
+
   @override
   void initState() {
     super.initState();
-    _fattyLiverScore = widget.fattyLiverScore;
-    _cholesterolScore = widget.cholesterolScore;
+    _fattyLiverScore = _toPercentage(widget.fattyLiverScore, widget.fattyLiverRisk);
+    _cholesterolScore = _toPercentage(widget.cholesterolScore, widget.cholesterolRisk);
     _fetchUsername();
     _fetchLatestAssessment();
   }
@@ -82,8 +90,8 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
     if (oldWidget.fattyLiverScore != widget.fattyLiverScore ||
         oldWidget.cholesterolScore != widget.cholesterolScore) {
       setState(() {
-        _fattyLiverScore = widget.fattyLiverScore;
-        _cholesterolScore = widget.cholesterolScore;
+        _fattyLiverScore = _toPercentage(widget.fattyLiverScore, widget.fattyLiverRisk);
+        _cholesterolScore = _toPercentage(widget.cholesterolScore, widget.cholesterolRisk);
       });
     }
   }
@@ -138,11 +146,23 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
         final data = doc.data()!;
         final flScore = (data['fattyLiverScore'] as num?)?.toInt();
         final chScore = (data['cholesterolScore'] as num?)?.toInt();
+        final flMax = (data['fattyLiverMaxScore'] as num?)?.toInt();
+        final chMax = (data['cholesterolMaxScore'] as num?)?.toInt();
+
+        int? finalFl = flScore;
+        if (flScore != null && flMax != null && flMax > 0 && flScore <= flMax) {
+          finalFl = ((flScore / flMax) * 100).round();
+        }
+
+        int? finalCh = chScore;
+        if (chScore != null && chMax != null && chMax > 0 && chScore <= chMax) {
+          finalCh = ((chScore / chMax) * 100).round();
+        }
 
         if (mounted) {
           setState(() {
-            if (flScore != null) _fattyLiverScore = flScore;
-            if (chScore != null) _cholesterolScore = chScore;
+            if (finalFl != null) _fattyLiverScore = finalFl;
+            if (finalCh != null) _cholesterolScore = finalCh;
           });
         }
       }
@@ -152,12 +172,32 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
   }
 
   String get fattyLiverStatus {
+    if (widget.fattyLiverRisk != null) {
+      switch (widget.fattyLiverRisk!) {
+        case RiskLevel.low:
+          return 'Low';
+        case RiskLevel.moderate:
+          return 'Moderate';
+        case RiskLevel.high:
+          return 'High';
+      }
+    }
     if (_fattyLiverScore < 35) return 'Low';
     if (_fattyLiverScore < 70) return 'Moderate';
     return 'High';
   }
 
   String get cholesterolStatus {
+    if (widget.cholesterolRisk != null) {
+      switch (widget.cholesterolRisk!) {
+        case RiskLevel.low:
+          return 'Low';
+        case RiskLevel.moderate:
+          return 'Moderate';
+        case RiskLevel.high:
+          return 'High';
+      }
+    }
     if (_cholesterolScore < 35) return 'Low';
     if (_cholesterolScore < 70) return 'Moderate';
     return 'High';
@@ -505,9 +545,23 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
   }
 
   Widget _buildInsightCard() {
+    final flStatus = fattyLiverStatus;
+    final chStatus = cholesterolStatus;
+    final overallStatus = overallRiskStatus;
+    final overallScore = displayOverallRisk;
+
+    final insight = PersonalizedRecommendationService.getOverallInsight(
+      fattyLiverStatus: flStatus,
+      cholesterolStatus: chStatus,
+      overallRiskStatus: overallStatus,
+      fattyLiverScore: _fattyLiverScore,
+      cholesterolScore: _cholesterolScore,
+      overallScore: overallScore,
+    );
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -522,15 +576,27 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
           ),
         ],
       ),
-      child: const Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: insight.badgeBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  insight.icon,
+                  size: 20,
+                  color: insight.badgeColor,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
                   'OVERALL INSIGHT',
                   style: TextStyle(
                     color: AssessmentResultScreen.darkGreen,
@@ -539,16 +605,43 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                     letterSpacing: .5,
                   ),
                 ),
-                SizedBox(height: 6),
-                Text(
-                  'Focus on improving your lifestyle to reduce fatty liver risk and maintain low cholesterol !',
-                  style: TextStyle(
-                    color: AssessmentResultScreen.mutedText,
-                    fontSize: 12.5,
-                    height: 1.4,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: insight.badgeBgColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: insight.badgeColor.withAlpha(60),
                   ),
                 ),
-              ],
+                child: Text(
+                  insight.badgeText,
+                  style: TextStyle(
+                    color: insight.badgeColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            insight.title,
+            style: const TextStyle(
+              color: AssessmentResultScreen.textDark,
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            insight.message,
+            style: const TextStyle(
+              color: AssessmentResultScreen.mutedText,
+              fontSize: 12.5,
+              height: 1.45,
             ),
           ),
         ],
@@ -565,7 +658,14 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const RecommendationsScreen(),
+              builder: (context) => RecommendationsScreen(
+                fattyLiverScore: _fattyLiverScore,
+                cholesterolScore: _cholesterolScore,
+                fattyLiverStatus: fattyLiverStatus,
+                cholesterolStatus: cholesterolStatus,
+                overallRiskScore: displayOverallRisk,
+                overallRiskStatus: overallRiskStatus,
+              ),
             ),
           );
         },
@@ -582,7 +682,7 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'See Personalized Recommandation',
+              'See Personalized Recommendation',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

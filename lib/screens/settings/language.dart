@@ -212,16 +212,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
                                                 : Colors.black87),
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      "${lang.name} • ${lang.subtitle}",
-                                      style: TextStyle(
-                                        fontSize: 12.5,
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.grey.shade600,
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),

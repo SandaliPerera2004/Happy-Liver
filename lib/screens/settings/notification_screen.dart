@@ -179,7 +179,7 @@ class _NotificationSettingsScreenState
           ),
           _buildToggleRow(
             title: 'Routine Reminder',
-            subtitle: 'Get notified when it\'s time to complete daily routines.',
+            subtitle: 'Get notified when it\'s time to take your medication.',
             value: _routineReminder,
             isDark: isDark,
             onChanged: (v) => _updatePreferences(routineReminder: v),

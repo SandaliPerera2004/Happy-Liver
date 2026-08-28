@@ -13,29 +13,63 @@ class HelpFeedback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: Colors.white,
       body: SafeArea(
-        top: true,
         bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context, isDark),
+            // Colored header area ONLY - below safe area
+            Container(
+              color: const Color(0xFFE5F8D8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.maybePop(context),
+                    child: SvgPicture.asset(
+                      'assets/icons/Arrow left-circle.svg',
+                      width: 30,
+                      height: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Text(
+                    "Help & Feedback",
+                    style: TextStyle(
+                      color: Color(0xFF18321F),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildOptionTile(
-                      icon: Icons.edit_outlined,
-                      title: 'Send feedback',
-                      subtitle: 'Tell us what you like or suggest improvements',
-                      isDark: isDark,
+                    const SizedBox(height: 35),
+
+                    // How can we help you?
+                    const Text(
+                      "How can we help you?",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF18321F),
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    // Send feedback
+                    helpItem(
+                      title: "Send feedback",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -45,13 +79,12 @@ class HelpFeedback extends StatelessWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
-                    _buildOptionTile(
-                      icon: Icons.report_problem_outlined,
-                      title: 'Report a problem',
-                      subtitle:
-                          'Report bugs or view status of your reported issues',
-                      isDark: isDark,
+
+                    const SizedBox(height: 12),
+
+                    // Report a problem
+                    helpItem(
+                      title: "Report a problem",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -61,6 +94,44 @@ class HelpFeedback extends StatelessWidget {
                         );
                       },
                     ),
+
+                    const Spacer(),
+
+                    // Still need help?
+                    const Text(
+                      "Still need help?",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF18321F),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Contact us
+                    const Text(
+                      "Contact us",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // Email
+                    const Text(
+                      "support@happyliver.com",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF4285F4),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -68,123 +139,41 @@ class HelpFeedback extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(context),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E2D1E) : const Color(0xFFDFF3D8),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: SvgPicture.asset(
-              'assets/icons/Arrow left-circle.svg',
-              width: 30,
-              height: 30,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'Help & Feedback',
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 3,
+        onTap: (index) => _onBottomNavTapped(context, index),
       ),
     );
   }
 
-  Widget _buildOptionTile({
-    required IconData icon,
+  Widget helpItem({
     required String title,
-    required String subtitle,
-    required bool isDark,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.grey.shade300,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 10,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1E2D1E)
-                        : const Color(0xFFE5F8D8),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: const Color(0xFF146B0B),
-                    size: 22,
-                  ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white54 : Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: isDark ? Colors.white38 : Colors.grey,
-                ),
-              ],
+              ),
             ),
-          ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: Colors.grey,
+            ),
+          ],
         ),
       ),
     );
@@ -219,12 +208,5 @@ class HelpFeedback extends StatelessWidget {
         );
         break;
     }
-  }
-
-  Widget _buildBottomNavBar(BuildContext context) {
-    return CustomBottomNavBar(
-      currentIndex: 3,
-      onTap: (index) => _onBottomNavTapped(context, index),
-    );
   }
 }
