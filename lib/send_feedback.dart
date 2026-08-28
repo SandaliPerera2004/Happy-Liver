@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'feedback_firestore_service.dart';
 
 class SendFeedback extends StatefulWidget {
   const SendFeedback({super.key});
@@ -11,11 +12,58 @@ class SendFeedback extends StatefulWidget {
 class _SendFeedbackState extends State<SendFeedback> {
   int selectedRating = 4;
   final TextEditingController _feedbackController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     _feedbackController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitFeedback() async {
+    final text = _feedbackController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a brief message."),
+          backgroundColor: Color(0xFFE65100),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await FeedbackFirestoreService.submitFeedback(
+        rating: selectedRating,
+        feedbackText: text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Thank you! Your feedback has been saved."),
+            backgroundColor: Color(0xFF146B0B),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to submit feedback: $e"),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -113,6 +161,7 @@ class _SendFeedbackState extends State<SendFeedback> {
                       child: TextField(
                         controller: _feedbackController,
                         maxLines: 5,
+                        enabled: !_isSubmitting,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: "Tell us what you think...",
@@ -145,11 +194,13 @@ class _SendFeedbackState extends State<SendFeedback> {
                         (index) {
                           final starNumber = index + 1;
                           return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedRating = starNumber;
-                              });
-                            },
+                            onTap: _isSubmitting
+                                ? null
+                                : () {
+                                    setState(() {
+                                      selectedRating = starNumber;
+                                    });
+                                  },
                             child: Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: Icon(
@@ -175,31 +226,32 @@ class _SendFeedbackState extends State<SendFeedback> {
                         width: 180,
                         height: 44,
                         child: ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Thank you for your feedback!",
-                                ),
-                              ),
-                            );
-                            Navigator.pop(context);
-                          },
+                          onPressed: _isSubmitting ? null : _submitFeedback,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF146B0B),
                             foregroundColor: Colors.white,
+                            disabledBackgroundColor: const Color(0xFF146B0B).withAlpha(120),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            "Submit Feedback",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  "Submit Feedback",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

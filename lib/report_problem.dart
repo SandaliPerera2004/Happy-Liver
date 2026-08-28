@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'feedback_firestore_service.dart';
 
 class ReportProblem extends StatefulWidget {
   const ReportProblem({super.key});
@@ -10,11 +11,57 @@ class ReportProblem extends StatefulWidget {
 
 class _ReportProblemState extends State<ReportProblem> {
   final TextEditingController problemController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     problemController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitReport() async {
+    final text = problemController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please describe the problem."),
+          backgroundColor: Color(0xFFE65100),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await FeedbackFirestoreService.submitProblemReport(
+        problemDescription: text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Your report has been submitted. Thank you!"),
+            backgroundColor: Color(0xFF146B0B),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to submit report: $e"),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -112,6 +159,7 @@ class _ReportProblemState extends State<ReportProblem> {
                       child: TextField(
                         controller: problemController,
                         maxLines: 5,
+                        enabled: !_isSubmitting,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: "Describe the problem in detail...",
@@ -131,41 +179,32 @@ class _ReportProblemState extends State<ReportProblem> {
                         width: 160,
                         height: 44,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (problemController.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Please describe the problem.",
-                                  ),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Your report has been submitted.",
-                                  ),
-                                ),
-                              );
-                              Navigator.pop(context);
-                            }
-                          },
+                          onPressed: _isSubmitting ? null : _submitReport,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF146B0B),
                             foregroundColor: Colors.white,
+                            disabledBackgroundColor: const Color(0xFF146B0B).withAlpha(120),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            "Submit Report",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  "Submit Report",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
