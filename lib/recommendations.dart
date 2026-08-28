@@ -1,18 +1,105 @@
 import 'package:flutter/material.dart';
+import 'models/risk_level.dart';
+import 'assessment_firestore_service.dart';
 import 'ai_chatbot.dart';
 import 'main.dart';
 
 class RecommendationsScreen extends StatefulWidget {
-  const RecommendationsScreen({super.key});
+  final AssessmentResult? result;
+
+  const RecommendationsScreen({super.key, this.result});
 
   @override
   State<RecommendationsScreen> createState() => _RecommendationsScreenState();
 }
 
 class _RecommendationsScreenState extends State<RecommendationsScreen> {
+  AssessmentResult? _result;
+  String _userName = 'Shehani';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.result != null) {
+      _result = widget.result;
+      _loadUserName();
+    } else {
+      _loadData();
+    }
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await AssessmentFirestoreService.getUserDisplayName();
+    if (mounted) {
+      setState(() {
+        _userName = name;
+      });
+    }
+  }
+
+  Future<void> _loadData() async {
+    final name = await AssessmentFirestoreService.getUserDisplayName();
+    final res = await AssessmentFirestoreService.getLatestAssessment();
+    if (mounted) {
+      setState(() {
+        _userName = name;
+        _result = res;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool canPop = Navigator.canPop(context);
+
+    final fattyLiverRisk = _result?.fattyLiverRisk ?? RiskLevel.moderate;
+    final cholesterolRisk = _result?.cholesterolRisk ?? RiskLevel.low;
+    final isHighRisk = fattyLiverRisk == RiskLevel.high || cholesterolRisk == RiskLevel.high;
+    final isModerateRisk = fattyLiverRisk == RiskLevel.moderate || cholesterolRisk == RiskLevel.moderate;
+
+    // 1. MEALS RECOMMENDATION (2-3 lines tailored to risk)
+    String mealsTitle = 'Balanced Liver-Friendly Diet';
+    String mealsSubtitle = 'Eat more vegetables, whole grains, lean proteins, and fresh fruits.\nLimit fried foods and refined sugar to reduce liver stress.';
+    if (isHighRisk) {
+      mealsTitle = 'Targeted Low-Fat & Clean Diet';
+      mealsSubtitle = 'Eliminate deep-fried foods, red meat, and excess saturated fats.\nFill half your plate with green vegetables, legumes, and whole grains.';
+    } else if (!isModerateRisk) {
+      mealsTitle = 'Nutrient-Dense Maintenance Diet';
+      mealsSubtitle = 'Maintain your balanced plate with leafy greens, legumes, and fresh fruit.\nKeep choosing high-fiber, lean protein sources for vitality.';
+    }
+
+    // 2. HYDRATION RECOMMENDATION (2-3 lines tailored to risk)
+    String hydrationTitle = 'Optimal Fluid & Detox Intake';
+    String hydrationSubtitle = 'Drink 8–10 glasses of water throughout the day.\nSwap sugary sodas with green tea, warm lemon water, or herbal teas.';
+    if (isHighRisk) {
+      hydrationTitle = 'Strict Detox Hydration';
+      hydrationSubtitle = 'Drink 2.5–3 liters of pure water daily to flush metabolic waste.\nCompletely avoid alcohol, sodas, and sweetened energy drinks.';
+    } else if (!isModerateRisk) {
+      hydrationTitle = 'Daily Hydration Routine';
+      hydrationSubtitle = 'Keep sipping 2–2.5L of water daily to maintain metabolic balance.\nAdequate hydration supports natural liver and kidney detoxification.';
+    }
+
+    // 3. SLEEP RECOMMENDATION (2-3 lines tailored to risk)
+    String sleepTitle = 'Circadian Balance & Recovery';
+    String sleepSubtitle = 'Sleep 7–9 hours each night and maintain a regular sleep schedule.\nQuality rest optimizes nocturnal liver repair and enzyme regulation.';
+    if (isHighRisk) {
+      sleepTitle = 'Restorative Nocturnal Recovery';
+      sleepSubtitle = 'Ensure 7–9 hours of deep sleep and avoid screen time before bed.\nFinish dinner 3 hours prior to sleeping to aid overnight liver renewal.';
+    } else if (!isModerateRisk) {
+      sleepTitle = 'Healthy Rest & Recovery';
+      sleepSubtitle = 'Continue getting 7–9 hours of sleep on a regular schedule.\nConsistent rest helps sustain healthy metabolic functions and energy.';
+    }
+
+    // 4. SUPPLEMENTS / LIFESTYLE RECOMMENDATION (2-3 lines tailored to risk)
+    String supplementsTitle = 'Essential Nutrients & Omega-3';
+    String supplementsSubtitle = 'Incorporate Omega-3 rich foods like chia seeds, walnuts, and fish.\nEngage in 30 minutes of moderate activity 3–4 days weekly.';
+    if (isHighRisk) {
+      supplementsTitle = 'Clinical Care & Essential Nutrients';
+      supplementsSubtitle = 'Discuss Omega-3 and Vitamin E supplementation with your doctor.\nIncorporate daily brisk walking or low-impact cardio into your routine.';
+    } else if (!isModerateRisk) {
+      supplementsTitle = 'Essential Nutrients & Wellness';
+      supplementsSubtitle = 'Keep nourishing your body with natural vitamins and antioxidant foods.\nMaintain your daily physical movement and healthy active lifestyle.';
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7F4),
@@ -50,19 +137,19 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                     },
                   ),
                   const SizedBox(width: 14),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hi Shehani 👋',
-                        style: TextStyle(
+                        'Hi $_userName 👋',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF18321F),
                         ),
                       ),
-                      SizedBox(height: 2),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         'Your Liver Care Recommendations • Today',
                         style: TextStyle(
                           fontSize: 11.5,
@@ -81,19 +168,20 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               child: ListView(
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16),
-        children: [
+                children: [
                   // Modern AI Assistant Hero Card
                   _buildAiHeroBanner(context),
                   const SizedBox(height: 16),
-                  // Display recommendation cards
+
+                  // Display recommendation cards with personalized 2-3 line guidance
                   _buildModernCard(
                     icon: Icons.restaurant_menu_rounded,
                     assetImagePath: 'assets/images/meal_image.png',
                     accentColor: const Color(0xFF2E7D32),
                     lightColor: const Color(0xFFE8F5E9),
                     tag: 'MEALS',
-                    title: 'Balanced Liver-Friendly Diet',
-                    subtitle: 'Eat more vegetables, whole grains, lean proteins, and fresh fruits.',
+                    title: mealsTitle,
+                    subtitle: mealsSubtitle,
                   ),
                   const SizedBox(height: 16),
 
@@ -103,8 +191,8 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                     accentColor: const Color(0xFF0288D1),
                     lightColor: const Color(0xFFE1F5FE),
                     tag: 'HYDRATION',
-                    title: 'Optimal Fluid & Detox Intake',
-                    subtitle: 'Drink enough water throughout the day and limit sugary drinks',
+                    title: hydrationTitle,
+                    subtitle: hydrationSubtitle,
                   ),
                   const SizedBox(height: 16),
 
@@ -114,8 +202,8 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                     accentColor: const Color(0xFF5E35B1),
                     lightColor: const Color(0xFFEDE7F6),
                     tag: 'SLEEP',
-                    title: 'Circadian Balance & Recovery',
-                    subtitle: 'Sleep 7–9 hours each night and maintain a regular sleep schedule.',
+                    title: sleepTitle,
+                    subtitle: sleepSubtitle,
                   ),
                   const SizedBox(height: 16),
 
@@ -125,8 +213,8 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                     accentColor: const Color(0xFFE65100),
                     lightColor: const Color(0xFFFFF3E0),
                     tag: 'SUPPLEMENTS',
-                    title: 'Essential Nutrients & Omega-3',
-                    subtitle: 'Take recommended supplements when needed.',
+                    title: supplementsTitle,
+                    subtitle: supplementsSubtitle,
                   ),
 
                   const SizedBox(height: 30),
@@ -201,7 +289,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         border: Border.all(color: const Color(0xFFE0EBE0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -301,7 +389,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         border: Border.all(color: const Color(0xFFEAEAEA)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withAlpha(8),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -371,6 +459,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               fontSize: 13,
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w400,
+              height: 1.35,
             ),
           ),
         ],

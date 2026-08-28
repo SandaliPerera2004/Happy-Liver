@@ -566,7 +566,7 @@ class _AssessmentResultPageState extends State<AssessmentResultPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const RecommendationsScreen(),
+              builder: (context) => RecommendationsScreen(result: _result),
             ),
           );
         },
