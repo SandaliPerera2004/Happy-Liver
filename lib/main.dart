@@ -5,7 +5,10 @@ import 'daily_routine.dart';
 import 'profile.dart';
 import 'settings.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -14,6 +17,15 @@ void main() {
       statusBarBrightness: Brightness.light,
     ),
   );
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization notice: $e');
+  }
+
   runApp(const HappyLiverApp());
 }
 

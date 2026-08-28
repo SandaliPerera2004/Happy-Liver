@@ -9,18 +9,20 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  bool pushNotifications = true;
-  bool dailyReminders = true;
-  bool weeklySummary = false;
-  bool healthTips = true;
+  bool _allowNotifications = true;
+  bool _healthTips = true;
+  bool _routineReminder = true;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F6F8),
       body: SafeArea(
         bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Colored header area ONLY - below safe area
             Container(
@@ -52,37 +54,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
 
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                children: [
-                  _buildSwitchTile(
-                    title: "Push Notifications",
-                    subtitle: "Receive overall app notifications",
-                    value: pushNotifications,
-                    onChanged: (val) => setState(() => pushNotifications = val),
-                  ),
-                  const Divider(),
-                  _buildSwitchTile(
-                    title: "Daily Routine Reminders",
-                    subtitle: "Reminders to complete daily liver health routines",
-                    value: dailyReminders,
-                    onChanged: (val) => setState(() => dailyReminders = val),
-                  ),
-                  const Divider(),
-                  _buildSwitchTile(
-                    title: "Weekly Summary Report",
-                    subtitle: "Get insights on your weekly progress",
-                    value: weeklySummary,
-                    onChanged: (val) => setState(() => weeklySummary = val),
-                  ),
-                  const Divider(),
-                  _buildSwitchTile(
-                    title: "Health Tips & Recommendations",
-                    subtitle: "Tips based on your assessment results",
-                    value: healthTips,
-                    onChanged: (val) => setState(() => healthTips = val),
-                  ),
-                ],
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                child: _buildSettingsCard(isDark),
               ),
             ),
           ],
@@ -145,15 +119,71 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildSwitchTile({
+  Widget _buildSettingsCard(bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildToggleRow(
+            title: 'Allow notifications',
+            subtitle: 'Receive alerts, reminders, and important updates.',
+            value: _allowNotifications,
+            isDark: isDark,
+            onChanged: (val) => setState(() => _allowNotifications = val),
+          ),
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white12 : const Color(0xFFECECEC),
+          ),
+          _buildToggleRow(
+            title: 'Health Tips',
+            subtitle: 'Daily wellness advice and lifestyle recommendations.',
+            value: _healthTips,
+            isDark: isDark,
+            onChanged: (val) => setState(() => _healthTips = val),
+          ),
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white12 : const Color(0xFFECECEC),
+          ),
+          _buildToggleRow(
+            title: 'Routine Reminder',
+            subtitle: "Get notified when it's time to take your medication.",
+            value: _routineReminder,
+            isDark: isDark,
+            onChanged: (val) => setState(() => _routineReminder = val),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleRow({
     required String title,
     required String subtitle,
     required bool value,
+    required bool isDark,
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -161,9 +191,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -171,16 +202,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   subtitle,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: isDark ? Colors.white54 : Colors.black45,
+                    height: 1.35,
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 12),
           Switch(
             value: value,
-            activeThumbColor: const Color(0xFF146B0B),
             onChanged: onChanged,
+            activeThumbColor: const Color(0xFF146B0B),
+            activeTrackColor: const Color(0xFFCFF7D3),
           ),
         ],
       ),

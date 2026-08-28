@@ -1,39 +1,103 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'models/risk_level.dart';
+import 'assessment_firestore_service.dart';
 import 'recommendations.dart';
 
 /// Compatibility wrapper for navigation
 class AssessmentResults extends StatelessWidget {
-  const AssessmentResults({super.key});
+  final AssessmentResult? result;
+
+  const AssessmentResults({super.key, this.result});
 
   @override
   Widget build(BuildContext context) {
-    return const AssessmentResultPage();
+    return AssessmentResultPage(initialResult: result);
   }
 }
 
-class AssessmentResultPage extends StatelessWidget {
+class AssessmentResultPage extends StatefulWidget {
   final bool isHome;
+  final AssessmentResult? initialResult;
 
-  const AssessmentResultPage({super.key, this.isHome = true});
+  const AssessmentResultPage({
+    super.key,
+    this.isHome = true,
+    this.initialResult,
+  });
 
-  // Risk scores calculated from the assessment questions
-  static const int overallRisk = 70;
-  static const int fattyLiverRisk = 65;
-  static const int cholesterolRisk = 25;
-
+  // Color constants matching the design system
   static const Color pageBg = Color(0xFFF5FAF6);
   static const Color darkGreen = Color(0xFF146B0B);
   static const Color green = Color(0xFF23943A);
   static const Color paleGreen = Color(0xFFEAF7E7);
   static const Color orange = Color(0xFFE65100);
+  static const Color red = Color(0xFFC62828);
   static const Color textDark = Color(0xFF18321F);
   static const Color mutedText = Color(0xFF5A665D);
 
   @override
+  State<AssessmentResultPage> createState() => _AssessmentResultPageState();
+}
+
+class _AssessmentResultPageState extends State<AssessmentResultPage> {
+  AssessmentResult? _result;
+  String _userName = 'Shehani';
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialResult != null) {
+      _result = widget.initialResult;
+      _isLoading = false;
+      _loadUserNameOnly();
+    } else {
+      _loadAssessmentData();
+    }
+  }
+
+  Future<void> _loadUserNameOnly() async {
+    final name = await AssessmentFirestoreService.getUserDisplayName();
+    if (mounted) {
+      setState(() {
+        _userName = name;
+      });
+    }
+  }
+
+  Future<void> _loadAssessmentData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final name = await AssessmentFirestoreService.getUserDisplayName();
+      final result = await AssessmentFirestoreService.getLatestAssessment();
+
+      if (mounted) {
+        setState(() {
+          _userName = name;
+          _result = result;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Unable to connect to assessment service.';
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: pageBg,
+      backgroundColor: AssessmentResultPage.pageBg,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -44,66 +108,45 @@ class AssessmentResultPage extends StatelessWidget {
               child: _buildAppBar(context),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 5),
-                    _buildGreeting(),
-                    const SizedBox(height: 15),
+              child: _isLoading
+                  ? _buildLoadingState()
+                  : RefreshIndicator(
+                      color: AssessmentResultPage.darkGreen,
+                      backgroundColor: Colors.white,
+                      onRefresh: _loadAssessmentData,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+                        child: Column(
+                          children: [
+                            if (_errorMessage != null) _buildErrorBanner(),
+                            const SizedBox(height: 5),
+                            _buildGreeting(),
+                            const SizedBox(height: 15),
 
-                    // Main overall result gauge with vibrant gradient arc
-                    _buildOverallRisk(),
-                    const SizedBox(height: 10),
-                    // Side-by-side Fatty Liver Risk & Cholesterol Risk Cards
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _DonutRiskTile(
-                            title: 'FATTY LIVER RISK',
-                            score: fattyLiverRisk,
-                            status: 'Moderate',
-                            description:
-                                'your fatty liver risk score is on Moderate.',
-                            gradientColors: const [
-                              Color(0xFFFF9800),
-                              Color(0xFFE65100),
-                            ],
-                            statusColor: const Color(0xFFE65100),
-                            statusBgColor: const Color(0xFFFFF3E0),
-                          ),
+                            // Main overall result gauge with dynamic gradient arc
+                            _buildOverallRisk(),
+                            const SizedBox(height: 10),
+
+                            // Side-by-side Fatty Liver Risk & Cholesterol Risk Cards
+                            _buildRiskCardsRow(),
+                            const SizedBox(height: 10),
+
+                            // Overall insight card dynamically generated from backend result
+                            _buildInsightCard(),
+                            const SizedBox(height: 15),
+
+                            // Navigation to personalized plan
+                            _buildPersonalizedPlanButton(context),
+                            const SizedBox(height: 15),
+
+                            _buildDisclaimer(),
+                          ],
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _DonutRiskTile(
-                            title: 'CHOLESTEROL RISK',
-                            score: cholesterolRisk,
-                            status: 'Low',
-                            description:
-                                'Your cholesterol risk score is on Low.',
-                            gradientColors: const [
-                              Color(0xFF66BB6A),
-                              Color(0xFF2E7D32),
-                            ],
-                            statusColor: const Color(0xFF2E7D32),
-                            statusBgColor: const Color(0xFFE8F5E9),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    // Overall insight card
-                    _buildInsightCard(),
-                    const SizedBox(height: 15),
-                    // Navigation to personalized plan
-                    _buildPersonalizedPlanButton(context),
-                    const SizedBox(height: 15),
-                    _buildDisclaimer(),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -111,12 +154,34 @@ class AssessmentResultPage extends StatelessWidget {
     );
   }
 
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AssessmentResultPage.darkGreen),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Loading your health assessment...',
+            style: TextStyle(
+              color: AssessmentResultPage.mutedText,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAppBar(BuildContext context) {
-    final bool canPop = Navigator.canPop(context);
     return Container(
       color: const Color(0xFFE5F8D8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
             "Assessment Results",
@@ -125,6 +190,52 @@ class AssessmentResultPage extends StatelessWidget {
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.refresh_rounded,
+              color: AssessmentResultPage.darkGreen,
+            ),
+            tooltip: 'Refresh Results',
+            onPressed: _loadAssessmentData,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3CD),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFEEBA)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Color(0xFF856404), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _errorMessage ?? '',
+              style: const TextStyle(
+                color: Color(0xFF856404),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16, color: Color(0xFF856404)),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              setState(() {
+                _errorMessage = null;
+              });
+            },
           ),
         ],
       ),
@@ -142,23 +253,23 @@ class AssessmentResultPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Great job Shehani! 🎉',
-                  style: TextStyle(
-                    color: darkGreen,
+                  'Great job $_userName! 🎉',
+                  style: const TextStyle(
+                    color: AssessmentResultPage.darkGreen,
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                SizedBox(height: 1),
-                Text(
+                const SizedBox(height: 1),
+                const Text(
                   "You've completed your Happy Liver health assessment.",
                   style: TextStyle(
-                    color: mutedText,
+                    color: AssessmentResultPage.mutedText,
                     fontSize: 13,
                     height: 1.35,
                     fontWeight: FontWeight.w500,
@@ -182,7 +293,7 @@ class AssessmentResultPage extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.favorite_rounded,
-                  color: darkGreen,
+                  color: AssessmentResultPage.darkGreen,
                   size: 36,
                 ),
               ),
@@ -194,6 +305,42 @@ class AssessmentResultPage extends StatelessWidget {
   }
 
   Widget _buildOverallRisk() {
+    final res = _result;
+    final int score = res?.overallPercentage ?? 70;
+    final RiskLevel risk = res?.overallRisk ?? RiskLevel.moderate;
+
+    String riskTitle = 'Moderate Risk';
+    Color riskColor = AssessmentResultPage.orange;
+    List<Color> gradientColors = const [
+      Color(0xFFFFB74D), // Soft Orange
+      Color(0xFFF57C00), // Deep Orange
+      Color(0xFFD84315), // Red-Orange Accent
+    ];
+    String subtext1 = 'Keep going! Lifestyle choices';
+    String subtext2 = 'make a big impact.';
+
+    if (risk == RiskLevel.low) {
+      riskTitle = 'Low Risk';
+      riskColor = AssessmentResultPage.green;
+      gradientColors = const [
+        Color(0xFF81C784),
+        Color(0xFF388E3C),
+        Color(0xFF1B5E20),
+      ];
+      subtext1 = 'Great work! Your liver habits';
+      subtext2 = 'are on a healthy track.';
+    } else if (risk == RiskLevel.high) {
+      riskTitle = 'High Risk';
+      riskColor = AssessmentResultPage.red;
+      gradientColors = const [
+        Color(0xFFEF9A9A),
+        Color(0xFFE53935),
+        Color(0xFFB71C1C),
+      ];
+      subtext1 = 'Action advised! Lifestyle & medical';
+      subtext2 = 'support are recommended.';
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 15, 20, 20),
@@ -218,7 +365,7 @@ class AssessmentResultPage extends StatelessWidget {
             child: Text(
               'OVERALL RISK',
               style: TextStyle(
-                color: darkGreen,
+                color: AssessmentResultPage.darkGreen,
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.1,
@@ -230,44 +377,46 @@ class AssessmentResultPage extends StatelessWidget {
             width: double.infinity,
             child: CustomPaint(
               painter: _GradientGaugePainter(
-                score: overallRisk,
+                score: score,
+                gradientColors: gradientColors,
+                indicatorColor: riskColor,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
-                  SizedBox(height: 35),
+                children: [
+                  const SizedBox(height: 35),
                   Text(
-                    '$overallRisk%',
-                    style: TextStyle(
-                      color: textDark,
+                    '$score%',
+                    style: const TextStyle(
+                      color: AssessmentResultPage.textDark,
                       fontSize: 45,
                       fontWeight: FontWeight.w900,
                       height: 1.0,
                     ),
                   ),
-                  SizedBox(height: 1),
+                  const SizedBox(height: 1),
                   Text(
-                    'Moderate Risk',
+                    riskTitle,
                     style: TextStyle(
-                      color: orange,
+                      color: riskColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Text(
-                    'Keep going! Lifestyle choices',
+                    subtext1,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: mutedText,
+                    style: const TextStyle(
+                      color: AssessmentResultPage.mutedText,
                       fontSize: 12.5,
                     ),
                   ),
                   Text(
-                    'make a big impact.',
+                    subtext2,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: mutedText,
+                    style: const TextStyle(
+                      color: AssessmentResultPage.mutedText,
                       fontSize: 12.5,
                     ),
                   ),
@@ -280,7 +429,83 @@ class AssessmentResultPage extends StatelessWidget {
     );
   }
 
+  Widget _buildRiskCardsRow() {
+    final res = _result;
+
+    final int flScore = res?.fattyLiverPercentage ?? 65;
+    final RiskLevel flRisk = res?.fattyLiverRisk ?? RiskLevel.moderate;
+
+    final int chScore = res?.cholesterolPercentage ?? 25;
+    final RiskLevel chRisk = res?.cholesterolRisk ?? RiskLevel.low;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _DonutRiskTile(
+            title: 'FATTY LIVER RISK',
+            score: flScore,
+            status: flRisk.displayName,
+            description: 'Your fatty liver risk score is on ${flRisk.displayName}.',
+            gradientColors: _getRiskGradients(flRisk),
+            statusColor: _getRiskStatusColor(flRisk),
+            statusBgColor: _getRiskBgColor(flRisk),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _DonutRiskTile(
+            title: 'CHOLESTEROL RISK',
+            score: chScore,
+            status: chRisk.displayName,
+            description: 'Your cholesterol risk score is on ${chRisk.displayName}.',
+            gradientColors: _getRiskGradients(chRisk),
+            statusColor: _getRiskStatusColor(chRisk),
+            statusBgColor: _getRiskBgColor(chRisk),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Color> _getRiskGradients(RiskLevel risk) {
+    switch (risk) {
+      case RiskLevel.low:
+        return const [Color(0xFF66BB6A), Color(0xFF2E7D32)];
+      case RiskLevel.moderate:
+        return const [Color(0xFFFF9800), Color(0xFFE65100)];
+      case RiskLevel.high:
+        return const [Color(0xFFEF5350), Color(0xFFC62828)];
+    }
+  }
+
+  Color _getRiskStatusColor(RiskLevel risk) {
+    switch (risk) {
+      case RiskLevel.low:
+        return const Color(0xFF2E7D32);
+      case RiskLevel.moderate:
+        return const Color(0xFFE65100);
+      case RiskLevel.high:
+        return const Color(0xFFC62828);
+    }
+  }
+
+  Color _getRiskBgColor(RiskLevel risk) {
+    switch (risk) {
+      case RiskLevel.low:
+        return const Color(0xFFE8F5E9);
+      case RiskLevel.moderate:
+        return const Color(0xFFFFF3E0);
+      case RiskLevel.high:
+        return const Color(0xFFFFEBEE);
+    }
+  }
+
   Widget _buildInsightCard() {
+    final String insightText = _result != null
+        ? AssessmentFirestoreService.generateInsight(_result!)
+        : 'Focus on improving your lifestyle to reduce fatty liver risk and maintain low cholesterol!';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(15),
@@ -301,25 +526,25 @@ class AssessmentResultPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: 14),
-          const Expanded(
+          const SizedBox(width: 4),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'OVERALL INSIGHT',
                   style: TextStyle(
-                    color: darkGreen,
+                    color: AssessmentResultPage.darkGreen,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     letterSpacing: .5,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Focus on improving your lifestyle to reduce fatty liver risk and maintain low cholesterol !',
-                  style: TextStyle(
-                    color: mutedText,
+                  insightText,
+                  style: const TextStyle(
+                    color: AssessmentResultPage.mutedText,
                     fontSize: 12.5,
                     height: 1.4,
                   ),
@@ -346,10 +571,10 @@ class AssessmentResultPage extends StatelessWidget {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: darkGreen,
+          backgroundColor: AssessmentResultPage.darkGreen,
           foregroundColor: Colors.white,
           elevation: 2,
-          shadowColor: darkGreen.withAlpha(76),
+          shadowColor: AssessmentResultPage.darkGreen.withAlpha(76),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -527,9 +752,17 @@ class _DonutRiskTile extends StatelessWidget {
 // ============================================================
 class _GradientGaugePainter extends CustomPainter {
   final int score;
+  final List<Color> gradientColors;
+  final Color indicatorColor;
 
   const _GradientGaugePainter({
     required this.score,
+    this.gradientColors = const [
+      Color(0xFFFFB74D), // Soft Orange
+      Color(0xFFF57C00), // Deep Orange
+      Color(0xFFD84315), // Red-Orange Accent
+    ],
+    this.indicatorColor = const Color(0xFFF19049),
   });
 
   @override
@@ -565,14 +798,10 @@ class _GradientGaugePainter extends CustomPainter {
     );
 
     // Gradient Risk Arc Progress
-    const gradient = SweepGradient(
+    final gradient = SweepGradient(
       startAngle: math.pi,
       endAngle: math.pi * 2,
-      colors: [
-        Color(0xFFFFB74D), // Soft Orange
-        Color(0xFFF57C00), // Deep Orange
-        Color(0xFFD84315), // Red-Orange Accent
-      ],
+      colors: gradientColors,
     );
 
     final progress = Paint()
@@ -581,16 +810,18 @@ class _GradientGaugePainter extends CustomPainter {
       ..strokeWidth = 18
       ..strokeCap = StrokeCap.round;
 
+    final progressSweep = math.pi * (score.clamp(0, 100) / 100);
+
     canvas.drawArc(
       rect,
       math.pi,
-      math.pi * (score / 100),
+      progressSweep,
       false,
       progress,
     );
 
     // Indicator dot
-    final angle = math.pi + math.pi * (score / 100);
+    final angle = math.pi + progressSweep;
 
     final point = Offset(
       center.dx + math.cos(angle) * radius,
@@ -600,19 +831,20 @@ class _GradientGaugePainter extends CustomPainter {
     canvas.drawCircle(
       point,
       7,
-      Paint()
-        ..color = Colors.white,
+      Paint()..color = Colors.white,
     );
     canvas.drawCircle(
       point,
       4,
-      Paint()..color = const Color(0xFFF19049),
+      Paint()..color = indicatorColor,
     );
   }
 
   @override
   bool shouldRepaint(covariant _GradientGaugePainter oldDelegate) {
-    return oldDelegate.score != score;
+    return oldDelegate.score != score ||
+        oldDelegate.gradientColors != gradientColors ||
+        oldDelegate.indicatorColor != indicatorColor;
   }
 }
 
@@ -674,10 +906,12 @@ class _GradientDonutPainter extends CustomPainter {
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
 
+    final progressSweep = totalSweep * (score.clamp(0, 100) / 100);
+
     canvas.drawArc(
       rect,
       startAngle,
-      totalSweep * (score / 100),
+      progressSweep,
       false,
       progress,
     );
@@ -685,6 +919,6 @@ class _GradientDonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GradientDonutPainter oldDelegate) {
-    return oldDelegate.score != score;
+    return oldDelegate.score != score || oldDelegate.gradientColors != gradientColors;
   }
 }
