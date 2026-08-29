@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "833014462788",
+    "project_id": "happy-liver-109cf",
+    "storage_bucket": "happy-liver-109cf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833014462788:android:ec6ae8faaede472485ff11",
+        "android_client_info": {
+          "package_name": "com.example.happy_liver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJO77n4NkookVeas6Q9WM0_Td2ipE2DV0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

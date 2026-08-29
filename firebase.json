@@ -1,0 +1,25 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "happy-liver-109cf",
+          "appId": "1:833014462788:android:ec6ae8faaede472485ff11",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "happy-liver-109cf",
+          "configurations": {
+            "android": "1:833014462788:android:ec6ae8faaede472485ff11",
+            "ios": "1:833014462788:ios:0c4cbf2faf95d18385ff11",
+            "macos": "1:833014462788:ios:0c4cbf2faf95d18385ff11",
+            "web": "1:833014462788:web:c5c8c944cfe43d6085ff11",
+            "windows": "1:833014462788:web:49e5b24a01a2932585ff11"
+          }
+        }
+      }
+    }
+  }
+}
