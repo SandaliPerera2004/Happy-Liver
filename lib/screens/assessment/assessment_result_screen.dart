@@ -144,7 +144,11 @@ class AssessmentResultScreen extends StatelessWidget {
       // ========================================================
       // YOUR CUSTOM HEADER
       // ========================================================
-      appBar: const CustomHeader(title: 'Assessment Results', showBack: true),
+
+      appBar: const CustomHeader(
+        title: 'Assessment Results',
+        showBack: true,
+      ),
 
       // ========================================================
       // MAIN CONTENT
