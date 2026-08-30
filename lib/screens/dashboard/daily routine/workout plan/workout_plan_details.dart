@@ -2,42 +2,100 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:video_player/video_player.dart';
 import 'exercise_timer_screen.dart';
+import 'package:happy_liver/models/workout_model.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
-  const WorkoutDetailScreen({super.key});
+  final WorkoutModel workout;
+
+  const WorkoutDetailScreen({
+    super.key,
+    required this.workout,
+  });
 
   @override
-  State<WorkoutDetailScreen> createState() => _WorkoutDetailScreenState();
+  State<WorkoutDetailScreen> createState() =>
+      _WorkoutDetailScreenState();
 }
 
 class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
-  late VideoPlayerController _videoController;
+  VideoPlayerController? _videoController;
 
   bool _videoError = false;
   String? _videoErrorMessage;
-
-  static const String _videoAssetPath = 'assets/videos/march_in_place.mp4';
 
   @override
   void initState() {
     super.initState();
 
-    _videoController = VideoPlayerController.asset(_videoAssetPath);
+    debugPrint('====================================');
+    debugPrint('WORKOUT DETAIL SCREEN');
+    debugPrint('Workout ID: ${widget.workout.id}');
+    debugPrint('Workout Name: ${widget.workout.name}');
+    debugPrint('Video URL received: "${widget.workout.videoUrl}"');
+    debugPrint('Video URL length: ${widget.workout.videoUrl.length}');
+    debugPrint('====================================');
 
     _initializeVideo();
   }
 
+  // ==============================================================
+  // INITIALIZE VIDEO
+  // ==============================================================
   Future<void> _initializeVideo() async {
+    final String videoUrl = widget.workout.videoUrl.trim();
+
+    if (videoUrl.isEmpty) {
+      debugPrint(
+        'VIDEO ERROR: videoUrl received from WorkoutModel is EMPTY',
+      );
+
+      if (mounted) {
+        setState(() {
+          _videoError = true;
+          _videoErrorMessage = 'Video URL is empty.';
+        });
+      }
+
+      return;
+    }
+
+    debugPrint('VIDEO URL TO LOAD: $videoUrl');
+
     try {
-      await _videoController.initialize();
+      final Uri videoUri = Uri.tryParse(videoUrl) ??
+          (throw Exception('Invalid video URL.'));
+
+      if (videoUri.scheme != 'http' &&
+          videoUri.scheme != 'https') {
+        throw Exception(
+          'Video URL must start with http:// or https://',
+        );
+      }
+
+      _videoController = VideoPlayerController.networkUrl(
+        videoUri,
+      );
+
+      await _videoController!.initialize();
 
       if (mounted) {
         setState(() {});
       }
+
+      debugPrint('VIDEO INITIALIZED SUCCESSFULLY');
+      debugPrint(
+        'VIDEO ASPECT RATIO: ${_videoController!.value.aspectRatio}',
+      );
+      debugPrint(
+        'VIDEO SIZE: ${_videoController!.value.size}',
+      );
     } catch (e, stackTrace) {
-      // Print the FULL error + stack trace so the real cause shows in console.
-      debugPrint('VIDEO ERROR: $e');
-      debugPrint('VIDEO ERROR STACK: $stackTrace');
+      debugPrint('====================================');
+      debugPrint('VIDEO INITIALIZATION ERROR');
+      debugPrint('URL: $videoUrl');
+      debugPrint('ERROR: $e');
+      debugPrint('STACK TRACE: $stackTrace');
+      debugPrint('====================================');
 
       if (mounted) {
         setState(() {
@@ -50,34 +108,47 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
   @override
   void dispose() {
-    _videoController.dispose();
+    _videoController?.dispose();
     super.dispose();
   }
 
-  void _toggleVideo() {
-    if (!_videoController.value.isInitialized) return;
+  // ==============================================================
+  // OPEN FULL SCREEN VIDEO
+  // ==============================================================
+  void _openFullScreenVideo() {
+    final controller = _videoController;
 
-    if (_videoController.value.isPlaying) {
-      _videoController.pause();
-    } else {
-      _videoController.play();
+    if (controller == null ||
+        !controller.value.isInitialized) {
+      return;
     }
 
-    setState(() {});
+    // Pause the video on the detail screen before opening
+    // the full-screen player.
+    controller.pause();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FullScreenVideoScreen(
+          controller: controller,
+          workoutName: widget.workout.name,
+        ),
+      ),
+    );
   }
 
+  // ==============================================================
+  // BUILD
+  // ==============================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // ==========================================================
-      // BODY
-      // ==========================================================
       body: SafeArea(
         child: Column(
           children: [
-
             // ======================================================
             // TOP APP BAR
             // ======================================================
@@ -88,7 +159,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
               ),
               child: Row(
                 children: [
-
                   // Back button
                   GestureDetector(
                     onTap: () {
@@ -152,7 +222,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // =================================================
                     // VIDEO
                     // =================================================
@@ -179,19 +248,18 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
-
                           // TITLE + DURATION
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.center,
                             children: [
-
-                              // Workout name
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'March in Place',
-                                  style: TextStyle(
+                                  widget.workout.name,
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF263A31),
@@ -201,34 +269,37 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
                               const SizedBox(width: 8),
 
-                              // Duration - RIGHT SIDE
+                              // Duration
                               Container(
-                                padding: const EdgeInsets.symmetric(
+                                padding:
+                                const EdgeInsets.symmetric(
                                   horizontal: 10,
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE9F9EE),
-                                  borderRadius: BorderRadius.circular(20),
+                                  color:
+                                  const Color(0xFFE9F9EE),
+                                  borderRadius:
+                                  BorderRadius.circular(20),
                                 ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                child: Row(
+                                  mainAxisSize:
+                                  MainAxisSize.min,
                                   children: [
-
-                                    Icon(
+                                    const Icon(
                                       Icons.access_time,
                                       size: 14,
                                       color: Color(0xFF2BCB5A),
                                     ),
-
-                                    SizedBox(width: 4),
-
+                                    const SizedBox(width: 4),
                                     Text(
-                                      '30 min',
-                                      style: TextStyle(
+                                      '${widget.workout.duration} min',
+                                      style: const TextStyle(
                                         fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF2BCB5A),
+                                        fontWeight:
+                                        FontWeight.w600,
+                                        color:
+                                        Color(0xFF2BCB5A),
                                       ),
                                     ),
                                   ],
@@ -243,32 +314,34 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           // RISK LEVEL
                           // =================================================
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding:
+                            const EdgeInsets.symmetric(
                               horizontal: 9,
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEAFBF0),
-                              borderRadius: BorderRadius.circular(20),
+                              color:
+                              const Color(0xFFEAFBF0),
+                              borderRadius:
+                              BorderRadius.circular(20),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-
-                                Icon(
+                                const Icon(
                                   Icons.monitor_heart_outlined,
                                   size: 14,
                                   color: Color(0xFF25C95A),
                                 ),
-
-                                SizedBox(width: 4),
-
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Low Risk Level',
-                                  style: TextStyle(
+                                  '${widget.workout.riskLevel} Risk Level',
+                                  style: const TextStyle(
                                     fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF25C95A),
+                                    fontWeight:
+                                    FontWeight.w600,
+                                    color:
+                                    Color(0xFF25C95A),
                                   ),
                                 ),
                               ],
@@ -281,32 +354,34 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           // SUPPORT
                           // =================================================
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding:
+                            const EdgeInsets.symmetric(
                               horizontal: 9,
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0EEFF),
-                              borderRadius: BorderRadius.circular(20),
+                              color:
+                              const Color(0xFFF0EEFF),
+                              borderRadius:
+                              BorderRadius.circular(20),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-
-                                Icon(
+                                const Icon(
                                   Icons.favorite,
                                   size: 13,
                                   color: Color(0xFF6755E8),
                                 ),
-
-                                SizedBox(width: 4),
-
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Fatty Liver & Cholesterol Support',
-                                  style: TextStyle(
+                                  widget.workout.support,
+                                  style: const TextStyle(
                                     fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF6755E8),
+                                    fontWeight:
+                                    FontWeight.w600,
+                                    color:
+                                    Color(0xFF6755E8),
                                   ),
                                 ),
                               ],
@@ -324,28 +399,15 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                     _buildSectionCard(
                       title: 'Instructions',
                       child: Column(
-                        children: [
-
-                          _instruction(
-                            '1',
-                            'Stand tall with feet hip-width apart.',
-                          ),
-
-                          _instruction(
-                            '2',
-                            'Lift one knee at a time.',
-                          ),
-
-                          _instruction(
-                            '3',
-                            'Swing your arms naturally.',
-                          ),
-
-                          _instruction(
-                            '4',
-                            'Keep a steady pace and breathe regularly.',
-                          ),
-                        ],
+                        children: List.generate(
+                          widget.workout.instructions.length,
+                              (index) {
+                            return _instruction(
+                              '${index + 1}',
+                              widget.workout.instructions[index],
+                            );
+                          },
+                        ),
                       ),
                     ),
 
@@ -357,20 +419,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                     _buildSectionCard(
                       title: 'Benefits',
                       child: Column(
-                        children: [
-
-                          _benefit(
-                            'Improves cardiovascular fitness',
-                          ),
-
-                          _benefit(
-                            'Increases daily physical activity',
-                          ),
-
-                          _benefit(
-                            'Supports healthy weight management',
-                          ),
-                        ],
+                        children: widget.workout.benefits
+                            .map(
+                              (benefit) =>
+                              _benefit(benefit),
+                        )
+                            .toList(),
                       ),
                     ),
 
@@ -384,14 +438,28 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                       height: 50,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          _videoController.pause();
+                          final controller =
+                              _videoController;
+
+                          if (controller != null &&
+                              controller
+                                  .value.isInitialized) {
+                            controller.pause();
+                          }
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const ExerciseTimerScreen(
-                                workoutName: 'March in Place',
-                                totalDuration: Duration(minutes: 30),
-                              ),
+                              builder: (_) =>
+                                  ExerciseTimerScreen(
+                                    workoutName:
+                                    widget.workout.name,
+                                    totalDuration:
+                                    Duration(
+                                      minutes:
+                                      widget.workout.duration,
+                                    ),
+                                  ),
                             ),
                           );
                         },
@@ -403,16 +471,21 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           'Start Exercise',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                            fontWeight:
+                            FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2DCB59),
+                          backgroundColor:
+                          const Color(0xFF2DCB59),
                           elevation: 4,
-                          shadowColor: const Color(0x552DCB59),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                          shadowColor:
+                          const Color(0x552DCB59),
+                          shape:
+                          RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(30),
                           ),
                         ),
                       ),
@@ -433,8 +506,13 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // VIDEO WIDGET
   // ==============================================================
   Widget _buildVideo() {
+    // --------------------------------------------------------------
+    // VIDEO ERROR
+    // --------------------------------------------------------------
     if (_videoError) {
       return Container(
+        width: double.infinity,
+        height: double.infinity,
         color: const Color(0xFFF2F2F2),
         child: Center(
           child: Padding(
@@ -447,20 +525,25 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                   size: 35,
                   color: Colors.redAccent,
                 ),
+
                 const SizedBox(height: 8),
+
                 const Text(
                   'Unable to load video',
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight:
+                    FontWeight.w600,
                   ),
                 ),
 
                 if (_videoErrorMessage != null) ...[
                   const SizedBox(height: 6),
+
                   Text(
                     _videoErrorMessage!,
-                    textAlign: TextAlign.center,
+                    textAlign:
+                    TextAlign.center,
                     style: const TextStyle(
                       fontSize: 10,
                       color: Colors.black45,
@@ -474,8 +557,16 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       );
     }
 
-    if (!_videoController.value.isInitialized) {
+    final controller = _videoController;
+
+    // --------------------------------------------------------------
+    // LOADING
+    // --------------------------------------------------------------
+    if (controller == null ||
+        !controller.value.isInitialized) {
       return Container(
+        width: double.infinity,
+        height: double.infinity,
         color: const Color(0xFFF2F2F2),
         child: const Center(
           child: CircularProgressIndicator(
@@ -485,24 +576,40 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       );
     }
 
-    final bool isPlaying = _videoController.value.isPlaying;
-
+    // --------------------------------------------------------------
+    // VIDEO PREVIEW
+    // --------------------------------------------------------------
     return GestureDetector(
-
-      onTap: _toggleVideo,
+      onTap: _openFullScreenVideo,
       child: Stack(
+        fit: StackFit.expand,
         alignment: Alignment.center,
         children: [
-
-          // Video
-          VideoPlayer(_videoController),
-
-          // Slight dark overlay + play button only show when PAUSED.
-          if (!isPlaying) ...[
-            Container(
-              color: Colors.black.withOpacity(0.12),
+          // ==========================================================
+          // VIDEO
+          // ==========================================================
+          FittedBox(
+            fit: BoxFit.cover,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox(
+              width: controller.value.size.width,
+              height: controller.value.size.height,
+              child: VideoPlayer(controller),
             ),
-            Container(
+          ),
+
+          // ==========================================================
+          // DARK OVERLAY
+          // ==========================================================
+          Container(
+            color: Colors.black.withOpacity(0.12),
+          ),
+
+          // ==========================================================
+          // PLAY BUTTON
+          // ==========================================================
+          Center(
+            child: Container(
               width: 58,
               height: 58,
               decoration: BoxDecoration(
@@ -521,7 +628,28 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 size: 32,
               ),
             ),
-          ],
+          ),
+
+          // ==========================================================
+          // FULL SCREEN HINT
+          // ==========================================================
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.55),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.fullscreen,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -549,9 +677,9 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
-
           Text(
             title,
             style: const TextStyle(
@@ -577,15 +705,17 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       String text,
       ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
+      padding:
+      const EdgeInsets.only(bottom: 3),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
-
           Container(
             width: 20,
-            height: 20,
-            decoration: const BoxDecoration(
+            height: 15,
+            decoration:
+            const BoxDecoration(
               shape: BoxShape.circle,
               color: Color(0xFFE9F9EE),
             ),
@@ -594,8 +724,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 number,
                 style: const TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2DCB59),
+                  fontWeight:
+                  FontWeight.w600,
+                  color:
+                  Color(0xFF2DCB59),
                 ),
               ),
             ),
@@ -608,7 +740,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
               text,
               style: const TextStyle(
                 fontSize: 12,
-                color: Color(0xFF65716B),
+                color:
+                Color(0xFF65716B),
               ),
             ),
           ),
@@ -622,13 +755,15 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   Widget _benefit(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
-      child: Row(
+      padding:
+      const EdgeInsets.only(bottom: 7),
+        child: Row(
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
         children: [
-
           const Icon(
             Icons.check_circle,
-            size: 17,
+            size: 15,
             color: Color(0xFF2DCB59),
           ),
 
@@ -639,11 +774,200 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
               text,
               style: const TextStyle(
                 fontSize: 12,
-                color: Color(0xFF65716B),
+                color:
+                Color(0xFF65716B),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ==================================================================
+// FULL SCREEN VIDEO SCREEN
+// ==================================================================
+
+class FullScreenVideoScreen extends StatefulWidget {
+  final VideoPlayerController controller;
+  final String workoutName;
+
+  const FullScreenVideoScreen({
+    super.key,
+    required this.controller,
+    required this.workoutName,
+  });
+
+  @override
+  State<FullScreenVideoScreen> createState() =>
+      _FullScreenVideoScreenState();
+}
+
+class _FullScreenVideoScreenState
+    extends State<FullScreenVideoScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Start playing automatically
+    widget.controller.play();
+  }
+
+  @override
+  void dispose() {
+    // Only pause here.
+    // DO NOT dispose the controller because it belongs
+    // to WorkoutDetailScreen.
+    widget.controller.pause();
+
+    super.dispose();
+  }
+
+  // ==============================================================
+  // PLAY / PAUSE
+  // ==============================================================
+  void _togglePlayPause() {
+    if (widget.controller.value.isPlaying) {
+      widget.controller.pause();
+    } else {
+      widget.controller.play();
+    }
+
+    setState(() {});
+  }
+
+  // ==============================================================
+  // BUILD
+  // ==============================================================
+  @override
+  Widget build(BuildContext context) {
+    final controller = widget.controller;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+
+      body: SafeArea(
+        child: Stack(
+          children: [
+
+            // ======================================================
+            // VIDEO
+            // ======================================================
+            Center(
+              child: AspectRatio(
+                aspectRatio:
+                controller.value.aspectRatio,
+                child: VideoPlayer(controller),
+              ),
+            ),
+
+            // ======================================================
+            // TOP BAR
+            // ======================================================
+            Positioned(
+              top: 10,
+              left: 12,
+              right: 12,
+              child: Row(
+                children: [
+
+                  // Close button
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color:
+                        Colors.black.withOpacity(0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Workout name
+                  Expanded(
+                    child: Text(
+                      widget.workoutName,
+                      maxLines: 1,
+                      overflow:
+                      TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight:
+                        FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ======================================================
+            // PLAY / PAUSE BUTTON
+            // ======================================================
+            Center(
+              child: GestureDetector(
+                onTap: _togglePlayPause,
+                child: Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color:
+                    Colors.white.withOpacity(0.90),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    controller.value.isPlaying
+                        ? Icons.pause
+                        : Icons.play_arrow,
+                    color:
+                    const Color(0xFF263A31),
+                    size: 38,
+                  ),
+                ),
+              ),
+            ),
+
+            // ======================================================
+            // VIDEO PROGRESS BAR
+            // ======================================================
+            Positioned(
+              left: 15,
+              right: 15,
+              bottom: 12,
+              child: VideoProgressIndicator(
+                controller,
+                allowScrubbing: true,
+                padding:
+                const EdgeInsets.symmetric(
+                  vertical: 8,
+                ),
+                colors:
+                const VideoProgressColors(
+                  playedColor:
+                  Color(0xFF2DCB59),
+                  bufferedColor:
+                  Colors.white54,
+                  backgroundColor:
+                  Colors.white24,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
