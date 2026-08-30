@@ -246,9 +246,54 @@ class AssessmentFirestoreService {
     }
   }
 
-  // =========================================================
-  // GET ALL ASSESSMENTS
-  // =========================================================
+// =========================================================
+// MAP FIRESTORE DATA TO ASSESSMENT RESULT
+// =========================================================
+
+  static AssessmentResult _mapToAssessmentResult(Map<String, dynamic> data,) {
+// -------------------------------------------------------
+// Fatty liver
+// -------------------------------------------------------
+
+    final fattyScore =
+        (data['fattyLiverScore'] as num?)?.toInt() ?? 0;
+
+    final fattyMaxScore =
+        (data['fattyLiverMaxScore'] as num?)?.toInt() ?? 0;
+
+// -------------------------------------------------------
+// Cholesterol
+// -------------------------------------------------------
+
+    final cholesterolScore =
+        (data['cholesterolScore'] as num?)?.toInt() ?? 0;
+
+    final cholesterolMaxScore =
+        (data['cholesterolMaxScore'] as num?)?.toInt() ?? 0;
+
+// -------------------------------------------------------
+// Risk
+// -------------------------------------------------------
+
+    final fattyRisk =
+    _riskLevelFromString(data['fattyLiverRisk']);
+
+    final cholesterolRisk =
+    _riskLevelFromString(data['cholesterolRisk']);
+
+    return AssessmentResult(
+      fattyLiverScore: fattyScore,
+      fattyLiverMaxScore: fattyMaxScore,
+      cholesterolScore: cholesterolScore,
+      cholesterolMaxScore: cholesterolMaxScore,
+      fattyLiverRisk: fattyRisk,
+      cholesterolRisk: cholesterolRisk,
+    );
+  }
+
+// =========================================================
+// GET ASSESSMENT HISTORY
+// =========================================================
 
   static Future<List<DocumentSnapshot<Map<String, dynamic>>>>
   getAssessmentHistory() async {
