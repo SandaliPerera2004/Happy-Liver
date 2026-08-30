@@ -475,7 +475,7 @@ class AssessmentResultScreen extends StatelessWidget {
             child: const Icon(
               Icons.lightbulb_outline_rounded,
               color: darkGreen,
-              size: 21,
+              size: 24,
             ),
           ),
 
