@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/settings/help_feedback_submitted_screen.dart';
 
-
 class SendFeedback extends StatefulWidget {
   const SendFeedback({super.key});
 
@@ -12,211 +11,262 @@ class SendFeedback extends StatefulWidget {
 class _SendFeedbackState extends State<SendFeedback> {
   int selectedRating = 4;
 
+  static const Color _green = Color(0xFF16A000);
+  static const Color _lightGreenHeader = Color(0xFFE5F8D8);
+  static const Color _darkBackground = Color(0xFF121212);
+  static const Color _darkCard = Color(0xFF1E1E1E);
+  static const Color _darkInput = Color(0xFF2A2A2A);
+
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode
+          ? _darkBackground
+          : Colors.white,
 
-        body: SafeArea(
-            top: true,
-            bottom: false,
-            child: Column(
-                children: [
-                _buildHeader(context),
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader(context),
 
-          Expanded(
-            child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-          ),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              const SizedBox(height: 38),
-
-              // Send Feedback title
-              Row(
-                children: const [
-
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 29,
-                    color: Colors.black,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
                   ),
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 38),
 
-                  SizedBox(width: 10),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 29,
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                          ),
 
-                  Text(
-                    "Send Feedback",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+                          const SizedBox(width: 10),
 
-              const SizedBox(height: 32),
+                          Text(
+                            "Send Feedback",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
 
-              // Question
-              const Text(
-                "What do you think about this app?",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+                      const SizedBox(height: 32),
 
-              const SizedBox(height: 28),
-
-              // Feedback text box
-              Container(
-                width: double.infinity,
-                height: 115,
-                padding: const EdgeInsets.all(12),
-
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0E0E0),
-                  borderRadius: BorderRadius.circular(0),
-                ),
-
-                child: const TextField(
-                  maxLines: 5,
-
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "Tell us what you think...",
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 38),
-
-              // Rating question
-              const Text(
-                "How would you rate your\nexperience?",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  height: 1.5,
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              // Stars
-              Row(
-                children: List.generate(
-                  5,
-                      (index) {
-                    final starNumber = index + 1;
-
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedRating = starNumber;
-                        });
-                      },
-
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          right: 3,
-                        ),
-
-                        child: Icon(
-                          starNumber <= selectedRating
-                              ? Icons.star
-                              : Icons.star_border,
-
-                          size: 32,
-
-                          color: starNumber <= selectedRating
-                              ? const Color(0xFFFFB800)
+                      Text(
+                        "What do you think about this app?",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode
+                              ? Colors.white
                               : Colors.black,
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
 
-              const SizedBox(height: 65),
+                      const SizedBox(height: 28),
 
-              // Submit button
-              Center(
-                child: SizedBox(
-                  width: 203,
-                  height: 30,
+                      Container(
+                        width: double.infinity,
+                        height: 115,
+                        padding: const EdgeInsets.all(12),
 
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FeedbackSubmittedScreen(),
+                        decoration: BoxDecoration(
+                          color: isDarkMode
+                              ? _darkInput
+                              : const Color(0xFFE0E0E0),
                         ),
-                      );
-                    },
 
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A000),
-                      foregroundColor: Colors.white,
+                        child: TextField(
+                          maxLines: 5,
 
-                      elevation: 0,
+                          style: TextStyle(
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                            fontSize: 14,
+                          ),
 
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
+                          cursorColor: _green,
+
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+
+                            hintText:
+                            "Tell us what you think...",
+
+                            hintStyle: TextStyle(
+                              color: isDarkMode
+                                  ? Colors.white54
+                                  : Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                       ),
 
-                      padding: EdgeInsets.zero,
-                    ),
+                      const SizedBox(height: 38),
 
-                    child: const Text(
-                      "Submit Feedback",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                      Text(
+                        "How would you rate your\nexperience?",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                          color: isDarkMode
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(height: 18),
+
+                      Row(
+                        children: List.generate(
+                          5,
+                              (index) {
+                            final int starNumber =
+                                index + 1;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedRating =
+                                      starNumber;
+                                });
+                              },
+
+                              child: Padding(
+                                padding:
+                                const EdgeInsets.only(
+                                  right: 3,
+                                ),
+
+                                child: Icon(
+                                  starNumber <=
+                                      selectedRating
+                                      ? Icons.star
+                                      : Icons.star_border,
+
+                                  size: 32,
+
+                                  color: starNumber <=
+                                      selectedRating
+                                      ? const Color(0xFFFFB800)
+                                      : isDarkMode
+                                      ? Colors.white70
+                                      : Colors.black,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 65),
+
+                      Center(
+                        child: SizedBox(
+                          width: 203,
+                          height: 30,
+
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                  const FeedbackSubmittedScreen(),
+                                ),
+                              );
+                            },
+
+                            style:
+                            ElevatedButton.styleFrom(
+                              backgroundColor: _green,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+
+                              shape:
+                              RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(6),
+                              ),
+
+                              padding: EdgeInsets.zero,
+                            ),
+
+                            child: const Text(
+                              "Submit Feedback",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight:
+                                FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 100),
+                    ],
                   ),
                 ),
               ),
-
-              const SizedBox(height: 100),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-          ],
-            ),
-        ),
-          bottomNavigationBar: _buildBottomNavBar(context),
-        );
-    }
+
+      bottomNavigationBar:
+      _buildBottomNavBar(
+        context,
+        isDarkMode,
+      ),
+    );
+  }
 
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
+
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
+
       decoration: const BoxDecoration(
-        color: Color(0xFFE5F8D8),
+        color: _lightGreenHeader,
       ),
+
       child: Row(
         children: [
           GestureDetector(
             onTap: () {
               Navigator.pop(context);
             },
+
             child: const Icon(
               Icons.arrow_back,
               size: 30,
@@ -238,27 +288,45 @@ class _SendFeedbackState extends State<SendFeedback> {
       ),
     );
   }
-  Widget _buildBottomNavBar(BuildContext context) {
+
+  Widget _buildBottomNavBar(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? _darkCard
+            : Colors.white,
+
         border: Border(
           top: BorderSide(
-            color: Colors.black.withOpacity(0.06),
+            color: isDarkMode
+                ? Colors.white12
+                : Colors.black.withOpacity(0.06),
           ),
         ),
       ),
+
       child: SafeArea(
         top: false,
+
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            vertical: 8,
+          ),
+
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment:
+            MainAxisAlignment.spaceAround,
+
             children: [
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: false,
+                isDarkMode: isDarkMode,
+
                 onTap: () {
                   Navigator.popUntil(
                     context,
@@ -271,6 +339,8 @@ class _SendFeedbackState extends State<SendFeedback> {
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
+                isDarkMode: isDarkMode,
+
                 onTap: () {},
               ),
 
@@ -278,6 +348,8 @@ class _SendFeedbackState extends State<SendFeedback> {
                 icon: Icons.person_outline,
                 label: 'Profile',
                 selected: false,
+                isDarkMode: isDarkMode,
+
                 onTap: () {},
               ),
 
@@ -285,6 +357,8 @@ class _SendFeedbackState extends State<SendFeedback> {
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 selected: true,
+                isDarkMode: isDarkMode,
+
                 onTap: () {},
               ),
             ],
@@ -298,28 +372,44 @@ class _SendFeedbackState extends State<SendFeedback> {
     required IconData icon,
     required String label,
     required bool selected,
+    required bool isDarkMode,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
+
       child: Column(
         mainAxisSize: MainAxisSize.min,
+
         children: [
           Icon(
             icon,
             size: 22,
-            color: selected ? Colors.green : Colors.grey,
+
+            color: selected
+                ? Colors.green
+                : isDarkMode
+                ? Colors.white60
+                : Colors.grey,
           ),
 
           const SizedBox(height: 4),
 
           Text(
             label,
+
             style: TextStyle(
               fontSize: 10,
-              fontWeight:
-              selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? Colors.green : Colors.grey,
+
+              fontWeight: selected
+                  ? FontWeight.w800
+                  : FontWeight.w700,
+
+              color: selected
+                  ? Colors.green
+                  : isDarkMode
+                  ? Colors.white60
+                  : Colors.grey,
             ),
           ),
         ],

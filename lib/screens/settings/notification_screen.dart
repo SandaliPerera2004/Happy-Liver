@@ -31,7 +31,10 @@ class _NotificationSettingsScreenState
     _loadNotificationSettings();
   }
 
-  // Load notification settings from Firestore
+  // =========================================================
+  // LOAD NOTIFICATION SETTINGS
+  // =========================================================
+
   Future<void> _loadNotificationSettings() async {
     try {
       final settings =
@@ -62,7 +65,10 @@ class _NotificationSettingsScreenState
     }
   }
 
-  // Save notification settings to Firestore
+  // =========================================================
+  // SAVE NOTIFICATION SETTINGS
+  // =========================================================
+
   Future<void> _updateSettings() async {
     try {
       final settings = NotificationSettingsModel(
@@ -71,7 +77,8 @@ class _NotificationSettingsScreenState
         routineReminder: _routineReminder,
       );
 
-      await _notificationService.updateNotificationSettings(settings);
+      await _notificationService
+          .updateNotificationSettings(settings);
     } catch (e) {
       if (!mounted) return;
 
@@ -85,16 +92,28 @@ class _NotificationSettingsScreenState
     }
   }
 
+  // =========================================================
+  // BUILD
+  // =========================================================
+
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
+      backgroundColor: isDarkMode
+          ? const Color(0xFF121212)
+          : const Color(0xFFF5F6F8),
+
       body: SafeArea(
         bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment:
+          CrossAxisAlignment.stretch,
           children: [
             _buildHeader(context),
+
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -109,17 +128,26 @@ class _NotificationSettingsScreenState
                   16,
                   16,
                 ),
-                child: _buildSettingsCard(),
+                child: _buildSettingsCard(
+                  isDarkMode,
+                ),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+
+      bottomNavigationBar:
+      _buildBottomNavBar(isDarkMode),
     );
   }
 
+  // =========================================================
+  // HEADER
+  // =========================================================
+
   Widget _buildHeader(BuildContext context) {
+    // Keep the green header in BOTH modes.
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -139,7 +167,9 @@ class _NotificationSettingsScreenState
               height: 30,
             ),
           ),
+
           const SizedBox(width: 12),
+
           const Text(
             'Notifications',
             style: TextStyle(
@@ -153,37 +183,56 @@ class _NotificationSettingsScreenState
     );
   }
 
-  Widget _buildSettingsCard() {
+  // =========================================================
+  // SETTINGS CARD
+  // =========================================================
+
+  Widget _buildSettingsCard(bool isDarkMode) {
     return Container(
       width: double.infinity,
+
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 4,
       ),
+
       decoration: BoxDecoration(
-        color: Colors.white,
+        // White in light mode
+        // Dark card in dark mode
+        color: isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+
         borderRadius: BorderRadius.circular(16),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(
+              isDarkMode ? 0.20 : 0.03,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
+
       child: Column(
         children: [
-          // Allow Notifications
+          // =================================================
+          // ALLOW NOTIFICATIONS
+          // =================================================
+
           _buildToggleRow(
             title: 'Allow notifications',
             subtitle:
             'Receive alerts, reminders, and important updates.',
             value: _allowNotifications,
+            isDarkMode: isDarkMode,
             onChanged: (v) async {
               setState(() {
                 _allowNotifications = v;
 
-                // If master notification is turned OFF,
+                // If master notification is OFF,
                 // automatically turn OFF the other two.
                 if (!v) {
                   _healthTips = false;
@@ -195,17 +244,23 @@ class _NotificationSettingsScreenState
             },
           ),
 
-          const Divider(
+          Divider(
             height: 1,
-            color: Color(0xFFECECEC),
+            color: isDarkMode
+                ? Colors.white12
+                : const Color(0xFFECECEC),
           ),
 
-          // Health Tips
+          // =================================================
+          // HEALTH TIPS
+          // =================================================
+
           _buildToggleRow(
             title: 'Health Tips',
             subtitle:
             'Daily wellness advice and lifestyle recommendations.',
             value: _healthTips,
+            isDarkMode: isDarkMode,
             onChanged: _allowNotifications
                 ? (v) async {
               setState(() {
@@ -217,17 +272,23 @@ class _NotificationSettingsScreenState
                 : (_) {},
           ),
 
-          const Divider(
+          Divider(
             height: 1,
-            color: Color(0xFFECECEC),
+            color: isDarkMode
+                ? Colors.white12
+                : const Color(0xFFECECEC),
           ),
 
-          // Routine Reminder
+          // =================================================
+          // ROUTINE REMINDER
+          // =================================================
+
           _buildToggleRow(
             title: 'Routine Reminder',
             subtitle:
             'Get reminders about your daily meal plan and workout plan.',
             value: _routineReminder,
+            isDarkMode: isDarkMode,
             onChanged: _allowNotifications
                 ? (v) async {
               setState(() {
@@ -243,10 +304,15 @@ class _NotificationSettingsScreenState
     );
   }
 
+  // =========================================================
+  // TOGGLE ROW
+  // =========================================================
+
   Widget _buildToggleRow({
     required String title,
     required String subtitle,
     required bool value,
+    required bool isDarkMode,
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
@@ -254,47 +320,68 @@ class _NotificationSettingsScreenState
         vertical: 14,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: isDarkMode
+                        ? Colors.white
+                        : Colors.black87,
                   ),
                 ),
+
                 const SizedBox(height: 4),
+
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Colors.black45,
                     height: 1.35,
+                    color: isDarkMode
+                        ? Colors.white70
+                        : Colors.black45,
                   ),
                 ),
               ],
             ),
           ),
+
           const SizedBox(width: 12),
+
           Switch(
             value: value,
             onChanged: onChanged,
+
+            // Green branding remains the same.
             activeColor: Colors.white,
-            activeTrackColor: const Color(0xFF3FBE6B),
+            activeTrackColor:
+            const Color(0xFF3FBE6B),
+
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFFD9D9D9),
+
+            inactiveTrackColor: isDarkMode
+                ? const Color(0xFF555555)
+                : const Color(0xFFD9D9D9),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomNavBar() {
+  // =========================================================
+  // BOTTOM NAVIGATION BAR
+  // =========================================================
+
+  Widget _buildBottomNavBar(bool isDarkMode) {
     final items = [
       _NavItemData(
         icon: Icons.home_rounded,
@@ -320,16 +407,25 @@ class _NotificationSettingsScreenState
         padding: const EdgeInsets.symmetric(
           vertical: 10,
         ),
+
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
+
           border: Border(
             top: BorderSide(
-              color: Colors.grey.shade200,
+              color: isDarkMode
+                  ? Colors.white12
+                  : Colors.grey.shade200,
             ),
           ),
         ),
+
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment:
+          MainAxisAlignment.spaceAround,
+
           children: List.generate(
             items.length,
                 (index) {
@@ -338,6 +434,8 @@ class _NotificationSettingsScreenState
 
               final color = isSelected
                   ? const Color(0xFF3FBE6B)
+                  : isDarkMode
+                  ? Colors.white60
                   : Colors.black45;
 
               return GestureDetector(
@@ -346,21 +444,28 @@ class _NotificationSettingsScreenState
                     _selectedNavIndex = index;
                   });
                 },
-                behavior: HitTestBehavior.opaque,
+
+                behavior:
+                HitTestBehavior.opaque,
+
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize:
+                  MainAxisSize.min,
                   children: [
                     Icon(
                       items[index].icon,
                       size: 22,
                       color: color,
                     ),
+
                     const SizedBox(height: 4),
+
                     Text(
                       items[index].label,
                       style: TextStyle(
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
+                        fontWeight:
+                        FontWeight.w600,
                         color: color,
                       ),
                     ),
@@ -374,6 +479,10 @@ class _NotificationSettingsScreenState
     );
   }
 }
+
+// ===========================================================
+// NAVIGATION ITEM MODEL
+// ===========================================================
 
 class _NavItemData {
   final IconData icon;

@@ -12,8 +12,13 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode
+          ? const Color(0xFF121212)
+          : Colors.white,
 
       // =========================
       // BODY
@@ -40,6 +45,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     languageOption(
                       language: "English",
                       value: "English",
+                      isDarkMode: isDarkMode,
                     ),
 
                     const SizedBox(height: 18),
@@ -48,6 +54,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     languageOption(
                       language: "Sinhala",
                       value: "Sinhala",
+                      isDarkMode: isDarkMode,
                     ),
 
                     const SizedBox(height: 18),
@@ -56,6 +63,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     languageOption(
                       language: "Tamil",
                       value: "Tamil",
+                      isDarkMode: isDarkMode,
                     ),
                   ],
                 ),
@@ -68,14 +76,17 @@ class _LanguageScreenState extends State<LanguageScreen> {
       // =========================
       // BOTTOM NAVIGATION
       // =========================
-      bottomNavigationBar: _buildBottomNavBar(context),
+      bottomNavigationBar:
+      _buildBottomNavBar(context, isDarkMode),
     );
   }
 
   // =========================
   // HEADER
   // =========================
+
   Widget _buildHeader(BuildContext context) {
+    // Keep the green header in both modes.
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -116,9 +127,11 @@ class _LanguageScreenState extends State<LanguageScreen> {
   // =========================
   // LANGUAGE OPTION
   // =========================
+
   Widget languageOption({
     required String language,
     required String value,
+    required bool isDarkMode,
   }) {
     final bool isSelected =
         selectedLanguage == value;
@@ -135,7 +148,10 @@ class _LanguageScreenState extends State<LanguageScreen> {
             isSelected
                 ? Icons.radio_button_checked
                 : Icons.radio_button_unchecked,
+
             size: 22,
+
+            // Green stays green in dark mode.
             color: const Color(0xFF55B85A),
           ),
 
@@ -143,10 +159,12 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
           Text(
             language,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
             ),
           ),
         ],
@@ -157,16 +175,27 @@ class _LanguageScreenState extends State<LanguageScreen> {
   // =========================
   // BOTTOM NAVIGATION
   // =========================
-  Widget _buildBottomNavBar(BuildContext context) {
+
+  Widget _buildBottomNavBar(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Dark bottom bar in dark mode.
+        color: isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+
         border: Border(
           top: BorderSide(
-            color: Colors.black.withOpacity(0.06),
+            color: isDarkMode
+                ? Colors.white12
+                : Colors.black.withOpacity(0.06),
           ),
         ),
       ),
+
       child: SafeArea(
         top: false,
         child: Padding(
@@ -181,6 +210,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {
                   Navigator.popUntil(
                     context,
@@ -193,6 +223,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {},
               ),
 
@@ -200,6 +231,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 icon: Icons.person_outline,
                 label: 'Profile',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {},
               ),
 
@@ -207,6 +239,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 selected: true,
+                isDarkMode: isDarkMode,
                 onTap: () {},
               ),
             ],
@@ -219,10 +252,12 @@ class _LanguageScreenState extends State<LanguageScreen> {
   // =========================
   // BOTTOM NAV ITEM
   // =========================
+
   Widget _bottomItem({
     required IconData icon,
     required String label,
     required bool selected,
+    required bool isDarkMode,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -233,8 +268,12 @@ class _LanguageScreenState extends State<LanguageScreen> {
           Icon(
             icon,
             size: 22,
-            color:
-            selected ? Colors.green : Colors.grey,
+
+            color: selected
+                ? Colors.green
+                : isDarkMode
+                ? Colors.white60
+                : Colors.grey,
           ),
 
           const SizedBox(height: 4),
@@ -243,11 +282,16 @@ class _LanguageScreenState extends State<LanguageScreen> {
             label,
             style: TextStyle(
               fontSize: 10,
+
               fontWeight: selected
                   ? FontWeight.w800
                   : FontWeight.w700,
-              color:
-              selected ? Colors.green : Colors.grey,
+
+              color: selected
+                  ? Colors.green
+                  : isDarkMode
+                  ? Colors.white60
+                  : Colors.grey,
             ),
           ),
         ],

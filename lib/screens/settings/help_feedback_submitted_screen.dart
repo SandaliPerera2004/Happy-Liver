@@ -7,39 +7,62 @@ class FeedbackSubmittedScreen extends StatelessWidget {
   static const Color _green = Color(0xFF10A518);
   static const Color _lightGreenHeader = Color(0xFFDFF3D8);
   static const Color _lightGreenIconBg = Color(0xFFE9F9EE);
-  static const Color _darkText = Color(0xFF1B1F1D);
-  static const Color _grayText = Color(0xFF8A948E);
   static const Color _grayNav = Color(0xFF9AA29D);
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
+      // =========================================================
+      // BACKGROUND
+      // =========================================================
+      backgroundColor: isDarkMode
+          ? const Color(0xFF121212)
+          : const Color(0xFFF5F6F8),
+
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
             _buildHeader(context),
+
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(40, 80, 40, 40),
-                child: _buildConfirmationCard(context),
+                padding: const EdgeInsets.fromLTRB(
+                  40,
+                  80,
+                  40,
+                  40,
+                ),
+                child: _buildConfirmationCard(
+                  context,
+                  isDarkMode,
+                ),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(context),
+
+      bottomNavigationBar:
+      _buildBottomNavBar(context, isDarkMode),
     );
   }
 
   // ================================================================
   // HEADER
   // ================================================================
+
   Widget _buildHeader(BuildContext context) {
+    // Keep the green header unchanged in dark mode.
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
       color: _lightGreenHeader,
       child: Row(
         children: [
@@ -51,7 +74,9 @@ class FeedbackSubmittedScreen extends StatelessWidget {
               height: 30,
             ),
           ),
+
           const SizedBox(width: 12),
+
           const Text(
             'Help & Feedback',
             style: TextStyle(
@@ -68,31 +93,63 @@ class FeedbackSubmittedScreen extends StatelessWidget {
   // ================================================================
   // CONFIRMATION CARD
   // ================================================================
-  Widget _buildConfirmationCard(BuildContext context) {
+
+  Widget _buildConfirmationCard(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE5EAE7)),
+
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+        vertical: 36,
       ),
+
+      decoration: BoxDecoration(
+        // White card → dark card
+        color: isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+
+        borderRadius: BorderRadius.circular(20),
+
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white12
+              : const Color(0xFFE5EAE7),
+        ),
+      ),
+
       child: Column(
         children: [
+          // ======================================================
+          // CHECK ICON
+          // ======================================================
+
           Container(
             width: 72,
             height: 72,
-            decoration: const BoxDecoration(
+
+            decoration: BoxDecoration(
+              // Keep the light green icon background.
               color: _lightGreenIconBg,
               shape: BoxShape.circle,
             ),
+
             child: const Icon(
               Icons.check_box_outlined,
               size: 34,
               color: _green,
             ),
           ),
+
           const SizedBox(height: 18),
+
+          // ======================================================
+          // SUBMITTED
+          // ======================================================
+
           const Text(
             'Submitted!',
             style: TextStyle(
@@ -101,32 +158,57 @@ class FeedbackSubmittedScreen extends StatelessWidget {
               color: _green,
             ),
           ),
+
           const SizedBox(height: 10),
-          const Text(
+
+          // ======================================================
+          // DESCRIPTION
+          // ======================================================
+
+          Text(
             'Thank you for helping us improve Happy Liver. '
                 'Your feedback is invaluable to our team.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: _grayText,
+
+              // Grey → light grey
+              color: isDarkMode
+                  ? Colors.white70
+                  : const Color(0xFF8A948E),
+
               height: 1.4,
             ),
           ),
+
           const SizedBox(height: 24),
+
+          // ======================================================
+          // BACK TO HOME BUTTON
+          // ======================================================
+
           SizedBox(
             width: double.infinity,
             height: 50,
+
             child: ElevatedButton(
               onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
+                Navigator.popUntil(
+                  context,
+                      (route) => route.isFirst,
+                );
               },
+
               style: ElevatedButton.styleFrom(
+                // Keep green button unchanged.
                 backgroundColor: _green,
                 elevation: 0,
+
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
+
               child: const Text(
                 'Back to Home',
                 style: TextStyle(
@@ -145,49 +227,78 @@ class FeedbackSubmittedScreen extends StatelessWidget {
   // ================================================================
   // BOTTOM NAVIGATION BAR
   // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
+
+  Widget _buildBottomNavBar(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        // White → dark
+        color: isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+
         border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
+          top: BorderSide(
+            color: isDarkMode
+                ? Colors.white12
+                : Colors.black.withOpacity(0.06),
+          ),
         ),
       ),
+
       child: SafeArea(
         top: false,
+
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            vertical: 8,
+          ),
+
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment:
+            MainAxisAlignment.spaceAround,
+
             children: [
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
+                  Navigator.popUntil(
+                    context,
+                        (route) => route.isFirst,
+                  );
                 },
               ),
+
               _bottomItem(
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {
                   // Navigate to Daily Routine screen
                 },
               ),
+
               _bottomItem(
                 icon: Icons.person_outline,
                 label: 'Profile',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {
                   // Navigate to Profile screen
                 },
               ),
+
               _bottomItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 selected: true,
+                isDarkMode: isDarkMode,
                 onTap: () {
                   // Navigate to Settings screen
                 },
@@ -199,30 +310,52 @@ class FeedbackSubmittedScreen extends StatelessWidget {
     );
   }
 
+  // ================================================================
+  // BOTTOM NAV ITEM
+  // ================================================================
+
   Widget _bottomItem({
     required IconData icon,
     required String label,
     required bool selected,
+    required bool isDarkMode,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
+
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
+
         children: [
           Icon(
             icon,
             size: 22,
-            color: selected ? _green : _grayNav,
+
+            color: selected
+                ? _green
+                : isDarkMode
+                ? Colors.white60
+                : _grayNav,
           ),
+
           const SizedBox(height: 4),
+
           Text(
             label,
             style: TextStyle(
               fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
+
+              fontWeight: selected
+                  ? FontWeight.w800
+                  : FontWeight.w700,
+
+              color: selected
+                  ? _green
+                  : isDarkMode
+                  ? Colors.white60
+                  : _grayNav,
             ),
           ),
         ],

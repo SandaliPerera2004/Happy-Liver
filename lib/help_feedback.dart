@@ -7,8 +7,16 @@ class HelpFeedback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      // =========================
+      // BACKGROUND
+      // =========================
+      backgroundColor: isDarkMode
+          ? const Color(0xFF121212)
+          : Colors.white,
 
       // =========================
       // BODY
@@ -26,23 +34,35 @@ class HelpFeedback extends StatelessWidget {
                   horizontal: 24,
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 55),
 
-                    const Text(
+                    // =========================
+                    // TITLE
+                    // =========================
+
+                    Text(
                       "How can we help you?",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
                       ),
                     ),
 
                     const SizedBox(height: 25),
 
-                    // Send feedback
+                    // =========================
+                    // SEND FEEDBACK
+                    // =========================
+
                     helpItem(
                       title: "Send feedback",
+                      isDarkMode: isDarkMode,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -56,9 +76,13 @@ class HelpFeedback extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // Report a problem
+                    // =========================
+                    // REPORT PROBLEM
+                    // =========================
+
                     helpItem(
                       title: "Report a problem",
+                      isDarkMode: isDarkMode,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -72,26 +96,41 @@ class HelpFeedback extends StatelessWidget {
 
                     const Spacer(),
 
-                    const Text(
+                    // =========================
+                    // STILL NEED HELP
+                    // =========================
+
+                    Text(
                       "Still need help?",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
                       ),
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
+                    // =========================
+                    // CONTACT US
+                    // =========================
+
+                    Text(
                       "Contact us",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
                       ),
                     ),
 
                     const SizedBox(height: 8),
 
+                    // Keep contact color unchanged.
                     const Text(
                       "support@happyliver.com",
                       style: TextStyle(
@@ -113,14 +152,17 @@ class HelpFeedback extends StatelessWidget {
       // =========================
       // BOTTOM NAVIGATION
       // =========================
-      bottomNavigationBar: _buildBottomNavBar(context),
+      bottomNavigationBar:
+      _buildBottomNavBar(context, isDarkMode),
     );
   }
 
-  // =========================
+  // =========================================================
   // HEADER
-  // =========================
+  // =========================================================
+
   Widget _buildHeader(BuildContext context) {
+    // Keep the green header unchanged.
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -158,11 +200,13 @@ class HelpFeedback extends StatelessWidget {
     );
   }
 
-  // =========================
+  // =========================================================
   // HELP ITEM
-  // =========================
+  // =========================================================
+
   Widget helpItem({
     required String title,
+    required bool isDarkMode,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -176,17 +220,22 @@ class HelpFeedback extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: isDarkMode
+                      ? Colors.white
+                      : Colors.black,
                 ),
               ),
             ),
 
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
               size: 22,
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
             ),
           ],
         ),
@@ -194,19 +243,30 @@ class HelpFeedback extends StatelessWidget {
     );
   }
 
-  // =========================
+  // =========================================================
   // BOTTOM NAVIGATION BAR
-  // =========================
-  Widget _buildBottomNavBar(BuildContext context) {
+  // =========================================================
+
+  Widget _buildBottomNavBar(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        // White → dark
+        color: isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+
         border: Border(
           top: BorderSide(
-            color: Colors.black.withOpacity(0.06),
+            color: isDarkMode
+                ? Colors.white12
+                : Colors.black.withOpacity(0.06),
           ),
         ),
       ),
+
       child: SafeArea(
         top: false,
         child: Padding(
@@ -221,6 +281,7 @@ class HelpFeedback extends StatelessWidget {
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {
                   Navigator.popUntil(
                     context,
@@ -233,6 +294,7 @@ class HelpFeedback extends StatelessWidget {
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {},
               ),
 
@@ -240,6 +302,7 @@ class HelpFeedback extends StatelessWidget {
                 icon: Icons.person_outline,
                 label: 'Profile',
                 selected: false,
+                isDarkMode: isDarkMode,
                 onTap: () {},
               ),
 
@@ -247,6 +310,7 @@ class HelpFeedback extends StatelessWidget {
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 selected: true,
+                isDarkMode: isDarkMode,
                 onTap: () {},
               ),
             ],
@@ -256,13 +320,15 @@ class HelpFeedback extends StatelessWidget {
     );
   }
 
-  // =========================
+  // =========================================================
   // BOTTOM NAV ITEM
-  // =========================
+  // =========================================================
+
   Widget _bottomItem({
     required IconData icon,
     required String label,
     required bool selected,
+    required bool isDarkMode,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -273,8 +339,13 @@ class HelpFeedback extends StatelessWidget {
           Icon(
             icon,
             size: 22,
+
+            // Selected remains green.
+            // Unselected becomes lighter in dark mode.
             color: selected
                 ? Colors.green
+                : isDarkMode
+                ? Colors.white60
                 : Colors.grey,
           ),
 
@@ -289,6 +360,8 @@ class HelpFeedback extends StatelessWidget {
                   : FontWeight.w700,
               color: selected
                   ? Colors.green
+                  : isDarkMode
+                  ? Colors.white60
                   : Colors.grey,
             ),
           ),

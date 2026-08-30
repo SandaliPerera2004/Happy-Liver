@@ -4,21 +4,27 @@ import 'language.dart';
 import 'help_feedback.dart';
 import 'screens/settings/about_us_screen.dart';
 
-
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const SettingsScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool isDarkMode = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: widget.isDarkMode
+          ? const Color(0xFF121212)
+          : Colors.white,
 
       body: SafeArea(
         top: true,
@@ -29,105 +35,143 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 30),
 
-          // Dark Mode Switch
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.dark_mode_outlined,
-                  size: 30,
-                  color: Colors.black,
-                ),
-                const SizedBox(width: 20),
-                const Expanded(
-                  child: Text(
-                    "Dark mode",
-                    style: TextStyle(
-                      fontSize: 17,
+            // =========================
+            // DARK MODE
+            // =========================
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.dark_mode_outlined,
+                    size: 30,
+                    color: widget.isDarkMode
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  Expanded(
+                    child: Text(
+                      "Dark mode",
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: widget.isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                      ),
                     ),
                   ),
-                ),
-                Switch(
-                  value: isDarkMode,
-                  activeThumbColor: Colors.green,
-                  onChanged: (value) {
-                    setState(() {
-                      isDarkMode = value;
-                    });
-                  },
-                ),
-              ],
+
+                  Switch(
+                    value: widget.isDarkMode,
+                    activeThumbColor: Colors.green,
+                    onChanged: (value) async {
+                      await widget.onThemeChanged(value);
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
 
-
-          // Notifications
-          settingTile(
-            icon: Icons.notifications_none,
-            title: "Notifications",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()),
-              );
-            },
-          ),
-
-          // Language
-          settingTile(
-            icon: Icons.language,
-            title: "Language",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LanguageScreen()),
-              );
-            },
-          ),
-
-          // Help & Feedback
-          settingTile(
-            icon: Icons.chat_bubble_outline,
-            title: "Help & Feedback",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HelpFeedback()),
-              );
-            },
-          ),
-
-          // About Us
-          settingTile(
-            icon: Icons.phone_android,
-            title: "About us",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AboutUsScreen()),
-              );
-            },
-          ),
-
-          const Spacer(),
-
-          const Text(
-            "HappyLiver\nVersion 1.0.0",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
+            // =========================
+            // NOTIFICATIONS
+            // =========================
+            settingTile(
+              icon: Icons.notifications_none,
+              title: "Notifications",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const NotificationSettingsScreen(),
+                  ),
+                );
+              },
             ),
-          ),
 
-          const SizedBox(height: 50),
-        ],
+            // =========================
+            // LANGUAGE
+            // =========================
+            settingTile(
+              icon: Icons.language,
+              title: "Language",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const LanguageScreen(),
+                  ),
+                );
+              },
+            ),
+
+            // =========================
+            // HELP & FEEDBACK
+            // =========================
+            settingTile(
+              icon: Icons.chat_bubble_outline,
+              title: "Help & Feedback",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const HelpFeedback(),
+                  ),
+                );
+              },
+            ),
+
+            // =========================
+            // ABOUT US
+            // =========================
+            settingTile(
+              icon: Icons.phone_android,
+              title: "About us",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const AboutUsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            const Spacer(),
+
+            Text(
+              "HappyLiver\nVersion 1.0.0",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: widget.isDarkMode
+                    ? Colors.white
+                    : Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 50),
+          ],
+        ),
       ),
-      ),
-      bottomNavigationBar: _buildBottomNavBar(context),
+
+      bottomNavigationBar:
+      _buildBottomNavBar(context),
     );
   }
+
+  // =========================================================
+  // HEADER
+  // =========================================================
 
   Widget _buildHeader(BuildContext context) {
     return Container(
@@ -136,9 +180,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         horizontal: 16,
         vertical: 14,
       ),
+
+      // IMPORTANT:
+      // Keep the green header in both light and dark mode.
       decoration: const BoxDecoration(
         color: Color(0xFFE5F8D8),
       ),
+
       child: Row(
         children: [
           GestureDetector(
@@ -167,6 +215,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // =========================================================
+  // SETTING TILE
+  // =========================================================
+
   Widget settingTile({
     required IconData icon,
     required String title,
@@ -184,62 +236,96 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icon(
               icon,
               size: 30,
-              color: Colors.black,
+              color: widget.isDarkMode
+                  ? Colors.white
+                  : Colors.black,
             ),
+
             const SizedBox(width: 20),
+
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
+                  color: widget.isDarkMode
+                      ? Colors.white
+                      : Colors.black,
                 ),
               ),
             ),
-            const Icon(
+
+            Icon(
               Icons.arrow_forward_ios,
               size: 22,
-              color: Colors.black,
+              color: widget.isDarkMode
+                  ? Colors.white
+                  : Colors.black,
             ),
           ],
         ),
       ),
     );
   }
+
+  // =========================================================
+  // BOTTOM NAVIGATION BAR
+  // =========================================================
+
   Widget _buildBottomNavBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: widget.isDarkMode
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+
         border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
+          top: BorderSide(
+            color: widget.isDarkMode
+                ? Colors.white12
+                : Colors.black.withOpacity(0.06),
+          ),
         ),
       ),
+
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            vertical: 8,
+          ),
+
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment:
+            MainAxisAlignment.spaceAround,
+
             children: [
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: false,
                 onTap: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
+                  Navigator.popUntil(
+                    context,
+                        (route) => route.isFirst,
+                  );
                 },
               ),
+
               _bottomItem(
                 icon: Icons.calendar_today_outlined,
                 label: 'Daily Routine',
                 selected: false,
                 onTap: () {},
               ),
+
               _bottomItem(
                 icon: Icons.person_outline,
                 label: 'Profile',
                 selected: false,
                 onTap: () {},
               ),
+
               _bottomItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
@@ -253,6 +339,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // =========================================================
+  // BOTTOM NAV ITEM
+  // =========================================================
+
   Widget _bottomItem({
     required IconData icon,
     required String label,
@@ -261,21 +351,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return GestureDetector(
       onTap: onTap,
+
       child: Column(
         mainAxisSize: MainAxisSize.min,
+
         children: [
           Icon(
             icon,
             size: 22,
-            color: selected ? Colors.green : Colors.grey,
+
+            // Selected item stays green.
+            // Unselected items become grey.
+            color: selected
+                ? Colors.green
+                : Colors.grey,
           ),
+
           const SizedBox(height: 4),
+
           Text(
             label,
             style: TextStyle(
               fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? Colors.green : Colors.grey,
+
+              fontWeight: selected
+                  ? FontWeight.w800
+                  : FontWeight.w700,
+
+              color: selected
+                  ? Colors.green
+                  : Colors.grey,
             ),
           ),
         ],
