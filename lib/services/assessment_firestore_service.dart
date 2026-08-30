@@ -16,10 +16,18 @@ class AssessmentFirestoreService {
   static String? get currentUserId {
     return _auth.currentUser?.uid;
   }
-  static User? get currentUser => _auth.currentUser;
-  // =========================================================
-  // GET USER DISPLAY NAME
-  // =========================================================
+
+// =========================================================
+// CURRENT USER
+// =========================================================
+
+  static User? get currentUser {
+    return _auth.currentUser;
+  }
+
+// =========================================================
+// GET USER DISPLAY NAME
+// =========================================================
 
   static Future<String> getUserDisplayName() async {
     try {
