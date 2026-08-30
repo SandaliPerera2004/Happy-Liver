@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  http: ^1.0.0
   flutter:
     sdk: flutter
 
@@ -80,6 +81,12 @@ flutter:
     - assets/images/back_arrow.png
     - assets/images/hourglass.png
     - assets/images/liver.png
+    - assets/images/chatbot.png
+    - assets/images/chatbot1.png
+    - assets/images/hydration_image.png
+    - assets/images/meal_image.png
+    - assets/images/sleep_image.png
+    - assets/images/vitamin_image.png
 
 
 

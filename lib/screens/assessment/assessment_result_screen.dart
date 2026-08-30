@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/risk_level.dart';
 import 'package:happy_liver/widgets/custom_header.dart';
 import 'package:happy_liver/widgets/custom_bottom_nav_bar.dart';
+import '../recommendations/recommendations_screen.dart';
 
 class AssessmentResultScreen extends StatelessWidget {
   final AssessmentResult result;
@@ -513,8 +514,8 @@ class AssessmentResultScreen extends StatelessWidget {
   }
 
   // ============================================================
-  // BACK BUTTON
-  // ============================================================
+// SEE PERSONALIZED RECOMMENDATIONS BUTTON
+// ============================================================
 
   Widget _buildBackButton(BuildContext context) {
     return SizedBox(
@@ -522,7 +523,14 @@ class AssessmentResultScreen extends StatelessWidget {
       height: 52,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecommendationsScreen(
+                result: result,
+              ),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: darkGreen,
@@ -537,13 +545,17 @@ class AssessmentResultScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Back to Dashboard',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              'View Recommendations',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-
             SizedBox(width: 5),
-
-            Icon(Icons.arrow_forward_rounded, size: 20),
+            Icon(
+              Icons.arrow_forward_rounded,
+              size: 20,
+            ),
           ],
         ),
       ),
