@@ -558,9 +558,26 @@ class AssessmentResultScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
+        child: FutureBuilder<
+            DocumentSnapshot<Map<String, dynamic>>?>(
+          future: _assessmentFuture,
+          builder: (context, snapshot) {
+            // ==================================================
+            // LOADING
+            // ==================================================
+
+            if (snapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const SizedBox(
+                height: 250,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color:
+                    AssessmentResultScreen.darkGreen,
+                  ),
+                ),
+              );
+            }
 
             // ==================================================
             // ERROR
