@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../models/risk_level.dart';
+import '../../services/assessment_firestore_service.dart';
 import 'package:happy_liver/widgets/custom_header.dart';
 import 'package:happy_liver/widgets/custom_bottom_nav_bar.dart';
 import '../recommendations/recommendations_screen.dart';
@@ -8,7 +10,10 @@ import '../recommendations/recommendations_screen.dart';
 class AssessmentResultScreen extends StatelessWidget {
   final AssessmentResult result;
 
-  const AssessmentResultScreen({super.key, required this.result});
+  const AssessmentResultScreen({
+    super.key,
+    required this.result,
+  });
 
   // ============================================================
   // COLORS
@@ -69,13 +74,22 @@ class AssessmentResultScreen extends StatelessWidget {
   List<Color> _riskGradient(RiskLevel risk) {
     switch (risk) {
       case RiskLevel.low:
-        return const [Color(0xFF66BB6A), Color(0xFF2E7D32)];
+        return const [
+          Color(0xFF66BB6A),
+          Color(0xFF2E7D32),
+        ];
 
       case RiskLevel.moderate:
-        return const [Color(0xFFFF9800), Color(0xFFE65100)];
+        return const [
+          Color(0xFFFF9800),
+          Color(0xFFE65100),
+        ];
 
       case RiskLevel.high:
-        return const [Color(0xFFEF5350), Color(0xFFC62828)];
+        return const [
+          Color(0xFFEF5350),
+          Color(0xFFC62828),
+        ];
     }
   }
 
@@ -117,7 +131,8 @@ class AssessmentResultScreen extends StatelessWidget {
     final fattyRisk = result.fattyLiverRisk;
     final cholesterolRisk = result.cholesterolRisk;
 
-    if (fattyRisk == RiskLevel.high || cholesterolRisk == RiskLevel.high) {
+    if (fattyRisk == RiskLevel.high ||
+        cholesterolRisk == RiskLevel.high) {
       return RiskLevel.high;
     }
 
@@ -142,7 +157,7 @@ class AssessmentResultScreen extends StatelessWidget {
       backgroundColor: pageBg,
 
       // ========================================================
-      // YOUR CUSTOM HEADER
+      // CUSTOM HEADER
       // ========================================================
 
       appBar: const CustomHeader(
@@ -151,7 +166,8 @@ class AssessmentResultScreen extends StatelessWidget {
       ),
 
       // ========================================================
-      // MAIN CONTENT
+      // IMPORTANT:
+      // ENTIRE PAGE IS INSIDE ONE SCROLL VIEW
       // ========================================================
 
       body: SafeArea(
@@ -171,37 +187,51 @@ class AssessmentResultScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 2),
 
-            // Greeting
-            _buildGreeting(),
+              // Greeting
+              _buildGreeting(),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Overall Risk
-            _buildOverallRisk(overallPercentage, overallRisk),
+              // Overall Risk
+              _buildOverallRisk(
+                overallPercentage,
+                overallRisk,
+              ),
 
-            const SizedBox(height: 7),
+              const SizedBox(height: 10),
 
-            // Fatty Liver + Cholesterol
-            _buildRiskCardsRow(),
+              // Fatty Liver + Cholesterol
+              _buildRiskCardsRow(),
 
-            const SizedBox(height: 7),
+              const SizedBox(height: 10),
 
-            // Overall Insight
-            _buildInsightCard(),
+              // Overall Insight
+              _buildInsightCard(),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
-            // Back to Dashboard
-            _buildBackButton(context),
+              // ==================================================
+              // VIEW LAST ASSESSMENT
+              // ==================================================
 
-            const SizedBox(height: 12),
+              _buildHistoryButton(context),
 
-          ],
+              const SizedBox(height: 12),
+
+              // ==================================================
+              // RECOMMENDATIONS BUTTON
+              // ==================================================
+
+              _buildRecommendationsButton(context),
+
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
 
       // ========================================================
-      // REUSABLE BOTTOM NAVIGATION BAR
+      // BOTTOM NAVIGATION
       // ========================================================
 
       bottomNavigationBar: const CustomBottomNavBar(
@@ -216,11 +246,18 @@ class AssessmentResultScreen extends StatelessWidget {
 
   Widget _buildGreeting() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        10,
+        20,
+        10,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFCFF7D3),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD4EBD1)),
+        border: Border.all(
+          color: const Color(0xFFD4EBD1),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -237,9 +274,7 @@ class AssessmentResultScreen extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-
                 SizedBox(height: 1),
-
                 Text(
                   "You've completed your Happy Liver health assessment.",
                   style: TextStyle(
@@ -252,9 +287,7 @@ class AssessmentResultScreen extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(width: 3),
-
           Container(
             width: 64,
             height: 64,
@@ -267,7 +300,11 @@ class AssessmentResultScreen extends StatelessWidget {
               child: Image.asset(
                 'assets/images/liver.png',
                 fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
+                errorBuilder: (
+                    context,
+                    error,
+                    stackTrace,
+                    ) {
                   return const Icon(
                     Icons.favorite_rounded,
                     color: darkGreen,
@@ -286,7 +323,10 @@ class AssessmentResultScreen extends StatelessWidget {
   // OVERALL RISK
   // ============================================================
 
-  Widget _buildOverallRisk(int score, RiskLevel risk) {
+  Widget _buildOverallRisk(
+      int score,
+      RiskLevel risk,
+      ) {
     String subtext1;
     String subtext2;
 
@@ -309,11 +349,18 @@ class AssessmentResultScreen extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 15, 20, 20),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        15,
+        20,
+        20,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFDCEFD9)),
+        border: Border.all(
+          color: const Color(0xFFDCEFD9),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
@@ -377,13 +424,19 @@ class AssessmentResultScreen extends StatelessWidget {
                   Text(
                     subtext1,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: mutedText, fontSize: 12.5),
+                    style: const TextStyle(
+                      color: mutedText,
+                      fontSize: 12.5,
+                    ),
                   ),
 
                   Text(
                     subtext2,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: mutedText, fontSize: 12.5),
+                    style: const TextStyle(
+                      color: mutedText,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),
@@ -416,12 +469,17 @@ class AssessmentResultScreen extends StatelessWidget {
           child: _DonutRiskTile(
             title: 'FATTY LIVER RISK',
             score: fattyScore,
-            status: _riskName(result.fattyLiverRisk),
+            status: _riskName(
+              result.fattyLiverRisk,
+            ),
             description:
-                'Your fatty liver risk score is ${_riskName(result.fattyLiverRisk).toLowerCase()}.',
-            gradientColors: _riskGradient(result.fattyLiverRisk),
-            statusColor: _riskColor(result.fattyLiverRisk),
-            statusBgColor: _riskBackground(result.fattyLiverRisk),
+            'Your fatty liver risk score is ${_riskName(result.fattyLiverRisk).toLowerCase()}.',
+            gradientColors:
+            _riskGradient(result.fattyLiverRisk),
+            statusColor:
+            _riskColor(result.fattyLiverRisk),
+            statusBgColor:
+            _riskBackground(result.fattyLiverRisk),
           ),
         ),
 
@@ -431,12 +489,17 @@ class AssessmentResultScreen extends StatelessWidget {
           child: _DonutRiskTile(
             title: 'CHOLESTEROL RISK',
             score: cholesterolScore,
-            status: _riskName(result.cholesterolRisk),
+            status: _riskName(
+              result.cholesterolRisk,
+            ),
             description:
-                'Your cholesterol risk score is ${_riskName(result.cholesterolRisk).toLowerCase()}.',
-            gradientColors: _riskGradient(result.cholesterolRisk),
-            statusColor: _riskColor(result.cholesterolRisk),
-            statusBgColor: _riskBackground(result.cholesterolRisk),
+            'Your cholesterol risk score is ${_riskName(result.cholesterolRisk).toLowerCase()}.',
+            gradientColors:
+            _riskGradient(result.cholesterolRisk),
+            statusColor:
+            _riskColor(result.cholesterolRisk),
+            statusBgColor:
+            _riskBackground(result.cholesterolRisk),
           ),
         ),
       ],
@@ -453,16 +516,17 @@ class AssessmentResultScreen extends StatelessWidget {
 
     String insight;
 
-    if (fattyRisk == RiskLevel.low && cholesterolRisk == RiskLevel.low) {
+    if (fattyRisk == RiskLevel.low &&
+        cholesterolRisk == RiskLevel.low) {
       insight =
-          'Great work! Continue maintaining healthy lifestyle habits.';
+      'Great work! Continue maintaining healthy lifestyle habits.';
     } else if (fattyRisk == RiskLevel.high ||
         cholesterolRisk == RiskLevel.high) {
       insight =
-          'Paying attention to healthy lifestyle habits and discussing your results with a healthcare professional may be helpful.';
+      'Paying attention to healthy lifestyle habits and discussing your results with a healthcare professional may be helpful.';
     } else {
       insight =
-          'Improving your daily lifestyle and maintaining healthy eating and activity habits can help reduce your overall risk.';
+      'Improving your daily lifestyle and maintaining healthy eating and activity habits can help reduce your overall risk.';
     }
 
     return Container(
@@ -471,7 +535,9 @@ class AssessmentResultScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFDCEFD9)),
+        border: Border.all(
+          color: const Color(0xFFDCEFD9),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
@@ -501,7 +567,8 @@ class AssessmentResultScreen extends StatelessWidget {
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 const Text(
                   'OVERALL INSIGHT',
@@ -532,10 +599,12 @@ class AssessmentResultScreen extends StatelessWidget {
   }
 
   // ============================================================
-// SEE PERSONALIZED RECOMMENDATIONS BUTTON
-// ============================================================
+  // VIEW LAST ASSESSMENT BUTTON
+  // ============================================================
 
-  Widget _buildBackButton(BuildContext context) {
+  Widget _buildHistoryButton(
+      BuildContext context,
+      ) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -592,23 +661,26 @@ class AssessmentResultScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RecommendationsScreen(
-                result: result,
-              ),
+              builder: (context) =>
+                  RecommendationsScreen(
+                    result: result,
+                  ),
             ),
           );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: darkGreen,
           foregroundColor: Colors.white,
-          elevation: 2,
-          shadowColor: darkGreen.withAlpha(76),
+          elevation: 3,
+          shadowColor:
+          darkGreen.withAlpha(76),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
         child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+          MainAxisAlignment.center,
           children: [
             Text(
               'View Recommendations',
@@ -617,7 +689,7 @@ class AssessmentResultScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(width: 5),
+            SizedBox(width: 6),
             Icon(
               Icons.arrow_forward_rounded,
               size: 21,
@@ -1579,7 +1651,8 @@ class _QuestionAnswerCard
 // DONUT RISK TILE
 // ============================================================
 
-class _DonutRiskTile extends StatelessWidget {
+class _DonutRiskTile
+    extends StatelessWidget {
   final String title;
   final int score;
   final String status;
@@ -1601,11 +1674,18 @@ class _DonutRiskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 10,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2EDE3)),
+        borderRadius:
+        BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFFE2EDE3),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(8),
@@ -1620,7 +1700,8 @@ class _DonutRiskTile extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AssessmentResultScreen.darkGreen,
+              color:
+              AssessmentResultScreen.darkGreen,
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: .3,
@@ -1636,7 +1717,6 @@ class _DonutRiskTile extends StatelessWidget {
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                // DONUT
                 Positioned(
                   top: 0,
                   left: 7.5,
@@ -1644,17 +1724,22 @@ class _DonutRiskTile extends StatelessWidget {
                     width: 100,
                     height: 100,
                     child: CustomPaint(
-                      painter: _GradientDonutPainter(
+                      painter:
+                      _GradientDonutPainter(
                         score: score,
-                        gradientColors: gradientColors,
+                        gradientColors:
+                        gradientColors,
                       ),
                       child: Center(
                         child: Text(
                           '$score%',
-                          style: const TextStyle(
-                            color: AssessmentResultScreen.textDark,
+                          style:
+                          const TextStyle(
+                            color:
+                            AssessmentResultScreen.textDark,
                             fontSize: 25,
-                            fontWeight: FontWeight.w900,
+                            fontWeight:
+                            FontWeight.w900,
                           ),
                         ),
                       ),
@@ -1662,35 +1747,31 @@ class _DonutRiskTile extends StatelessWidget {
                   ),
                 ),
 
-                // STATUS BADGE
                 Positioned(
                   bottom: 23,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding:
+                    const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
                       color: statusBgColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius:
+                      BorderRadius.circular(16),
                       border: Border.all(
-                        color: statusColor.withAlpha(50),
+                        color:
+                        statusColor.withAlpha(50),
                         width: 1.5,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: statusColor.withAlpha(40),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Text(
                       status,
                       style: TextStyle(
                         color: statusColor,
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontWeight:
+                        FontWeight.w800,
                       ),
                     ),
                   ),
@@ -1703,7 +1784,8 @@ class _DonutRiskTile extends StatelessWidget {
             description,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AssessmentResultScreen.mutedText,
+              color:
+              AssessmentResultScreen.mutedText,
               fontSize: 11,
               height: 1.35,
             ),
@@ -1718,7 +1800,8 @@ class _DonutRiskTile extends StatelessWidget {
 // OVERALL GAUGE PAINTER
 // ============================================================
 
-class _GradientGaugePainter extends CustomPainter {
+class _GradientGaugePainter
+    extends CustomPainter {
   final int score;
   final List<Color> gradientColors;
   final Color indicatorColor;
@@ -1730,14 +1813,24 @@ class _GradientGaugePainter extends CustomPainter {
   });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height - 25);
+  void paint(
+      Canvas canvas,
+      Size size,
+      ) {
+    final center = Offset(
+      size.width / 2,
+      size.height - 25,
+    );
 
-    final radius = math.min(size.width * .35, size.height * .80);
+    final radius = math.min(
+      size.width * .35,
+      size.height * .80,
+    );
 
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // BACKGROUND TRACK
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius,
+    );
 
     final background = Paint()
       ..color = const Color(0xFFE4F3DD)
@@ -1745,9 +1838,13 @@ class _GradientGaugePainter extends CustomPainter {
       ..strokeWidth = 20
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawArc(rect, math.pi, math.pi, false, background);
-
-    // GRADIENT PROGRESS
+    canvas.drawArc(
+      rect,
+      math.pi,
+      math.pi,
+      false,
+      background,
+    );
 
     final gradient = SweepGradient(
       startAngle: math.pi,
@@ -1756,34 +1853,58 @@ class _GradientGaugePainter extends CustomPainter {
     );
 
     final progress = Paint()
-      ..shader = gradient.createShader(rect)
+      ..shader =
+      gradient.createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 18
       ..strokeCap = StrokeCap.round;
 
-    final progressSweep = math.pi * (score.clamp(0, 100) / 100);
+    final progressSweep =
+        math.pi *
+            (score.clamp(0, 100) / 100);
 
-    canvas.drawArc(rect, math.pi, progressSweep, false, progress);
-
-    // INDICATOR
-
-    final angle = math.pi + progressSweep;
-
-    final point = Offset(
-      center.dx + math.cos(angle) * radius,
-      center.dy + math.sin(angle) * radius,
+    canvas.drawArc(
+      rect,
+      math.pi,
+      progressSweep,
+      false,
+      progress,
     );
 
-    canvas.drawCircle(point, 7, Paint()..color = Colors.white);
+    final angle =
+        math.pi + progressSweep;
 
-    canvas.drawCircle(point, 4, Paint()..color = indicatorColor);
+    final point = Offset(
+      center.dx +
+          math.cos(angle) * radius,
+      center.dy +
+          math.sin(angle) * radius,
+    );
+
+    canvas.drawCircle(
+      point,
+      7,
+      Paint()..color = Colors.white,
+    );
+
+    canvas.drawCircle(
+      point,
+      4,
+      Paint()
+        ..color = indicatorColor,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _GradientGaugePainter oldDelegate) {
+  bool shouldRepaint(
+      covariant _GradientGaugePainter
+      oldDelegate,
+      ) {
     return oldDelegate.score != score ||
-        oldDelegate.gradientColors != gradientColors ||
-        oldDelegate.indicatorColor != indicatorColor;
+        oldDelegate.gradientColors !=
+            gradientColors ||
+        oldDelegate.indicatorColor !=
+            indicatorColor;
   }
 }
 
@@ -1791,7 +1912,8 @@ class _GradientGaugePainter extends CustomPainter {
 // DONUT PAINTER
 // ============================================================
 
-class _GradientDonutPainter extends CustomPainter {
+class _GradientDonutPainter
+    extends CustomPainter {
   final int score;
   final List<Color> gradientColors;
 
@@ -1801,49 +1923,78 @@ class _GradientDonutPainter extends CustomPainter {
   });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
+  void paint(
+      Canvas canvas,
+      Size size,
+      ) {
+    final center = Offset(
+      size.width / 2,
+      size.height / 2,
+    );
 
-    final radius = size.width / 2 - 8;
+    final radius =
+        size.width / 2 - 8;
 
-    final rect = Rect.fromCircle(center: center, radius: radius);
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius,
+    );
 
-    const startAngle = 2 * math.pi / 3;
+    const startAngle =
+        2 * math.pi / 3;
 
-    const totalSweep = 5 * math.pi / 3;
-
-    // BACKGROUND TRACK
+    const totalSweep =
+        5 * math.pi / 3;
 
     final background = Paint()
-      ..color = gradientColors.first.withAlpha(30)
+      ..color =
+      gradientColors.first.withAlpha(30)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawArc(rect, startAngle, totalSweep, false, background);
-
-    // GRADIENT PROGRESS
+    canvas.drawArc(
+      rect,
+      startAngle,
+      totalSweep,
+      false,
+      background,
+    );
 
     final gradient = SweepGradient(
       startAngle: startAngle,
-      endAngle: startAngle + totalSweep,
+      endAngle:
+      startAngle + totalSweep,
       colors: gradientColors,
     );
 
     final progress = Paint()
-      ..shader = gradient.createShader(rect)
+      ..shader =
+      gradient.createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
 
-    final progressSweep = totalSweep * (score.clamp(0, 100) / 100);
+    final progressSweep =
+        totalSweep *
+            (score.clamp(0, 100) / 100);
 
-    canvas.drawArc(rect, startAngle, progressSweep, false, progress);
+    canvas.drawArc(
+      rect,
+      startAngle,
+      progressSweep,
+      false,
+      progress,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _GradientDonutPainter oldDelegate) {
+  bool shouldRepaint(
+      covariant _GradientDonutPainter
+      oldDelegate,
+      ) {
     return oldDelegate.score != score ||
-        oldDelegate.gradientColors != gradientColors;
+        oldDelegate.gradientColors !=
+            gradientColors;
   }
 }

@@ -10,7 +10,7 @@ import '../../widgets/custom_bottom_nav_bar.dart';
 // GEMINI API CONFIGURATION
 // =========================================================
 
-const String geminiApiKey = 'AQ.Ab8RN6K4sghCJtEDXdDBwC1HJnrR3bTo8TxsUtuyD7etSOcULA';
+const String geminiApiKey = 'PUT HERE YOUR API KEY';
 
 const String geminiModel = 'gemini-2.5-flash';
 
