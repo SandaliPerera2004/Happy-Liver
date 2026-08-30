@@ -521,6 +521,54 @@ class AssessmentResultScreen extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 52,
+      child: OutlinedButton(
+        onPressed: () {
+          _showLatestAssessmentDialog(context);
+        },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: darkGreen,
+          side: const BorderSide(
+            color: darkGreen,
+            width: 1.5,
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: const Row(
+          mainAxisAlignment:
+          MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.history_rounded,
+              size: 22,
+            ),
+            SizedBox(width: 8),
+            Text(
+              'View Last Assessment',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // RECOMMENDATIONS BUTTON
+  // ============================================================
+
+  Widget _buildRecommendationsButton(
+      BuildContext context,
+      ) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
