@@ -679,8 +679,7 @@ class AssessmentResultScreen extends StatelessWidget {
           ),
         ),
         child: const Row(
-          mainAxisAlignment:
-          MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'View Recommendations',
