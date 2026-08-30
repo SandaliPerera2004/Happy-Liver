@@ -149,12 +149,23 @@ class AssessmentResultScreen extends StatelessWidget {
       // ========================================================
       // MAIN CONTENT
       // ========================================================
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-        child: Column(
-          children: [
-            const SizedBox(height: 2),
+
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          padding: const EdgeInsets.fromLTRB(
+            18,
+            12,
+            18,
+            40,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 2),
 
             // Greeting
             _buildGreeting(),
