@@ -2,22 +2,29 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:happy_liver/services/theme_controller.dart';
+import 'package:happy_liver/services/workout_progress_service.dart';
 
 class ExerciseTimerScreen extends StatefulWidget {
   const ExerciseTimerScreen({
     super.key,
+    required this.workoutId,
     this.workoutName = 'March in Place',
     this.totalDuration = const Duration(minutes: 30),
   });
 
+  final String workoutId;
   final String workoutName;
   final Duration totalDuration;
 
   @override
-  State<ExerciseTimerScreen> createState() => _ExerciseTimerScreenState();
+  State<ExerciseTimerScreen> createState() =>
+      _ExerciseTimerScreenState();
 }
 
 class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
+  final WorkoutProgressService _progressService =
+  WorkoutProgressService();
+
   static const Color _green = Color(0xFF2DCB59);
   static const Color _lightGreenTrack = Color(0xFFDFF3D8);
   static const Color _lightGreenBg = Color(0xFFEAFBF0);
@@ -36,7 +43,13 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
   bool _isPaused = false;
 
-  // Mock stats — replace with real sensor/tracking data if available.
+  // True ONLY when timer reaches 00:00.
+  bool _workoutCompleted = false;
+
+  // Prevent multiple Firestore writes at the same time.
+  bool _isSaving = false;
+
+  // Mock stats — replace with real sensor/tracking data later.
   int _calories = 0;
   int _heartRate = 92;
   int _steps = 0;
@@ -59,33 +72,174 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
     _timer = Timer.periodic(
       const Duration(seconds: 1),
-          (timer) {
-        if (_remaining.inSeconds <= 0) {
+          (timer) async {
+        if (!mounted) {
           timer.cancel();
           return;
         }
 
-        if (!mounted) return;
+        // ==========================================================
+        // TIMER REACHED 00:00
+        // ==========================================================
+
+        if (_remaining.inSeconds <= 1) {
+          timer.cancel();
+
+          setState(() {
+            _remaining = Duration.zero;
+            _workoutCompleted = true;
+          });
+
+          // ========================================================
+          // SAVE FULL COMPLETION
+          // ========================================================
+
+          try {
+            await _progressService.markWorkoutCompleted(
+              workoutId: widget.workoutId,
+              totalDurationSeconds:
+              widget.totalDuration.inSeconds,
+            );
+
+            debugPrint(
+              '================================================',
+            );
+
+            debugPrint('WORKOUT FULLY COMPLETED');
+
+            debugPrint(
+              'Workout ID: ${widget.workoutId}',
+            );
+
+            debugPrint('Progress: 100%');
+
+            debugPrint(
+              '================================================',
+            );
+          } catch (e) {
+            debugPrint(
+              'ERROR SAVING WORKOUT COMPLETION: $e',
+            );
+          }
+
+          return;
+        }
+
+        // ==========================================================
+        // NORMAL TIMER TICK
+        // ==========================================================
 
         setState(() {
           _remaining -= const Duration(seconds: 1);
 
-          // Mock incrementing stats as workout progresses.
-          _calories =
-              (widget.totalDuration.inSeconds -
-                  _remaining.inSeconds) ~/
-                  3;
+          final elapsedSeconds =
+              widget.totalDuration.inSeconds -
+                  _remaining.inSeconds;
 
-          _steps =
-              (widget.totalDuration.inSeconds -
-                  _remaining.inSeconds) *
-                  3;
+          // Mock stats
+          _calories = elapsedSeconds ~/ 3;
+
+          _steps = elapsedSeconds * 3;
 
           _heartRate =
               88 + ((_remaining.inSeconds ~/ 10) % 10);
         });
+
+        // ==========================================================
+        // SAVE PARTIAL PROGRESS
+        // ==========================================================
+        //
+        // Saves every 10 seconds.
+        //
+        // Example with a 30-minute workout:
+        //
+        // 29:50 -> small progress
+        // 29:40 -> more progress
+        // 29:30 -> more progress
+        //
+        // It DOES NOT mark the workout as completed.
+        //
+        // ==========================================================
+
+        final elapsedSeconds =
+            widget.totalDuration.inSeconds -
+                _remaining.inSeconds;
+
+        if (elapsedSeconds > 0 &&
+            elapsedSeconds % 10 == 0 &&
+            !_workoutCompleted) {
+          await _savePartialProgress();
+        }
       },
     );
+  }
+
+  // ==============================================================
+  // SAVE PARTIAL PROGRESS
+  // ==============================================================
+
+  Future<void> _savePartialProgress() async {
+    if (_isSaving || _workoutCompleted) {
+      return;
+    }
+
+    _isSaving = true;
+
+    final totalSeconds =
+        widget.totalDuration.inSeconds;
+
+    final elapsedSeconds =
+        totalSeconds - _remaining.inSeconds;
+
+    try {
+      await _progressService.saveWorkoutProgress(
+        workoutId: widget.workoutId,
+        totalDurationSeconds: totalSeconds,
+        completedDurationSeconds: elapsedSeconds,
+      );
+
+      final progressPercentage =
+      totalSeconds > 0
+          ? ((elapsedSeconds / totalSeconds) * 100)
+          .round()
+          : 0;
+
+      debugPrint(
+        '================================================',
+      );
+
+      debugPrint('PARTIAL WORKOUT PROGRESS SAVED');
+
+      debugPrint(
+        'Workout ID: ${widget.workoutId}',
+      );
+
+      debugPrint(
+        'Elapsed: $elapsedSeconds seconds',
+      );
+
+      debugPrint(
+        'Remaining: ${_remaining.inSeconds} seconds',
+      );
+
+      debugPrint(
+        'Progress: $progressPercentage%',
+      );
+
+      debugPrint(
+        'Completed: false',
+      );
+
+      debugPrint(
+        '================================================',
+      );
+    } catch (e) {
+      debugPrint(
+        'ERROR SAVING PARTIAL PROGRESS: $e',
+      );
+    } finally {
+      _isSaving = false;
+    }
   }
 
   // ==============================================================
@@ -93,12 +247,19 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
   // ==============================================================
 
   void _togglePause() {
+    if (_workoutCompleted) {
+      return;
+    }
+
     setState(() {
       _isPaused = !_isPaused;
     });
 
     if (_isPaused) {
       _timer?.cancel();
+
+      // Save the progress at the moment user pauses.
+      _savePartialProgress();
     } else {
       _startTimer();
     }
@@ -108,11 +269,56 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
   // END WORKOUT
   // ==============================================================
 
-  void _endWorkout() {
+  Future<void> _endWorkout() async {
     _timer?.cancel();
 
-    Navigator.pop(context);
+    // ==========================================================
+    // IMPORTANT
+    //
+    // End Workout ≠ Completed
+    //
+    // Only save the amount actually completed.
+    // ==========================================================
+
+    if (!_workoutCompleted) {
+      await _savePartialProgress();
+
+      final percentage =
+      (_progress * 100).round();
+
+      debugPrint(
+        '================================================',
+      );
+
+      debugPrint(
+        'WORKOUT ENDED WITHOUT COMPLETION',
+      );
+
+      debugPrint(
+        'Workout ID: ${widget.workoutId}',
+      );
+
+      debugPrint(
+        'Progress: $percentage%',
+      );
+
+      debugPrint(
+        'Completed: false',
+      );
+
+      debugPrint(
+        '================================================',
+      );
+    }
+
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
+
+  // ==============================================================
+  // DISPOSE
+  // ==============================================================
 
   @override
   void dispose() {
@@ -140,9 +346,12 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
   // ==============================================================
 
   double get _progress {
-    final total = widget.totalDuration.inSeconds;
+    final total =
+        widget.totalDuration.inSeconds;
 
-    if (total == 0) return 0;
+    if (total == 0) {
+      return 0;
+    }
 
     final elapsed =
         total - _remaining.inSeconds;
@@ -181,7 +390,6 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
                   Row(
                     children: [
-                      // Back button
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
 
@@ -216,7 +424,6 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                         ),
                       ),
 
-                      // Workout name
                       Expanded(
                         child: Center(
                           child: Text(
@@ -235,7 +442,6 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                         ),
                       ),
 
-                      // Pause / Resume icon
                       GestureDetector(
                         onTap: _togglePause,
 
@@ -297,9 +503,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
                             backgroundColor:
                             isDarkMode
-                                ? const Color(
-                              0xFF29402D,
-                            )
+                                ? const Color(0xFF29402D)
                                 : _lightGreenTrack,
 
                             valueColor:
@@ -376,7 +580,8 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
                           sublabel: 'Calories',
 
-                          isDarkMode: isDarkMode,
+                          isDarkMode:
+                          isDarkMode,
                         ),
                       ),
 
@@ -396,7 +601,8 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
                           sublabel: 'Heart Rate',
 
-                          isDarkMode: isDarkMode,
+                          isDarkMode:
+                          isDarkMode,
                         ),
                       ),
 
@@ -415,7 +621,8 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
                           sublabel: 'Steps',
 
-                          isDarkMode: isDarkMode,
+                          isDarkMode:
+                          isDarkMode,
                         ),
                       ),
                     ],
@@ -504,7 +711,10 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                     height: 54,
 
                     child: ElevatedButton.icon(
-                      onPressed: _togglePause,
+                      onPressed:
+                      _workoutCompleted
+                          ? null
+                          : _togglePause,
 
                       icon: Icon(
                         _isPaused
@@ -530,14 +740,20 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
 
                       style:
                       ElevatedButton.styleFrom(
-                        backgroundColor: _green,
+                        backgroundColor:
+                        _green,
+
+                        disabledBackgroundColor:
+                        _green,
 
                         elevation: 0,
 
                         shape:
                         RoundedRectangleBorder(
                           borderRadius:
-                          BorderRadius.circular(30),
+                          BorderRadius.circular(
+                            30,
+                          ),
                         ),
                       ),
                     ),
@@ -550,7 +766,9 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                   // ==================================================
 
                   GestureDetector(
-                    onTap: _endWorkout,
+                    onTap: _isSaving
+                        ? null
+                        : _endWorkout,
 
                     child: const Text(
                       'End Workout',
@@ -560,7 +778,8 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                         fontWeight:
                         FontWeight.w600,
 
-                        color: Colors.redAccent,
+                        color:
+                        Colors.redAccent,
 
                         decoration:
                         TextDecoration.underline,

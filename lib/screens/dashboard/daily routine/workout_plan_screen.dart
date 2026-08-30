@@ -6,6 +6,7 @@ import 'package:happy_liver/models/workout_model.dart';
 import 'package:happy_liver/services/workout_service.dart';
 import 'package:happy_liver/services/theme_controller.dart';
 import 'package:happy_liver/widgets/bottom_navigation_bar.dart';
+import 'package:happy_liver/services/workout_progress_service.dart';
 
 class WorkoutPlanScreen extends StatefulWidget {
   // TEMPORARY:
@@ -18,19 +19,37 @@ class WorkoutPlanScreen extends StatefulWidget {
   });
 
   @override
-  State<WorkoutPlanScreen> createState() => _WorkoutPlanScreenState();
+  State<WorkoutPlanScreen> createState() =>
+      _WorkoutPlanScreenState();
 }
 
-class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
-  static const Color _green = Color(0xFF2DCB59);
-  static const Color _lightGreenHeader = Color(0xFFDFF3D8);
-  static const Color _lightGreenChip = Color(0xFFE9F9EE);
-  static const Color _darkText = Color(0xFF1B1F1D);
-  static const Color _grayText = Color(0xFF8A948E);
+class _WorkoutPlanScreenState
+    extends State<WorkoutPlanScreen> {
+  static const Color _green =
+  Color(0xFF2DCB59);
+
+  static const Color _lightGreenHeader =
+  Color(0xFFDFF3D8);
+
+  static const Color _lightGreenChip =
+  Color(0xFFE9F9EE);
+
+  static const Color _darkText =
+  Color(0xFF1B1F1D);
+
+  static const Color _grayText =
+  Color(0xFF8A948E);
 
   // Dark mode colors
-  static const Color _darkBackground = Color(0xFF121212);
-  static const Color _darkCard = Color(0xFF1E1E1E);
+  static const Color _darkBackground =
+  Color(0xFF121212);
+
+  static const Color _darkCard =
+  Color(0xFF1E1E1E);
+
+  // ================================================================
+  // SIX DAYS
+  // ================================================================
 
   static const List<String> _days = [
     'Mon',
@@ -39,107 +58,200 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
     'Thu',
     'Fri',
     'Sat',
-    'Sun',
   ];
 
-  int _selectedDayIndex = 3; // Thu
+  // Thursday selected initially
+  int _selectedDayIndex = 3;
 
-  final WorkoutService _workoutService = WorkoutService();
+  final WorkoutService _workoutService =
+  WorkoutService();
+
+  // Workout progress service
+  final WorkoutProgressService _progressService =
+  WorkoutProgressService();
+
+  // Store loaded workouts
+  List<WorkoutModel> _workouts = [];
+
+  // Store today's progress
+  Map<String, double> _todayProgress = {};
+
+  // Loading state for progress
+  bool _progressLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _loadWorkoutProgress();
+  }
+
+  // ================================================================
+  // LOAD TODAY'S WORKOUT PROGRESS
+  // ================================================================
+
+  Future<void> _loadWorkoutProgress() async {
+    try {
+      final progress =
+      await _progressService
+          .getTodayWorkoutProgress();
+
+      if (!mounted) return;
+
+      setState(() {
+        _todayProgress = progress;
+        _progressLoading = false;
+      });
+
+      print('====================================');
+      print('TODAY WORKOUT PROGRESS');
+      print(_todayProgress);
+      print('====================================');
+    } catch (e) {
+      print(
+        'ERROR LOADING WORKOUT PROGRESS: $e',
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _progressLoading = false;
+      });
+    }
+  }
+
+  // ================================================================
+  // REFRESH WORKOUT PROGRESS
+  // ================================================================
+
+  Future<void> _refreshProgress() async {
+    await _loadWorkoutProgress();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: ThemeController.isDarkMode,
-      builder: (context, isDarkMode, child) {
+      valueListenable:
+      ThemeController.isDarkMode,
+      builder:
+          (context, isDarkMode, child) {
         return Scaffold(
-          // ============================================================
+          // ==========================================================
           // BACKGROUND
-          // ============================================================
+          // ==========================================================
 
           backgroundColor: isDarkMode
               ? _darkBackground
               : const Color(0xFFF5F6F8),
 
-          // ============================================================
+          // ==========================================================
           // BODY
-          // ============================================================
+          // ==========================================================
 
           body: SafeArea(
             bottom: false,
             child: Column(
               children: [
-                _buildHeader(context, isDarkMode),
+                _buildHeader(
+                  context,
+                  isDarkMode,
+                ),
 
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(
-                      20,
-                      20,
-                      20,
-                      20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ==================================================
-                        // GREETING
-                        // ==================================================
+                  child: RefreshIndicator(
+                    color: _green,
+                    onRefresh:
+                    _refreshProgress,
+                    child:
+                    SingleChildScrollView(
+                      physics:
+                      const AlwaysScrollableScrollPhysics(),
+                      padding:
+                      const EdgeInsets.fromLTRB(
+                        20,
+                        20,
+                        20,
+                        20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+                        children: [
+                          // ==================================================
+                          // GREETING
+                          // ==================================================
 
-                        Text(
-                          'Good Morning, Shehani!',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: isDarkMode
-                                ? Colors.white
-                                : _darkText,
+                          Text(
+                            'Good Morning, Shehani!',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight:
+                              FontWeight.w800,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : _darkText,
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 14),
-
-                        // ==================================================
-                        // DAY SELECTOR
-                        // ==================================================
-
-                        _buildDaySelector(isDarkMode),
-
-                        const SizedBox(height: 20),
-
-                        // ==================================================
-                        // WEEKLY PROGRESS
-                        // ==================================================
-
-                        _buildWeeklyProgressCard(isDarkMode),
-
-                        const SizedBox(height: 22),
-
-                        // ==================================================
-                        // TODAY'S WORKOUTS TITLE
-                        // ==================================================
-
-                        Text(
-                          "Today's Workouts",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDarkMode
-                                ? Colors.white
-                                : _darkText,
+                          const SizedBox(
+                            height: 14,
                           ),
-                        ),
 
-                        const SizedBox(height: 12),
+                          // ==================================================
+                          // DAY SELECTOR
+                          // ==================================================
 
-                        // ==================================================
-                        // WORKOUTS
-                        // ==================================================
+                          _buildDaySelector(
+                            isDarkMode,
+                          ),
 
-                        _buildWorkoutSection(
-                          context,
-                          isDarkMode,
-                        ),
-                      ],
+                          const SizedBox(
+                            height: 20,
+                          ),
+
+                          // ==================================================
+                          // TODAY'S PROGRESS
+                          // ==================================================
+
+                          _buildWeeklyProgressCard(
+                            isDarkMode,
+                          ),
+
+                          const SizedBox(
+                            height: 22,
+                          ),
+
+                          // ==================================================
+                          // TODAY'S WORKOUTS TITLE
+                          // ==================================================
+
+                          Text(
+                            "Today's Workouts",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight:
+                              FontWeight.w700,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : _darkText,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            height: 12,
+                          ),
+
+                          // ==================================================
+                          // WORKOUTS
+                          // ==================================================
+
+                          _buildWorkoutSection(
+                            context,
+                            isDarkMode,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -150,21 +262,16 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
           // ============================================================
           // SHARED BOTTOM NAVIGATION
           // ============================================================
-          //
-          // 0 = Home
-          // 1 = Daily Routine
-          // 2 = Profile
-          // 3 = Settings
-          //
-          // Workout Plan belongs to Daily Routine
-          // Therefore selectedIndex = 1
-          //
 
-          bottomNavigationBar: HappyLiverBottomNavBar(
+          bottomNavigationBar:
+          HappyLiverBottomNavBar(
             selectedIndex: 1,
             isDarkMode: isDarkMode,
-            onThemeChanged: (value) async {
-              ThemeController.isDarkMode.value = value;
+            onThemeChanged:
+                (value) async {
+              ThemeController
+                  .isDarkMode
+                  .value = value;
             },
           ),
         );
@@ -180,29 +287,58 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
       BuildContext context,
       bool isDarkMode,
       ) {
-    return FutureBuilder<List<WorkoutModel>>(
-      future: _workoutService.getWorkoutsByLevel(
+    return FutureBuilder<
+        List<WorkoutModel>>(
+      future:
+      _workoutService.getWorkoutsByLevel(
         widget.riskLevel,
       ),
-      builder: (context, snapshot) {
-        print('====================================');
-        print('RISK LEVEL: ${widget.riskLevel}');
-        print('CONNECTION STATE: ${snapshot.connectionState}');
-        print('HAS ERROR: ${snapshot.hasError}');
-        print('ERROR: ${snapshot.error}');
-        print('DATA: ${snapshot.data}');
-        print('WORKOUT COUNT: ${snapshot.data?.length}');
-        print('====================================');
+      builder:
+          (context, snapshot) {
+        print(
+          '====================================',
+        );
+
+        print(
+          'RISK LEVEL: ${widget.riskLevel}',
+        );
+
+        print(
+          'CONNECTION STATE: ${snapshot.connectionState}',
+        );
+
+        print(
+          'HAS ERROR: ${snapshot.hasError}',
+        );
+
+        print(
+          'ERROR: ${snapshot.error}',
+        );
+
+        print(
+          'DATA: ${snapshot.data}',
+        );
+
+        print(
+          'WORKOUT COUNT: ${snapshot.data?.length}',
+        );
+
+        print(
+          '====================================',
+        );
 
         // ============================================================
         // LOADING
         // ============================================================
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.all(30),
-              child: CircularProgressIndicator(
+              padding:
+              EdgeInsets.all(30),
+              child:
+              CircularProgressIndicator(
                 color: _green,
               ),
             ),
@@ -216,12 +352,17 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
         if (snapshot.hasError) {
           return Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
+            padding:
+            const EdgeInsets.all(20),
+            decoration:
+            BoxDecoration(
               color: isDarkMode
                   ? _darkCard
                   : Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius:
+              BorderRadius.circular(
+                16,
+              ),
             ),
             child: Column(
               children: [
@@ -231,24 +372,30 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                   size: 35,
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(
+                  height: 10,
+                ),
 
                 Text(
                   'Unable to load workouts',
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontWeight:
+                    FontWeight.w700,
                     color: isDarkMode
                         ? Colors.white
                         : _darkText,
                   ),
                 ),
 
-                const SizedBox(height: 5),
+                const SizedBox(
+                  height: 5,
+                ),
 
                 Text(
                   '${snapshot.error}',
-                  textAlign: TextAlign.center,
+                  textAlign:
+                  TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
                     color: isDarkMode
@@ -261,7 +408,25 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
           );
         }
 
-        final workouts = snapshot.data ?? [];
+        final workouts =
+            snapshot.data ?? [];
+
+        // Save workouts locally
+        // so progress can be calculated
+        // using the actual workout IDs.
+        if (_workouts.isEmpty &&
+            workouts.isNotEmpty) {
+          WidgetsBinding.instance
+              .addPostFrameCallback(
+                (_) {
+              if (!mounted) return;
+
+              setState(() {
+                _workouts = workouts;
+              });
+            },
+          );
+        }
 
         // ============================================================
         // NO WORKOUTS
@@ -270,30 +435,39 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
         if (workouts.isEmpty) {
           return Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(25),
-            decoration: BoxDecoration(
+            padding:
+            const EdgeInsets.all(25),
+            decoration:
+            BoxDecoration(
               color: isDarkMode
                   ? _darkCard
                   : Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius:
+              BorderRadius.circular(
+                16,
+              ),
             ),
             child: Column(
               children: [
                 Icon(
-                  Icons.fitness_center_outlined,
+                  Icons
+                      .fitness_center_outlined,
                   color: isDarkMode
                       ? Colors.white60
                       : _grayText,
                   size: 35,
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(
+                  height: 10,
+                ),
 
                 Text(
                   'No workouts available',
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontWeight:
+                    FontWeight.w700,
                     color: isDarkMode
                         ? Colors.white
                         : _darkText,
@@ -328,7 +502,8 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.symmetric(
+      padding:
+      const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
@@ -340,22 +515,28 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-
-            child: SvgPicture.asset(
+            onTap: () =>
+                Navigator.maybePop(
+                  context,
+                ),
+            child:
+            SvgPicture.asset(
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(
+            width: 12,
+          ),
 
           Text(
             'Workout Plan',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight:
+              FontWeight.w700,
               color: isDarkMode
                   ? Colors.white
                   : Colors.black87,
@@ -367,48 +548,53 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   }
 
   // ================================================================
-  // DAY SELECTOR
+  // DAY SELECTOR — 6 DAYS
   // ================================================================
 
-  Widget _buildDaySelector(bool isDarkMode) {
+  Widget _buildDaySelector(
+      bool isDarkMode,
+      ) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
+      mainAxisAlignment:
+      MainAxisAlignment
+          .spaceBetween,
       children: List.generate(
         _days.length,
             (index) {
           final bool selected =
-              index == _selectedDayIndex;
+              index ==
+                  _selectedDayIndex;
 
           return GestureDetector(
             onTap: () {
               setState(() {
-                _selectedDayIndex = index;
+                _selectedDayIndex =
+                    index;
               });
             },
-
             child: Container(
               width: 40,
               height: 40,
-
-              alignment: Alignment.center,
-
-              decoration: BoxDecoration(
+              alignment:
+              Alignment.center,
+              decoration:
+              BoxDecoration(
                 color: selected
                     ? _green
                     : isDarkMode
-                    ? const Color(0xFF24452B)
+                    ? const Color(
+                  0xFF24452B,
+                )
                     : _lightGreenChip,
-
-                shape: BoxShape.circle,
+                shape:
+                BoxShape.circle,
               ),
-
               child: Text(
                 _days[index],
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-
+                  fontWeight:
+                  FontWeight.w600,
                   color: selected
                       ? Colors.white
                       : isDarkMode
@@ -424,48 +610,97 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   }
 
   // ================================================================
-  // WEEKLY PROGRESS CARD
+  // PROGRESS CARD
   // ================================================================
 
-  Widget _buildWeeklyProgressCard(bool isDarkMode) {
+  Widget _buildWeeklyProgressCard(
+      bool isDarkMode,
+      ) {
+    double overallProgress =
+    0.0;
+
+    int completedCount = 0;
+
+    // ==============================================================
+    // CALCULATE PROGRESS FROM ACTUAL WORKOUTS
+    // ==============================================================
+
+    if (_workouts.isNotEmpty) {
+      double totalProgress =
+      0.0;
+
+      for (final workout
+      in _workouts) {
+        final progress =
+            _todayProgress[
+            workout.id] ??
+                0.0;
+
+        totalProgress += progress;
+
+        if (progress >= 1.0) {
+          completedCount++;
+        }
+      }
+
+      overallProgress =
+          totalProgress /
+              _workouts.length;
+    }
+
+    final int percentage =
+    (overallProgress * 100)
+        .round();
+
+    // IMPORTANT:
+    // This is the number of workouts,
+    // NOT the number of days.
+    final int totalWorkouts =
+        _workouts.length;
+
     return Container(
       width: double.infinity,
-
-      padding: const EdgeInsets.all(16),
-
-      decoration: BoxDecoration(
+      padding:
+      const EdgeInsets.all(16),
+      decoration:
+      BoxDecoration(
         color: isDarkMode
             ? _darkCard
             : Colors.white,
-
-        borderRadius: BorderRadius.circular(18),
-
+        borderRadius:
+        BorderRadius.circular(
+          18,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(
-              isDarkMode ? 0.25 : 0.05,
+            color:
+            Colors.black.withOpacity(
+              isDarkMode
+                  ? 0.25
+                  : 0.05,
             ),
-
             blurRadius: 10,
-
-            offset: const Offset(0, 4),
+            offset:
+            const Offset(0, 4),
           ),
         ],
       ),
-
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
+          // ==========================================================
+          // TITLE + COMPLETED COUNT
+          // ==========================================================
+
           Row(
             children: [
               Text(
                 'Weekly Progress',
-
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w700,
-
+                  fontWeight:
+                  FontWeight.w700,
                   color: isDarkMode
                       ? Colors.white
                       : _darkText,
@@ -474,62 +709,89 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
               const Spacer(),
 
-              const Text(
-                '3/4 completed',
-
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: _green,
+              if (_progressLoading)
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child:
+                  CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: _green,
+                  ),
+                )
+              else
+                Text(
+                  // Example:
+                  // 0/4 completed
+                  // 1/4 completed
+                  // 2/4 completed
+                  // 3/4 completed
+                  // 4/4 completed
+                  totalWorkouts == 0
+                      ? '0/0 completed'
+                      : '$completedCount/$totalWorkouts completed',
+                  style:
+                  const TextStyle(
+                    fontSize: 12,
+                    fontWeight:
+                    FontWeight.w700,
+                    color: _green,
+                  ),
                 ),
-              ),
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(
+            height: 14,
+          ),
+
+          // ==========================================================
+          // CIRCULAR PROGRESS + MESSAGE
+          // ==========================================================
 
           Row(
             crossAxisAlignment:
-            CrossAxisAlignment.center,
-
+            CrossAxisAlignment
+                .center,
             children: [
               SizedBox(
                 width: 64,
                 height: 64,
-
                 child: Stack(
-                  alignment: Alignment.center,
-
+                  alignment:
+                  Alignment.center,
                   children: [
                     SizedBox(
                       width: 64,
                       height: 64,
-
-                      child: CircularProgressIndicator(
-                        value: 0.6,
-
+                      child:
+                      CircularProgressIndicator(
+                        value:
+                        overallProgress,
                         strokeWidth: 6,
-
-                        strokeCap: StrokeCap.round,
-
-                        backgroundColor: isDarkMode
-                            ? const Color(0xFF315238)
+                        strokeCap:
+                        StrokeCap.round,
+                        backgroundColor:
+                        isDarkMode
+                            ? const Color(
+                          0xFF315238,
+                        )
                             : _lightGreenChip,
-
                         valueColor:
-                        const AlwaysStoppedAnimation<Color>(
+                        const AlwaysStoppedAnimation<
+                            Color>(
                           _green,
                         ),
                       ),
                     ),
 
                     Text(
-                      '60%',
-
-                      style: TextStyle(
+                      '$percentage%',
+                      style:
+                      TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w800,
-
+                        fontWeight:
+                        FontWeight.w800,
                         color: isDarkMode
                             ? Colors.white
                             : _darkText,
@@ -539,20 +801,25 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                 ),
               ),
 
-              const SizedBox(width: 16),
+              const SizedBox(
+                width: 16,
+              ),
 
               Expanded(
                 child: Text(
-                  "You're on track. Keep it up - every session "
-                      "supports liver health and cholesterol balance.",
-
-                  style: TextStyle(
+                  overallProgress >=
+                      1.0
+                      ? 'Great job! You completed all today\'s workouts. Keep it up!'
+                      : overallProgress >
+                      0
+                      ? 'You\'re making progress. Complete your remaining workouts to stay on track.'
+                      : 'Start your workout today. Every session supports liver health and cholesterol balance.',
+                  style:
+                  TextStyle(
                     fontSize: 12.5,
-
                     color: isDarkMode
                         ? Colors.white60
                         : _grayText,
-
                     height: 1.4,
                   ),
                 ),
@@ -575,25 +842,21 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
       ) {
     return GridView.builder(
       shrinkWrap: true,
-
       physics:
       const NeverScrollableScrollPhysics(),
-
-      itemCount: workouts.length,
-
+      itemCount:
+      workouts.length,
       gridDelegate:
       const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-
         crossAxisSpacing: 12,
-
         mainAxisSpacing: 12,
-
         childAspectRatio: 1.0,
       ),
-
-      itemBuilder: (context, index) {
-        final workout = workouts[index];
+      itemBuilder:
+          (context, index) {
+        final workout =
+        workouts[index];
 
         return _workoutCard(
           context,
@@ -613,88 +876,105 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
       WorkoutModel workout,
       bool isDarkMode,
       ) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
+    final double progress =
+        _todayProgress[
+        workout.id] ??
+            0.0;
 
+    final bool completed =
+        progress >= 1.0;
+
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
           MaterialPageRoute(
-            builder: (_) => WorkoutDetailScreen(
-              workout: workout,
-            ),
+            builder: (_) =>
+                WorkoutDetailScreen(
+                  workout: workout,
+                ),
           ),
         );
+
+        // Reload progress after
+        // returning from detail screen.
+        await _loadWorkoutProgress();
       },
 
       child: Container(
-        decoration: BoxDecoration(
+        decoration:
+        BoxDecoration(
           color: isDarkMode
               ? _darkCard
               : Colors.white,
-
-          borderRadius: BorderRadius.circular(16),
-
+          borderRadius:
+          BorderRadius.circular(
+            16,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(
-                isDarkMode ? 0.25 : 0.05,
+              color: Colors.black
+                  .withOpacity(
+                isDarkMode
+                    ? 0.25
+                    : 0.05,
               ),
-
               blurRadius: 8,
-
-              offset: const Offset(0, 3),
+              offset:
+              const Offset(0, 3),
             ),
           ],
         ),
 
         child: Column(
           crossAxisAlignment:
-          CrossAxisAlignment.start,
-
+          CrossAxisAlignment
+              .start,
           children: [
-            // ======================================================
+            // ========================================================
             // IMAGE
-            // ======================================================
+            // ========================================================
 
-            AspectRatio(
-              aspectRatio: 1.5,
-
+            Expanded(
               child: ClipRRect(
                 borderRadius:
-                const BorderRadius.vertical(
-                  top: Radius.circular(16),
+                const BorderRadius
+                    .vertical(
+                  top: Radius.circular(
+                    16,
+                  ),
                 ),
-
                 child: Stack(
-                  alignment: Alignment.center,
-
+                  alignment:
+                  Alignment.center,
                   children: [
                     Image.network(
                       workout.imageUrl,
-
-                      width: double.infinity,
-
-                      height: double.infinity,
-
+                      width:
+                      double.infinity,
+                      height:
+                      double.infinity,
                       fit: BoxFit.cover,
-
-                      errorBuilder: (
+                      errorBuilder:
+                          (
                           context,
                           error,
                           stackTrace,
                           ) {
                         return Container(
                           color: isDarkMode
-                              ? const Color(0xFF24452B)
+                              ? const Color(
+                            0xFF24452B,
+                          )
                               : _lightGreenChip,
-
-                          child: const Center(
+                          child:
+                          const Center(
                             child: Icon(
-                              Icons.fitness_center,
-
+                              Icons
+                                  .fitness_center,
                               size: 40,
-
-                              color: _green,
+                              color:
+                              _green,
                             ),
                           ),
                         );
@@ -708,87 +988,164 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                     Container(
                       width: 34,
                       height: 34,
-
-                      decoration: BoxDecoration(
+                      decoration:
+                      BoxDecoration(
                         color: _green,
-
-                        shape: BoxShape.circle,
-
-                        border: Border.all(
-                          color: Colors.white,
-
+                        shape:
+                        BoxShape
+                            .circle,
+                        border:
+                        Border.all(
+                          color:
+                          Colors.white,
                           width: 2,
                         ),
                       ),
-
-                      child: const Icon(
+                      child:
+                      const Icon(
                         Icons.play_arrow,
-
-                        color: Colors.white,
-
+                        color:
+                        Colors.white,
                         size: 18,
                       ),
                     ),
+
+                    // ==================================================
+                    // COMPLETED CHECK
+                    // ==================================================
+
+                    if (completed)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child:
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration:
+                          const BoxDecoration(
+                            color:
+                            _green,
+                            shape:
+                            BoxShape
+                                .circle,
+                          ),
+                          child:
+                          const Icon(
+                            Icons.check,
+                            color:
+                            Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+
+                    // ==================================================
+                    // PARTIAL PROGRESS
+                    // ==================================================
+
+                    if (!completed &&
+                        progress > 0)
+                      Positioned(
+                        left: 8,
+                        right: 8,
+                        bottom: 8,
+                        child:
+                        Container(
+                          height: 5,
+                          decoration:
+                          BoxDecoration(
+                            color: Colors
+                                .white
+                                .withOpacity(
+                              0.5,
+                            ),
+                            borderRadius:
+                            BorderRadius
+                                .circular(
+                              10,
+                            ),
+                          ),
+                          child:
+                          FractionallySizedBox(
+                            alignment:
+                            Alignment
+                                .centerLeft,
+                            widthFactor:
+                            progress,
+                            child:
+                            Container(
+                              decoration:
+                              BoxDecoration(
+                                color:
+                                _green,
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                  10,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
 
-            // ======================================================
+            // ========================================================
             // WORKOUT INFORMATION
-            // ======================================================
+            // ========================================================
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding:
+              const EdgeInsets
+                  .fromLTRB(
                 10,
                 8,
                 10,
                 8,
               ),
-
               child: Column(
-                mainAxisSize: MainAxisSize.min,
-
+                mainAxisSize:
+                MainAxisSize.min,
                 crossAxisAlignment:
-                CrossAxisAlignment.start,
-
+                CrossAxisAlignment
+                    .start,
                 children: [
-                  // ------------------------------------------------
+                  // --------------------------------------------------
                   // WORKOUT NAME
-                  // ------------------------------------------------
+                  // --------------------------------------------------
 
                   Text(
                     workout.name,
-
                     maxLines: 1,
-
                     overflow:
-                    TextOverflow.ellipsis,
-
+                    TextOverflow
+                        .ellipsis,
                     style: TextStyle(
                       fontSize: 15,
-
                       fontWeight:
                       FontWeight.w800,
-
                       color: isDarkMode
                           ? Colors.white
                           : _darkText,
                     ),
                   ),
 
-                  const SizedBox(height: 3),
+                  const SizedBox(
+                    height: 3,
+                  ),
 
-                  // ------------------------------------------------
+                  // --------------------------------------------------
                   // DURATION
-                  // ------------------------------------------------
+                  // --------------------------------------------------
 
                   Text(
                     '${workout.duration} min',
-
                     style: TextStyle(
                       fontSize: 13,
-
                       color: isDarkMode
                           ? Colors.white60
                           : _grayText,

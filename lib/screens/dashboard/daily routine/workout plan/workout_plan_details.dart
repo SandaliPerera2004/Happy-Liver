@@ -477,7 +477,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           isDarkMode: isDarkMode,
                         ),
 
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 7),
 
                         // ==========================================
                         // BENEFITS
@@ -498,7 +498,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           isDarkMode: isDarkMode,
                         ),
 
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 7),
 
                         // ==========================================
                         // START EXERCISE
@@ -523,15 +523,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                 MaterialPageRoute(
                                   builder: (_) =>
                                       ExerciseTimerScreen(
-                                        workoutName:
-                                        widget.workout.name,
-                                        totalDuration:
-                                        Duration(
-                                          minutes:
-                                          widget.workout
-                                              .duration,
+                                        workoutId: widget.workout.id,
+                                        workoutName: widget.workout.name,
+                                        totalDuration: Duration(
+                                          minutes: widget.workout.duration,
                                         ),
-                                      ),
+                                      )
                                 ),
                               );
                             },
@@ -768,7 +765,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       bool isDarkMode,
       ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(bottom: 1),
       child: Row(
         crossAxisAlignment:
         CrossAxisAlignment.start,
@@ -819,7 +816,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       bool isDarkMode,
       ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.only(bottom: 3),
       child: Row(
         crossAxisAlignment:
         CrossAxisAlignment.start,
