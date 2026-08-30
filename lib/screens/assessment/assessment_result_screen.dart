@@ -554,7 +554,78 @@ class AssessmentResultScreen extends StatelessWidget {
             SizedBox(width: 5),
             Icon(
               Icons.arrow_forward_rounded,
-              size: 20,
+              size: 21,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // SHOW LATEST ASSESSMENT
+  // ============================================================
+
+  Future<void> _showLatestAssessmentDialog(
+      BuildContext context,
+      ) async {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return const _LatestAssessmentDialog();
+      },
+    );
+  }
+}
+
+// ============================================================
+// LATEST ASSESSMENT DIALOG
+// ============================================================
+
+class _LatestAssessmentDialog
+    extends StatefulWidget {
+  const _LatestAssessmentDialog();
+
+  @override
+  State<_LatestAssessmentDialog> createState() =>
+      _LatestAssessmentDialogState();
+}
+
+class _LatestAssessmentDialogState
+    extends State<_LatestAssessmentDialog> {
+  late Future<DocumentSnapshot<Map<String, dynamic>>?>
+  _assessmentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _assessmentFuture =
+        AssessmentFirestoreService
+            .getLatestAssessment();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 24,
+      ),
+      child: Container(
+        constraints: const BoxConstraints(
+          maxHeight: 680,
+        ),
+        decoration: BoxDecoration(
+          color: AssessmentResultScreen.pageBg,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(35),
+              blurRadius: 25,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
