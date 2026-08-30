@@ -188,7 +188,10 @@ class AssessmentResultScreen extends StatelessWidget {
       // ========================================================
       // REUSABLE BOTTOM NAVIGATION BAR
       // ========================================================
-      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 0),
+
+      bottomNavigationBar: const CustomBottomNavBar(
+        selectedIndex: 0,
+      ),
     );
   }
 
