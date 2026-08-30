@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'send_feedback.dart';
 import 'report_problem.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HelpFeedback extends StatelessWidget {
   const HelpFeedback({super.key});
@@ -178,10 +179,10 @@ class HelpFeedback extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
             },
-            child: const Icon(
-              Icons.arrow_back,
-              size: 30,
-              color: Colors.black,
+            child: SvgPicture.asset(
+              'assets/icons/Arrow left-circle.svg',
+              width: 30,
+              height: 30,
             ),
           ),
 

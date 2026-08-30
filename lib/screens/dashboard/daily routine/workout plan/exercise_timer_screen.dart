@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class ExerciseTimerScreen extends StatefulWidget {
   const ExerciseTimerScreen({
@@ -20,11 +21,19 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
   static const Color _green = Color(0xFF2DCB59);
   static const Color _lightGreenTrack = Color(0xFFDFF3D8);
   static const Color _lightGreenBg = Color(0xFFEAFBF0);
-  static const Color _darkText = Color(0xFF263A31);
-  static const Color _grayText = Color(0xFF8A948E);
+
+  static const Color _lightText = Color(0xFF263A31);
+  static const Color _darkText = Colors.white;
+
+  static const Color _lightGrayText = Color(0xFF8A948E);
+  static const Color _darkGrayText = Colors.white70;
+
+  static const Color _darkBackground = Color(0xFF121212);
+  static const Color _darkCard = Color(0xFF1E1E1E);
 
   Timer? _timer;
   late Duration _remaining;
+
   bool _isPaused = false;
 
   // Mock stats — replace with real sensor/tracking data if available.
@@ -35,27 +44,53 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
   @override
   void initState() {
     super.initState();
+
     _remaining = widget.totalDuration;
+
     _startTimer();
   }
 
+  // ==============================================================
+  // START TIMER
+  // ==============================================================
+
   void _startTimer() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remaining.inSeconds <= 0) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        _remaining -= const Duration(seconds: 1);
 
-        // Mock incrementing stats as the workout progresses.
-        _calories = (widget.totalDuration.inSeconds - _remaining.inSeconds) ~/ 3;
-        _steps = (widget.totalDuration.inSeconds - _remaining.inSeconds) * 3;
-        _heartRate = 88 + ((_remaining.inSeconds ~/ 10) % 10);
-      });
-    });
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+          (timer) {
+        if (_remaining.inSeconds <= 0) {
+          timer.cancel();
+          return;
+        }
+
+        if (!mounted) return;
+
+        setState(() {
+          _remaining -= const Duration(seconds: 1);
+
+          // Mock incrementing stats as workout progresses.
+          _calories =
+              (widget.totalDuration.inSeconds -
+                  _remaining.inSeconds) ~/
+                  3;
+
+          _steps =
+              (widget.totalDuration.inSeconds -
+                  _remaining.inSeconds) *
+                  3;
+
+          _heartRate =
+              88 + ((_remaining.inSeconds ~/ 10) % 10);
+        });
+      },
+    );
   }
+
+  // ==============================================================
+  // PAUSE / RESUME
+  // ==============================================================
 
   void _togglePause() {
     setState(() {
@@ -69,272 +104,481 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
     }
   }
 
+  // ==============================================================
+  // END WORKOUT
+  // ==============================================================
+
   void _endWorkout() {
     _timer?.cancel();
+
     Navigator.pop(context);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+
     super.dispose();
   }
 
+  // ==============================================================
+  // FORMAT DURATION
+  // ==============================================================
+
   String _formatDuration(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes =
+    d.inMinutes.remainder(60).toString().padLeft(2, '0');
+
+    final seconds =
+    d.inSeconds.remainder(60).toString().padLeft(2, '0');
+
     return '$minutes:$seconds';
   }
 
+  // ==============================================================
+  // PROGRESS
+  // ==============================================================
+
   double get _progress {
     final total = widget.totalDuration.inSeconds;
+
     if (total == 0) return 0;
-    final elapsed = total - _remaining.inSeconds;
+
+    final elapsed =
+        total - _remaining.inSeconds;
+
     return (elapsed / total).clamp(0.0, 1.0);
   }
 
+  // ==============================================================
+  // BUILD
+  // ==============================================================
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-          child: Column(
-            children: [
-              // ==========================================================
-              // TOP APP BAR
-              // ==========================================================
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFD5DAD7)),
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/icons/Arrow left-circle.svg',
-                        width: 20,
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(
-                          _darkText,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        widget.workoutName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: _darkText,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFD5DAD7)),
-                    ),
-                    child: Icon(
-                      _isPaused ? Icons.play_arrow : Icons.pause,
-                      size: 18,
-                      color: _darkText,
-                    ),
-                  ),
-                ],
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: isDarkMode
+              ? _darkBackground
+              : Colors.white,
+
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                20,
+                10,
+                20,
+                20,
               ),
 
-              const SizedBox(height: 40),
+              child: Column(
+                children: [
+                  // ==================================================
+                  // TOP APP BAR
+                  // ==================================================
 
-              // ==========================================================
-              // CIRCULAR TIMER
-              // ==========================================================
-              SizedBox(
-                width: 220,
-                height: 220,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 220,
-                      height: 220,
-                      child: CircularProgressIndicator(
-                        value: _progress,
-                        strokeWidth: 12,
-                        strokeCap: StrokeCap.round,
-                        backgroundColor: _lightGreenTrack,
-                        valueColor: const AlwaysStoppedAnimation<Color>(_green),
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _formatDuration(_remaining),
-                          style: const TextStyle(
-                            fontSize: 40,
-                            fontWeight: FontWeight.w800,
-                            color: _darkText,
+                  Row(
+                    children: [
+                      // Back button
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+
+                        child: Container(
+                          width: 38,
+                          height: 38,
+
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+
+                            border: Border.all(
+                              color: isDarkMode
+                                  ? Colors.white24
+                                  : const Color(0xFFD5DAD7),
+                            ),
+                          ),
+
+                          child: SvgPicture.asset(
+                            'assets/icons/Arrow left-circle.svg',
+
+                            width: 20,
+                            height: 20,
+
+                            colorFilter:
+                            ColorFilter.mode(
+                              isDarkMode
+                                  ? Colors.white
+                                  : _lightText,
+                              BlendMode.srcIn,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'TIME REMAINING',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                            color: _grayText,
+                      ),
+
+                      // Workout name
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            widget.workoutName,
+
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight:
+                              FontWeight.w600,
+
+                              color: isDarkMode
+                                  ? _darkText
+                                  : _lightText,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Pause / Resume icon
+                      GestureDetector(
+                        onTap: _togglePause,
+
+                        child: Container(
+                          width: 38,
+                          height: 38,
+
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+
+                            border: Border.all(
+                              color: isDarkMode
+                                  ? Colors.white24
+                                  : const Color(0xFFD5DAD7),
+                            ),
+                          ),
+
+                          child: Icon(
+                            _isPaused
+                                ? Icons.play_arrow
+                                : Icons.pause,
+
+                            size: 18,
+
+                            color: isDarkMode
+                                ? Colors.white
+                                : _lightText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // ==================================================
+                  // CIRCULAR TIMER
+                  // ==================================================
+
+                  SizedBox(
+                    width: 220,
+                    height: 220,
+
+                    child: Stack(
+                      alignment: Alignment.center,
+
+                      children: [
+                        SizedBox(
+                          width: 220,
+                          height: 220,
+
+                          child: CircularProgressIndicator(
+                            value: _progress,
+
+                            strokeWidth: 12,
+
+                            strokeCap:
+                            StrokeCap.round,
+
+                            backgroundColor:
+                            isDarkMode
+                                ? const Color(
+                              0xFF29402D,
+                            )
+                                : _lightGreenTrack,
+
+                            valueColor:
+                            const AlwaysStoppedAnimation<
+                                Color>(
+                              _green,
+                            ),
+                          ),
+                        ),
+
+                        Column(
+                          mainAxisSize:
+                          MainAxisSize.min,
+
+                          children: [
+                            Text(
+                              _formatDuration(
+                                _remaining,
+                              ),
+
+                              style: TextStyle(
+                                fontSize: 40,
+                                fontWeight:
+                                FontWeight.w800,
+
+                                color: isDarkMode
+                                    ? _darkText
+                                    : _lightText,
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Text(
+                              'TIME REMAINING',
+
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight:
+                                FontWeight.w600,
+
+                                letterSpacing: 0.5,
+
+                                color: isDarkMode
+                                    ? _darkGrayText
+                                    : _lightGrayText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // ==================================================
+                  // STATS ROW
+                  // ==================================================
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _statCard(
+                          iconAsset:
+                          'assets/icons/fire.svg',
+
+                          iconColor:
+                          const Color(0xFF34B24A),
+
+                          value: '$_calories',
+
+                          label: 'kcal',
+
+                          sublabel: 'Calories',
+
+                          isDarkMode: isDarkMode,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: _statCard(
+                          iconAsset:
+                          'assets/icons/heart.svg',
+
+                          iconColor:
+                          const Color(0xFFE0517A),
+
+                          value: '$_heartRate',
+
+                          label: 'bpm',
+
+                          sublabel: 'Heart Rate',
+
+                          isDarkMode: isDarkMode,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: _statCard(
+                          iconAsset:
+                          'assets/icons/steps.svg',
+
+                          iconColor: _green,
+
+                          value: '$_steps',
+
+                          label: '',
+
+                          sublabel: 'Steps',
+
+                          isDarkMode: isDarkMode,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ==================================================
+                  // MOTIVATIONAL BANNER
+                  // ==================================================
+
+                  Container(
+                    width: double.infinity,
+
+                    padding:
+                    const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 14,
+                    ),
+
+                    decoration: BoxDecoration(
+                      color: isDarkMode
+                          ? _darkCard
+                          : _lightGreenBg,
+
+                      borderRadius:
+                      BorderRadius.circular(16),
+
+                      border: isDarkMode
+                          ? Border.all(
+                        color: Colors.white12,
+                      )
+                          : null,
+                    ),
+
+                    child: Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.center,
+
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/star.svg',
+
+                          width: 16,
+                          height: 16,
+
+                          colorFilter:
+                          const ColorFilter.mode(
+                            _green,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Flexible(
+                          child: Text(
+                            "Keep going! You're doing great.",
+
+                            textAlign:
+                            TextAlign.center,
+
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight:
+                              FontWeight.w600,
+
+                              color: isDarkMode
+                                  ? _darkText
+                                  : _lightText,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const SizedBox(height: 32),
+                  const Spacer(),
 
-              // ==========================================================
-              // STATS ROW
-              // ==========================================================
-              Row(
-                children: [
-                  Expanded(
-                    child: _statCard(
-                      iconAsset: 'assets/icons/fire.svg',
-                      iconColor: const Color(0xFF34B24A),
-                      value: '$_calories',
-                      label: 'kcal',
-                      sublabel: 'Calories',
+                  // ==================================================
+                  // PAUSE / RESUME BUTTON
+                  // ==================================================
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+
+                    child: ElevatedButton.icon(
+                      onPressed: _togglePause,
+
+                      icon: Icon(
+                        _isPaused
+                            ? Icons.play_arrow
+                            : Icons.pause,
+
+                        color: Colors.white,
+                      ),
+
+                      label: Text(
+                        _isPaused
+                            ? 'Resume Workout'
+                            : 'Pause Workout',
+
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight:
+                          FontWeight.w600,
+
+                          color: Colors.white,
+                        ),
+                      ),
+
+                      style:
+                      ElevatedButton.styleFrom(
+                        backgroundColor: _green,
+
+                        elevation: 0,
+
+                        shape:
+                        RoundedRectangleBorder(
+                          borderRadius:
+                          BorderRadius.circular(30),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _statCard(
-                      iconAsset: 'assets/icons/heart.svg',
-                      iconColor: const Color(0xFFE0517A),
-                      value: '$_heartRate',
-                      label: 'bpm',
-                      sublabel: 'Heart Rate',
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _statCard(
-                      iconAsset: 'assets/icons/steps.svg',
-                      iconColor: _green,
-                      value: '$_steps',
-                      label: '',
-                      sublabel: 'Steps',
+
+                  const SizedBox(height: 14),
+
+                  // ==================================================
+                  // END WORKOUT
+                  // ==================================================
+
+                  GestureDetector(
+                    onTap: _endWorkout,
+
+                    child: const Text(
+                      'End Workout',
+
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight:
+                        FontWeight.w600,
+
+                        color: Colors.redAccent,
+
+                        decoration:
+                        TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 16),
-
-              // ==========================================================
-              // MOTIVATIONAL BANNER
-              // ==========================================================
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                decoration: BoxDecoration(
-                  color: _lightGreenBg,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/star.svg',
-                      width: 16,
-                      height: 16,
-                      colorFilter: const ColorFilter.mode(
-                        _green,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Keep going! You're doing great.",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: _darkText,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Spacer(),
-
-              // ==========================================================
-              // PAUSE / RESUME BUTTON
-              // ==========================================================
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton.icon(
-                  onPressed: _togglePause,
-                  icon: Icon(
-                    _isPaused ? Icons.play_arrow : Icons.pause,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    _isPaused ? 'Resume Workout' : 'Pause Workout',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _green,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // ==========================================================
-              // END WORKOUT
-              // ==========================================================
-              GestureDetector(
-                onTap: _endWorkout,
-                child: const Text(
-                  'End Workout',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.redAccent,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+
+  // ==============================================================
+  // STAT CARD
+  // ==============================================================
 
   Widget _statCard({
     required String iconAsset,
@@ -342,40 +586,75 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
     required String value,
     required String label,
     required String sublabel,
+    required bool isDarkMode,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: _lightGreenBg,
-        borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.symmetric(
+        vertical: 14,
+        horizontal: 8,
       ),
+
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? _darkCard
+            : _lightGreenBg,
+
+        borderRadius:
+        BorderRadius.circular(16),
+
+        border: isDarkMode
+            ? Border.all(
+          color: Colors.white12,
+        )
+            : null,
+      ),
+
       child: Column(
         children: [
           SvgPicture.asset(
             iconAsset,
+
             width: 32,
             height: 32,
-            placeholderBuilder: (context) => Icon(
+
+            placeholderBuilder:
+                (context) => Icon(
               Icons.image_not_supported_outlined,
               size: 18,
-              color: iconColor.withOpacity(0.4),
+              color:
+              iconColor.withOpacity(0.4),
             ),
           ),
+
           const SizedBox(height: 6),
+
           Text(
-            label.isEmpty ? value : '$value $label',
-            style: const TextStyle(
+            label.isEmpty
+                ? value
+                : '$value $label',
+
+            style: TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: _darkText,
+              fontWeight:
+              FontWeight.w700,
+
+              color: isDarkMode
+                  ? _darkText
+                  : _lightText,
             ),
           ),
+
           const SizedBox(height: 2),
+
           Text(
             sublabel,
-            style: const TextStyle(
+
+            style: TextStyle(
               fontSize: 11,
-              color: _grayText,
+
+              color: isDarkMode
+                  ? _darkGrayText
+                  : _lightGrayText,
             ),
           ),
         ],

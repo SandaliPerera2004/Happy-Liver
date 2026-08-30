@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:video_player/video_player.dart';
 import 'exercise_timer_screen.dart';
 import 'package:happy_liver/models/workout_model.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
   final WorkoutModel workout;
@@ -23,6 +24,25 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   bool _videoError = false;
   String? _videoErrorMessage;
 
+  // ==============================================================
+  // COLORS
+  // ==============================================================
+
+  static const Color _green = Color(0xFF2DCB59);
+  static const Color _darkGreen = Color(0xFF1B5E20);
+
+  static const Color _lightBackground = Colors.white;
+  static const Color _darkBackground = Color(0xFF121212);
+
+  static const Color _lightCard = Colors.white;
+  static const Color _darkCard = Color(0xFF1E1E1E);
+
+  static const Color _lightText = Color(0xFF263A31);
+  static const Color _darkText = Colors.white;
+
+  static const Color _lightSecondaryText = Color(0xFF65716B);
+  static const Color _darkSecondaryText = Colors.white70;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +61,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   // INITIALIZE VIDEO
   // ==============================================================
+
   Future<void> _initializeVideo() async {
     final String videoUrl = widget.workout.videoUrl.trim();
 
@@ -83,9 +104,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       }
 
       debugPrint('VIDEO INITIALIZED SUCCESSFULLY');
+
       debugPrint(
         'VIDEO ASPECT RATIO: ${_videoController!.value.aspectRatio}',
       );
+
       debugPrint(
         'VIDEO SIZE: ${_videoController!.value.size}',
       );
@@ -115,6 +138,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   // OPEN FULL SCREEN VIDEO
   // ==============================================================
+
   void _openFullScreenVideo() {
     final controller = _videoController;
 
@@ -123,8 +147,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       return;
     }
 
-    // Pause the video on the detail screen before opening
-    // the full-screen player.
     controller.pause();
 
     Navigator.push(
@@ -141,144 +163,222 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   // BUILD
   // ==============================================================
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: isDarkMode
+              ? _darkBackground
+              : _lightBackground,
 
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ======================================================
-            // TOP APP BAR
-            // ======================================================
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 10,
-              ),
-              child: Row(
-                children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icons/Arrow left-circle.svg',
-                      width: 32,
-                      height: 32,
-                      colorFilter: const ColorFilter.mode(
-                        Color(0xFF263A31),
-                        BlendMode.srcIn,
-                      ),
-                    ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                // ==================================================
+                // TOP APP BAR
+                // ==================================================
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
                   ),
-
-                  const Expanded(
-                    child: Center(
-                      child: Text(
-                        'Workout Detail',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF263A31),
+                  child: Row(
+                    children: [
+                      // Back button
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icons/Arrow left-circle.svg',
+                          width: 32,
+                          height: 32,
+                          colorFilter: ColorFilter.mode(
+                            isDarkMode
+                                ? Colors.white
+                                : _lightText,
+                            BlendMode.srcIn,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
 
-                  // Bookmark
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFE5E5E5),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Workout Detail',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: isDarkMode
+                                  ? _darkText
+                                  : _lightText,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.bookmark_border,
-                      size: 21,
-                      color: Color(0xFF263A31),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            // ======================================================
-            // CONTENT
-            // ======================================================
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  8,
-                  20,
-                  20,
+                      // Bookmark
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDarkMode
+                                ? Colors.white24
+                                : const Color(0xFFE5E5E5),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.bookmark_border,
+                          size: 21,
+                          color: isDarkMode
+                              ? Colors.white
+                              : _lightText,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // =================================================
-                    // VIDEO
-                    // =================================================
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: _buildVideo(),
-                      ),
+
+                // ==================================================
+                // CONTENT
+                // ==================================================
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      8,
+                      20,
+                      20,
                     ),
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        // ==========================================
+                        // VIDEO
+                        // ==========================================
 
-                    const SizedBox(height: 16),
-
-                    // =================================================
-                    // WORKOUT HEADER
-                    // =================================================
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color(0xFFE5EAE7),
+                        ClipRRect(
+                          borderRadius:
+                          BorderRadius.circular(20),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: _buildVideo(),
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                        children: [
-                          // TITLE + DURATION
-                          Row(
+
+                        const SizedBox(height: 16),
+
+                        // ==========================================
+                        // WORKOUT HEADER
+                        // ==========================================
+
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? _darkCard
+                                : _lightCard,
+                            border: Border.all(
+                              color: isDarkMode
+                                  ? Colors.white12
+                                  : const Color(0xFFE5EAE7),
+                            ),
+                            borderRadius:
+                            BorderRadius.circular(20),
+                          ),
+                          child: Column(
                             crossAxisAlignment:
-                            CrossAxisAlignment.center,
+                            CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  widget.workout.name,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF263A31),
+                              // TITLE + DURATION
+
+                              Row(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.workout.name,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight:
+                                        FontWeight.w700,
+                                        color: isDarkMode
+                                            ? _darkText
+                                            : _lightText,
+                                      ),
+                                    ),
                                   ),
-                                ),
+
+                                  const SizedBox(width: 8),
+
+                                  // Duration
+
+                                  Container(
+                                    padding:
+                                    const EdgeInsets
+                                        .symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                      const Color(
+                                          0xFFE9F9EE),
+                                      borderRadius:
+                                      BorderRadius.circular(
+                                          20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize:
+                                      MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.access_time,
+                                          size: 14,
+                                          color: _green,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${widget.workout.duration} min',
+                                          style:
+                                          const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight:
+                                            FontWeight.w600,
+                                            color: _green,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
 
-                              const SizedBox(width: 8),
+                              const SizedBox(height: 10),
 
-                              // Duration
+                              // ====================================
+                              // RISK LEVEL
+                              // ====================================
+
                               Container(
                                 padding:
                                 const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
+                                  horizontal: 9,
+                                  vertical: 5,
                                 ),
                                 decoration: BoxDecoration(
                                   color:
-                                  const Color(0xFFE9F9EE),
+                                  const Color(0xFFEAFBF0),
                                   borderRadius:
                                   BorderRadius.circular(20),
                                 ),
@@ -287,19 +387,63 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                   MainAxisSize.min,
                                   children: [
                                     const Icon(
-                                      Icons.access_time,
+                                      Icons
+                                          .monitor_heart_outlined,
                                       size: 14,
-                                      color: Color(0xFF2BCB5A),
+                                      color: _green,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${widget.workout.duration} min',
-                                      style: const TextStyle(
+                                      '${widget.workout.riskLevel} Risk Level',
+                                      style:
+                                      const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight:
+                                        FontWeight.w600,
+                                        color: _green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 6),
+
+                              // ====================================
+                              // SUPPORT
+                              // ====================================
+
+                              Container(
+                                padding:
+                                const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                  const Color(0xFFF0EEFF),
+                                  borderRadius:
+                                  BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize:
+                                  MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.favorite,
+                                      size: 13,
+                                      color: Color(0xFF6755E8),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      widget.workout.support,
+                                      style:
+                                      const TextStyle(
                                         fontSize: 11,
                                         fontWeight:
                                         FontWeight.w600,
                                         color:
-                                        Color(0xFF2BCB5A),
+                                        Color(0xFF6755E8),
                                       ),
                                     ),
                                   ],
@@ -307,208 +451,136 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                               ),
                             ],
                           ),
+                        ),
 
-                          const SizedBox(height: 10),
+                        const SizedBox(height: 14),
 
-                          // =================================================
-                          // RISK LEVEL
-                          // =================================================
-                          Container(
-                            padding:
-                            const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                              const Color(0xFFEAFBF0),
-                              borderRadius:
-                              BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.monitor_heart_outlined,
-                                  size: 14,
-                                  color: Color(0xFF25C95A),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${widget.workout.riskLevel} Risk Level',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight:
-                                    FontWeight.w600,
-                                    color:
-                                    Color(0xFF25C95A),
-                                  ),
-                                ),
-                              ],
+                        // ==========================================
+                        // INSTRUCTIONS
+                        // ==========================================
+
+                        _buildSectionCard(
+                          title: 'Instructions',
+                          child: Column(
+                            children: List.generate(
+                              widget.workout.instructions.length,
+                                  (index) {
+                                return _instruction(
+                                  '${index + 1}',
+                                  widget.workout
+                                      .instructions[index],
+                                  isDarkMode,
+                                );
+                              },
                             ),
                           ),
+                          isDarkMode: isDarkMode,
+                        ),
 
-                          const SizedBox(height: 6),
+                        const SizedBox(height: 14),
 
-                          // =================================================
-                          // SUPPORT
-                          // =================================================
-                          Container(
-                            padding:
-                            const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                              const Color(0xFFF0EEFF),
-                              borderRadius:
-                              BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.favorite,
-                                  size: 13,
-                                  color: Color(0xFF6755E8),
+                        // ==========================================
+                        // BENEFITS
+                        // ==========================================
+
+                        _buildSectionCard(
+                          title: 'Benefits',
+                          child: Column(
+                            children: widget.workout.benefits
+                                .map(
+                                  (benefit) => _benefit(
+                                benefit,
+                                isDarkMode,
+                              ),
+                            )
+                                .toList(),
+                          ),
+                          isDarkMode: isDarkMode,
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // ==========================================
+                        // START EXERCISE
+                        // ==========================================
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              final controller =
+                                  _videoController;
+
+                              if (controller != null &&
+                                  controller.value
+                                      .isInitialized) {
+                                controller.pause();
+                              }
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ExerciseTimerScreen(
+                                        workoutName:
+                                        widget.workout.name,
+                                        totalDuration:
+                                        Duration(
+                                          minutes:
+                                          widget.workout
+                                              .duration,
+                                        ),
+                                      ),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  widget.workout.support,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight:
-                                    FontWeight.w600,
-                                    color:
-                                    Color(0xFF6755E8),
-                                  ),
-                                ),
-                              ],
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Start Exercise',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight:
+                                FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style:
+                            ElevatedButton.styleFrom(
+                              backgroundColor: _green,
+                              elevation: 4,
+                              shadowColor:
+                              const Color(0x552DCB59),
+                              shape:
+                              RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(30),
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // =================================================
-                    // INSTRUCTIONS
-                    // =================================================
-                    _buildSectionCard(
-                      title: 'Instructions',
-                      child: Column(
-                        children: List.generate(
-                          widget.workout.instructions.length,
-                              (index) {
-                            return _instruction(
-                              '${index + 1}',
-                              widget.workout.instructions[index],
-                            );
-                          },
                         ),
-                      ),
+
+                        const SizedBox(height: 10),
+                      ],
                     ),
-
-                    const SizedBox(height: 14),
-
-                    // =================================================
-                    // BENEFITS
-                    // =================================================
-                    _buildSectionCard(
-                      title: 'Benefits',
-                      child: Column(
-                        children: widget.workout.benefits
-                            .map(
-                              (benefit) =>
-                              _benefit(benefit),
-                        )
-                            .toList(),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // =================================================
-                    // START EXERCISE
-                    // =================================================
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final controller =
-                              _videoController;
-
-                          if (controller != null &&
-                              controller
-                                  .value.isInitialized) {
-                            controller.pause();
-                          }
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  ExerciseTimerScreen(
-                                    workoutName:
-                                    widget.workout.name,
-                                    totalDuration:
-                                    Duration(
-                                      minutes:
-                                      widget.workout.duration,
-                                    ),
-                                  ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Start Exercise',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight:
-                            FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                          const Color(0xFF2DCB59),
-                          elevation: 4,
-                          shadowColor:
-                          const Color(0x552DCB59),
-                          shape:
-                          RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(30),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   // ==============================================================
   // VIDEO WIDGET
   // ==============================================================
+
   Widget _buildVideo() {
-    // --------------------------------------------------------------
-    // VIDEO ERROR
-    // --------------------------------------------------------------
     if (_videoError) {
       return Container(
         width: double.infinity,
@@ -532,8 +604,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                   'Unable to load video',
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight:
-                    FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 
@@ -542,8 +613,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
                   Text(
                     _videoErrorMessage!,
-                    textAlign:
-                    TextAlign.center,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 10,
                       color: Colors.black45,
@@ -559,9 +629,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
     final controller = _videoController;
 
-    // --------------------------------------------------------------
-    // LOADING
-    // --------------------------------------------------------------
     if (controller == null ||
         !controller.value.isInitialized) {
       return Container(
@@ -570,24 +637,18 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         color: const Color(0xFFF2F2F2),
         child: const Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF2DCB59),
+            color: _green,
           ),
         ),
       );
     }
 
-    // --------------------------------------------------------------
-    // VIDEO PREVIEW
-    // --------------------------------------------------------------
     return GestureDetector(
       onTap: _openFullScreenVideo,
       child: Stack(
         fit: StackFit.expand,
         alignment: Alignment.center,
         children: [
-          // ==========================================================
-          // VIDEO
-          // ==========================================================
           FittedBox(
             fit: BoxFit.cover,
             clipBehavior: Clip.hardEdge,
@@ -598,16 +659,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
             ),
           ),
 
-          // ==========================================================
-          // DARK OVERLAY
-          // ==========================================================
           Container(
             color: Colors.black.withOpacity(0.12),
           ),
 
-          // ==========================================================
-          // PLAY BUTTON
-          // ==========================================================
           Center(
             child: Container(
               width: 58,
@@ -630,9 +685,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
             ),
           ),
 
-          // ==========================================================
-          // FULL SCREEN HINT
-          // ==========================================================
           Positioned(
             right: 12,
             bottom: 12,
@@ -658,9 +710,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   // SECTION CARD
   // ==============================================================
+
   Widget _buildSectionCard({
     required String title,
     required Widget child,
+    required bool isDarkMode,
   }) {
     return Container(
       width: double.infinity,
@@ -671,8 +725,13 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         10,
       ),
       decoration: BoxDecoration(
+        color: isDarkMode
+            ? _darkCard
+            : _lightCard,
         border: Border.all(
-          color: const Color(0xFFE5EAE7),
+          color: isDarkMode
+              ? Colors.white12
+              : const Color(0xFFE5EAE7),
         ),
         borderRadius: BorderRadius.circular(20),
       ),
@@ -682,10 +741,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF263A31),
+              color: isDarkMode
+                  ? _darkText
+                  : _lightText,
             ),
           ),
 
@@ -700,13 +761,14 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   // INSTRUCTION
   // ==============================================================
+
   Widget _instruction(
       String number,
       String text,
+      bool isDarkMode,
       ) {
     return Padding(
-      padding:
-      const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(bottom: 3),
       child: Row(
         crossAxisAlignment:
         CrossAxisAlignment.start,
@@ -714,8 +776,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           Container(
             width: 20,
             height: 15,
-            decoration:
-            const BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Color(0xFFE9F9EE),
             ),
@@ -724,10 +785,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                 number,
                 style: const TextStyle(
                   fontSize: 11,
-                  fontWeight:
-                  FontWeight.w600,
-                  color:
-                  Color(0xFF2DCB59),
+                  fontWeight: FontWeight.w600,
+                  color: _green,
                 ),
               ),
             ),
@@ -738,10 +797,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color:
-                Color(0xFF65716B),
+                color: isDarkMode
+                    ? _darkSecondaryText
+                    : _lightSecondaryText,
               ),
             ),
           ),
@@ -753,18 +813,21 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   // ==============================================================
   // BENEFIT
   // ==============================================================
-  Widget _benefit(String text) {
+
+  Widget _benefit(
+      String text,
+      bool isDarkMode,
+      ) {
     return Padding(
-      padding:
-      const EdgeInsets.only(bottom: 7),
-        child: Row(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Row(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
           const Icon(
             Icons.check_circle,
             size: 15,
-            color: Color(0xFF2DCB59),
+            color: _green,
           ),
 
           const SizedBox(width: 8),
@@ -772,10 +835,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color:
-                Color(0xFF65716B),
+                color: isDarkMode
+                    ? _darkSecondaryText
+                    : _lightSecondaryText,
               ),
             ),
           ),
@@ -811,15 +875,11 @@ class _FullScreenVideoScreenState
   void initState() {
     super.initState();
 
-    // Start playing automatically
     widget.controller.play();
   }
 
   @override
   void dispose() {
-    // Only pause here.
-    // DO NOT dispose the controller because it belongs
-    // to WorkoutDetailScreen.
     widget.controller.pause();
 
     super.dispose();
@@ -828,6 +888,7 @@ class _FullScreenVideoScreenState
   // ==============================================================
   // PLAY / PAUSE
   // ==============================================================
+
   void _togglePlayPause() {
     if (widget.controller.value.isPlaying) {
       widget.controller.pause();
@@ -841,6 +902,7 @@ class _FullScreenVideoScreenState
   // ==============================================================
   // BUILD
   // ==============================================================
+
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
@@ -851,10 +913,10 @@ class _FullScreenVideoScreenState
       body: SafeArea(
         child: Stack(
           children: [
-
             // ======================================================
             // VIDEO
             // ======================================================
+
             Center(
               child: AspectRatio(
                 aspectRatio:
@@ -866,14 +928,13 @@ class _FullScreenVideoScreenState
             // ======================================================
             // TOP BAR
             // ======================================================
+
             Positioned(
               top: 10,
               left: 12,
               right: 12,
               child: Row(
                 children: [
-
-                  // Close button
                   GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
@@ -896,7 +957,6 @@ class _FullScreenVideoScreenState
 
                   const SizedBox(width: 12),
 
-                  // Workout name
                   Expanded(
                     child: Text(
                       widget.workoutName,
@@ -918,6 +978,7 @@ class _FullScreenVideoScreenState
             // ======================================================
             // PLAY / PAUSE BUTTON
             // ======================================================
+
             Center(
               child: GestureDetector(
                 onTap: _togglePlayPause,
@@ -944,6 +1005,7 @@ class _FullScreenVideoScreenState
             // ======================================================
             // VIDEO PROGRESS BAR
             // ======================================================
+
             Positioned(
               left: 15,
               right: 15,

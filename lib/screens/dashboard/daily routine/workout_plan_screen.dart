@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
 import 'package:happy_liver/models/workout_model.dart';
 import 'package:happy_liver/services/workout_service.dart';
+import 'package:happy_liver/services/theme_controller.dart';
+import 'package:happy_liver/widgets/bottom_navigation_bar.dart';
 
 class WorkoutPlanScreen extends StatefulWidget {
   // TEMPORARY:
@@ -25,7 +27,10 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   static const Color _lightGreenChip = Color(0xFFE9F9EE);
   static const Color _darkText = Color(0xFF1B1F1D);
   static const Color _grayText = Color(0xFF8A948E);
-  static const Color _grayNav = Color(0xFF9AA29D);
+
+  // Dark mode colors
+  static const Color _darkBackground = Color(0xFF121212);
+  static const Color _darkCard = Color(0xFF1E1E1E);
 
   static const List<String> _days = [
     'Mon',
@@ -43,67 +48,138 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(context),
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          // ============================================================
+          // BACKGROUND
+          // ============================================================
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Good Morning, Shehani!',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: _darkText,
-                      ),
+          backgroundColor: isDarkMode
+              ? _darkBackground
+              : const Color(0xFFF5F6F8),
+
+          // ============================================================
+          // BODY
+          // ============================================================
+
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                _buildHeader(context, isDarkMode),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      20,
+                      20,
+                      20,
                     ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ==================================================
+                        // GREETING
+                        // ==================================================
 
-                    const SizedBox(height: 14),
+                        Text(
+                          'Good Morning, Shehani!',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: isDarkMode
+                                ? Colors.white
+                                : _darkText,
+                          ),
+                        ),
 
-                    _buildDaySelector(),
+                        const SizedBox(height: 14),
 
-                    const SizedBox(height: 20),
+                        // ==================================================
+                        // DAY SELECTOR
+                        // ==================================================
 
-                    _buildWeeklyProgressCard(),
+                        _buildDaySelector(isDarkMode),
 
-                    const SizedBox(height: 22),
+                        const SizedBox(height: 20),
 
-                    const Text(
-                      "Today's Workouts",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: _darkText,
-                      ),
+                        // ==================================================
+                        // WEEKLY PROGRESS
+                        // ==================================================
+
+                        _buildWeeklyProgressCard(isDarkMode),
+
+                        const SizedBox(height: 22),
+
+                        // ==================================================
+                        // TODAY'S WORKOUTS TITLE
+                        // ==================================================
+
+                        Text(
+                          "Today's Workouts",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isDarkMode
+                                ? Colors.white
+                                : _darkText,
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // ==================================================
+                        // WORKOUTS
+                        // ==================================================
+
+                        _buildWorkoutSection(
+                          context,
+                          isDarkMode,
+                        ),
+                      ],
                     ),
-
-                    const SizedBox(height: 12),
-
-                    _buildWorkoutSection(context),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
 
-      bottomNavigationBar: _buildBottomNavBar(context),
+          // ============================================================
+          // SHARED BOTTOM NAVIGATION
+          // ============================================================
+          //
+          // 0 = Home
+          // 1 = Daily Routine
+          // 2 = Profile
+          // 3 = Settings
+          //
+          // Workout Plan belongs to Daily Routine
+          // Therefore selectedIndex = 1
+          //
+
+          bottomNavigationBar: HappyLiverBottomNavBar(
+            selectedIndex: 1,
+            isDarkMode: isDarkMode,
+            onThemeChanged: (value) async {
+              ThemeController.isDarkMode.value = value;
+            },
+          ),
+        );
+      },
     );
   }
 
   // ================================================================
   // LOAD WORKOUTS FROM FIRESTORE
   // ================================================================
-  Widget _buildWorkoutSection(BuildContext context) {
+
+  Widget _buildWorkoutSection(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return FutureBuilder<List<WorkoutModel>>(
       future: _workoutService.getWorkoutsByLevel(
         widget.riskLevel,
@@ -118,6 +194,10 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
         print('WORKOUT COUNT: ${snapshot.data?.length}');
         print('====================================');
 
+        // ============================================================
+        // LOADING
+        // ============================================================
+
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: Padding(
@@ -129,12 +209,18 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
           );
         }
 
+        // ============================================================
+        // ERROR
+        // ============================================================
+
         if (snapshot.hasError) {
           return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode
+                  ? _darkCard
+                  : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -144,22 +230,30 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                   color: Colors.red,
                   size: 35,
                 ),
+
                 const SizedBox(height: 10),
-                const Text(
+
+                Text(
                   'Unable to load workouts',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: _darkText,
+                    color: isDarkMode
+                        ? Colors.white
+                        : _darkText,
                   ),
                 ),
+
                 const SizedBox(height: 5),
+
                 Text(
                   '${snapshot.error}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: _grayText,
+                    color: isDarkMode
+                        ? Colors.white60
+                        : _grayText,
                   ),
                 ),
               ],
@@ -169,28 +263,40 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
         final workouts = snapshot.data ?? [];
 
+        // ============================================================
+        // NO WORKOUTS
+        // ============================================================
+
         if (workouts.isEmpty) {
           return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode
+                  ? _darkCard
+                  : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Column(
+            child: Column(
               children: [
                 Icon(
                   Icons.fitness_center_outlined,
-                  color: _grayText,
+                  color: isDarkMode
+                      ? Colors.white60
+                      : _grayText,
                   size: 35,
                 ),
-                SizedBox(height: 10),
+
+                const SizedBox(height: 10),
+
                 Text(
                   'No workouts available',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: _darkText,
+                    color: isDarkMode
+                        ? Colors.white
+                        : _darkText,
                   ),
                 ),
               ],
@@ -198,9 +304,14 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
           );
         }
 
+        // ============================================================
+        // WORKOUT GRID
+        // ============================================================
+
         return _buildWorkoutGrid(
           context,
           workouts,
+          isDarkMode,
         );
       },
     );
@@ -209,18 +320,28 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   // ================================================================
   // HEADER
   // ================================================================
-  Widget _buildHeader(BuildContext context) {
+
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
+
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-      color: _lightGreenHeader,
+
+      color: isDarkMode
+          ? const Color(0xFFDFF3D8)
+          : _lightGreenHeader,
+
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.maybePop(context),
+
             child: SvgPicture.asset(
               'assets/icons/Arrow left-circle.svg',
               width: 30,
@@ -230,12 +351,14 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             'Workout Plan',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
         ],
@@ -246,13 +369,16 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   // ================================================================
   // DAY SELECTOR
   // ================================================================
-  Widget _buildDaySelector() {
+
+  Widget _buildDaySelector(bool isDarkMode) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
       children: List.generate(
         _days.length,
             (index) {
-          final bool selected = index == _selectedDayIndex;
+          final bool selected =
+              index == _selectedDayIndex;
 
           return GestureDetector(
             onTap: () {
@@ -264,12 +390,16 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
             child: Container(
               width: 40,
               height: 40,
+
               alignment: Alignment.center,
 
               decoration: BoxDecoration(
                 color: selected
                     ? _green
+                    : isDarkMode
+                    ? const Color(0xFF24452B)
                     : _lightGreenChip,
+
                 shape: BoxShape.circle,
               ),
 
@@ -278,7 +408,10 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
+
                   color: selected
+                      ? Colors.white
+                      : isDarkMode
                       ? Colors.white
                       : _darkText,
                 ),
@@ -293,19 +426,28 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   // ================================================================
   // WEEKLY PROGRESS CARD
   // ================================================================
-  Widget _buildWeeklyProgressCard() {
+
+  Widget _buildWeeklyProgressCard(bool isDarkMode) {
     return Container(
       width: double.infinity,
+
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? _darkCard
+            : Colors.white,
+
         borderRadius: BorderRadius.circular(18),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(
+              isDarkMode ? 0.25 : 0.05,
+            ),
+
             blurRadius: 10,
+
             offset: const Offset(0, 4),
           ),
         ],
@@ -313,15 +455,20 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Weekly Progress',
+
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: _darkText,
+
+                  color: isDarkMode
+                      ? Colors.white
+                      : _darkText,
                 ),
               ),
 
@@ -329,6 +476,7 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
               const Text(
                 '3/4 completed',
+
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -341,7 +489,9 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
           const SizedBox(height: 14),
 
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment:
+            CrossAxisAlignment.center,
+
             children: [
               SizedBox(
                 width: 64,
@@ -349,6 +499,7 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
                 child: Stack(
                   alignment: Alignment.center,
+
                   children: [
                     SizedBox(
                       width: 64,
@@ -356,9 +507,14 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
                       child: CircularProgressIndicator(
                         value: 0.6,
+
                         strokeWidth: 6,
+
                         strokeCap: StrokeCap.round,
-                        backgroundColor: _lightGreenChip,
+
+                        backgroundColor: isDarkMode
+                            ? const Color(0xFF315238)
+                            : _lightGreenChip,
 
                         valueColor:
                         const AlwaysStoppedAnimation<Color>(
@@ -367,12 +523,16 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                       ),
                     ),
 
-                    const Text(
+                    Text(
                       '60%',
+
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: _darkText,
+
+                        color: isDarkMode
+                            ? Colors.white
+                            : _darkText,
                       ),
                     ),
                   ],
@@ -383,12 +543,16 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
               Expanded(
                 child: Text(
-                  "You're on track. Keep it up - every session supports "
-                      'liver health and cholesterol balance.',
+                  "You're on track. Keep it up - every session "
+                      "supports liver health and cholesterol balance.",
 
                   style: TextStyle(
                     fontSize: 12.5,
-                    color: _grayText,
+
+                    color: isDarkMode
+                        ? Colors.white60
+                        : _grayText,
+
                     height: 1.4,
                   ),
                 ),
@@ -403,21 +567,28 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   // ================================================================
   // TODAY'S WORKOUTS — 2x2 GRID
   // ================================================================
+
   Widget _buildWorkoutGrid(
       BuildContext context,
       List<WorkoutModel> workouts,
+      bool isDarkMode,
       ) {
     return GridView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+
+      physics:
+      const NeverScrollableScrollPhysics(),
 
       itemCount: workouts.length,
 
       gridDelegate:
       const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
+
         crossAxisSpacing: 12,
+
         mainAxisSpacing: 12,
+
         childAspectRatio: 1.0,
       ),
 
@@ -427,6 +598,7 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
         return _workoutCard(
           context,
           workout,
+          isDarkMode,
         );
       },
     );
@@ -435,14 +607,17 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
   // ================================================================
   // WORKOUT CARD
   // ================================================================
+
   Widget _workoutCard(
       BuildContext context,
       WorkoutModel workout,
+      bool isDarkMode,
       ) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
+
           MaterialPageRoute(
             builder: (_) => WorkoutDetailScreen(
               workout: workout,
@@ -453,26 +628,40 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode
+              ? _darkCard
+              : Colors.white,
+
           borderRadius: BorderRadius.circular(16),
 
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(
+                isDarkMode ? 0.25 : 0.05,
+              ),
+
               blurRadius: 8,
+
               offset: const Offset(0, 3),
             ),
           ],
         ),
 
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+
           children: [
+            // ======================================================
+            // IMAGE
+            // ======================================================
+
             AspectRatio(
               aspectRatio: 1.5,
 
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
+                borderRadius:
+                const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
 
@@ -480,13 +669,13 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                   alignment: Alignment.center,
 
                   children: [
-                    // ------------------------------------------------
-                    // WORKOUT IMAGE
-                    // ------------------------------------------------
                     Image.network(
                       workout.imageUrl,
+
                       width: double.infinity,
+
                       height: double.infinity,
+
                       fit: BoxFit.cover,
 
                       errorBuilder: (
@@ -495,11 +684,16 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                           stackTrace,
                           ) {
                         return Container(
-                          color: _lightGreenChip,
+                          color: isDarkMode
+                              ? const Color(0xFF24452B)
+                              : _lightGreenChip,
+
                           child: const Center(
                             child: Icon(
                               Icons.fitness_center,
+
                               size: 40,
+
                               color: _green,
                             ),
                           ),
@@ -507,26 +701,31 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                       },
                     ),
 
-                    // ------------------------------------------------
+                    // ==================================================
                     // PLAY BUTTON
-                    // ------------------------------------------------
+                    // ==================================================
+
                     Container(
                       width: 34,
                       height: 34,
 
                       decoration: BoxDecoration(
                         color: _green,
+
                         shape: BoxShape.circle,
 
                         border: Border.all(
                           color: Colors.white,
+
                           width: 2,
                         ),
                       ),
 
                       child: const Icon(
                         Icons.play_arrow,
+
                         color: Colors.white,
+
                         size: 18,
                       ),
                     ),
@@ -534,6 +733,10 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
                 ),
               ),
             ),
+
+            // ======================================================
+            // WORKOUT INFORMATION
+            // ======================================================
 
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -545,37 +748,50 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
 
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+
                 crossAxisAlignment:
                 CrossAxisAlignment.start,
 
                 children: [
-                  // --------------------------------------------------
+                  // ------------------------------------------------
                   // WORKOUT NAME
-                  // --------------------------------------------------
+                  // ------------------------------------------------
+
                   Text(
                     workout.name,
 
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
 
-                    style: const TextStyle(
+                    overflow:
+                    TextOverflow.ellipsis,
+
+                    style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: _darkText,
+
+                      fontWeight:
+                      FontWeight.w800,
+
+                      color: isDarkMode
+                          ? Colors.white
+                          : _darkText,
                     ),
                   ),
 
                   const SizedBox(height: 3),
 
-                  // --------------------------------------------------
+                  // ------------------------------------------------
                   // DURATION
-                  // --------------------------------------------------
+                  // ------------------------------------------------
+
                   Text(
                     '${workout.duration} min',
 
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: _grayText,
+
+                      color: isDarkMode
+                          ? Colors.white60
+                          : _grayText,
                     ),
                   ),
                 ],
@@ -583,122 +799,6 @@ class _WorkoutPlanScreenState extends State<WorkoutPlanScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-
-        border: Border(
-          top: BorderSide(
-            color: Colors.black.withOpacity(0.06),
-          ),
-        ),
-      ),
-
-      child: SafeArea(
-        top: false,
-
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-          ),
-
-          child: Row(
-            mainAxisAlignment:
-            MainAxisAlignment.spaceAround,
-
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-
-                onTap: () {
-                  Navigator.popUntil(
-                    context,
-                        (route) => route.isFirst,
-                  );
-                },
-              ),
-
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: true,
-
-                onTap: () {},
-              ),
-
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: false,
-
-                onTap: () {},
-              ),
-
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================================================================
-  // BOTTOM NAVIGATION ITEM
-  // ================================================================
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected
-                ? _green
-                : _grayNav,
-          ),
-
-          const SizedBox(height: 4),
-
-          Text(
-            label,
-
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected
-                  ? FontWeight.w800
-                  : FontWeight.w700,
-              color: selected
-                  ? _green
-                  : _grayNav,
-            ),
-          ),
-        ],
       ),
     );
   }

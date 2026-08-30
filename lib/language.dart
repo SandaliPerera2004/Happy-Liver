@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});
@@ -102,10 +103,10 @@ class _LanguageScreenState extends State<LanguageScreen> {
             onTap: () {
               Navigator.pop(context);
             },
-            child: const Icon(
-              Icons.arrow_back,
-              size: 30,
-              color: Colors.black,
+            child: SvgPicture.asset(
+              'assets/icons/Arrow left-circle.svg',
+              width: 30,
+              height: 30,
             ),
           ),
 

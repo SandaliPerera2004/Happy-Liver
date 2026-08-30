@@ -5,6 +5,8 @@ import 'language.dart';
 import 'help_feedback.dart';
 import 'screens/settings/about_us_screen.dart';
 import 'widgets/bottom_navigation_bar.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'services/theme_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -77,6 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: widget.isDarkMode,
                     activeThumbColor: Colors.green,
                     onChanged: (value) async {
+                      await ThemeController.setDarkMode(value);
                       await widget.onThemeChanged(value);
                     },
                   ),
@@ -221,10 +224,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () {
               Navigator.pop(context);
             },
-            child: const Icon(
-              Icons.arrow_back,
-              size: 30,
-              color: Colors.black,
+            child: SvgPicture.asset(
+              'assets/icons/Arrow left-circle.svg',
+              width: 30,
+              height: 30,
             ),
           ),
 
@@ -234,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             "Settings",
             style: TextStyle(
               color: Colors.black,
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),

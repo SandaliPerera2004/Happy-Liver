@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/settings/help_feedback_submitted_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SendFeedback extends StatefulWidget {
   const SendFeedback({super.key});
@@ -266,11 +267,10 @@ class _SendFeedbackState extends State<SendFeedback> {
             onTap: () {
               Navigator.pop(context);
             },
-
-            child: const Icon(
-              Icons.arrow_back,
-              size: 30,
-              color: Colors.black,
+            child: SvgPicture.asset(
+              'assets/icons/Arrow left-circle.svg',
+              width: 30,
+              height: 30,
             ),
           ),
 

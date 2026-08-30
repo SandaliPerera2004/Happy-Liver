@@ -103,7 +103,8 @@ class DailyRoutineScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const WorkoutPlanScreen(),
+                            builder: (_) => WorkoutPlanScreen(
+                            ),
                           ),
                         );
                       },
