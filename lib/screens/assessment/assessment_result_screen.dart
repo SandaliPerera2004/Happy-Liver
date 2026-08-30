@@ -662,9 +662,7 @@ class AssessmentResultScreen extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  RecommendationsScreen(
-                    result: result,
-                  ),
+              const RecommendationsScreen(),
             ),
           );
         },
@@ -672,8 +670,7 @@ class AssessmentResultScreen extends StatelessWidget {
           backgroundColor: darkGreen,
           foregroundColor: Colors.white,
           elevation: 3,
-          shadowColor:
-          darkGreen.withAlpha(76),
+          shadowColor: darkGreen.withAlpha(76),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

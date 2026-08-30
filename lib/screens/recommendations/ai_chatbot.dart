@@ -7,10 +7,18 @@ import '../../widgets/custom_header.dart';
 import '../../widgets/custom_bottom_nav_bar.dart';
 
 // =========================================================
-// GEMINI API CONFIGURATION
+// GEMINI CONFIGURATION
+// =========================================================
+//
+// IMPORTANT:
+// Replace this with your Gemini API key.
+//
+// For a production application, do NOT keep the API key
+// directly inside the Flutter application.
+// A backend / Cloud Function should be used instead.
 // =========================================================
 
-const String geminiApiKey = 'PUT HERE YOUR API KEY';
+const String geminiApiKey = 'PUT YOUR GEMINI API KEY HERE';
 
 const String geminiModel = 'gemini-2.5-flash';
 
@@ -43,7 +51,9 @@ const String geminiSystemPrompt =
 
 class ChatMessage {
   final String text;
+
   final bool isUser;
+
   final DateTime timestamp;
 
   ChatMessage({required this.text, required this.isUser, DateTime? timestamp})
@@ -85,7 +95,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+
     _scrollController.dispose();
+
     super.dispose();
   }
 
@@ -104,6 +116,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       _messages.add(ChatMessage(text: text, isUser: true));
 
       _messageController.clear();
+
       _isTyping = true;
     });
 
@@ -129,16 +142,28 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // =========================================================
 
   Future<String> _fetchGeminiResponse(String prompt) async {
-    if (geminiApiKey.isEmpty ||
-        geminiApiKey == 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
+    // -------------------------------------------------------
+    // Check API key
+    // -------------------------------------------------------
+
+    if (geminiApiKey.trim().isEmpty ||
+        geminiApiKey == 'PUT YOUR API KEY HERE') {
       return _generateLocalFallbackResponse(prompt);
     }
+
+    // -------------------------------------------------------
+    // Models to try
+    // -------------------------------------------------------
 
     final List<String> modelsToTry = [
       geminiModel,
       'gemini-2.5-flash-lite',
       'gemini-2.0-flash',
     ];
+
+    // -------------------------------------------------------
+    // Try each model
+    // -------------------------------------------------------
 
     for (final model in modelsToTry) {
       try {
@@ -148,9 +173,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           '?key=$geminiApiKey',
         );
 
-        // -----------------------------------------------------
-        // RECENT CONVERSATION HISTORY
-        // -----------------------------------------------------
+        // ---------------------------------------------------
+        // Recent conversation history
+        // ---------------------------------------------------
 
         final List<Map<String, dynamic>> contents = [];
 
@@ -167,9 +192,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           });
         }
 
-        // -----------------------------------------------------
-        // REQUEST BODY
-        // -----------------------------------------------------
+        // ---------------------------------------------------
+        // Request body
+        // ---------------------------------------------------
 
         final Map<String, dynamic> body = {
           'system_instruction': {
@@ -177,9 +202,15 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
               {'text': geminiSystemPrompt},
             ],
           },
+
           'contents': contents,
+
           'generationConfig': {'temperature': 0.7, 'maxOutputTokens': 1000},
         };
+
+        // ---------------------------------------------------
+        // HTTP request
+        // ---------------------------------------------------
 
         final response = await http
             .post(
@@ -188,6 +219,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
               body: jsonEncode(body),
             )
             .timeout(const Duration(seconds: 20));
+
+        // ---------------------------------------------------
+        // SUCCESS
+        // ---------------------------------------------------
 
         if (response.statusCode == 200) {
           final dynamic data = jsonDecode(response.body);
@@ -207,6 +242,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
                 continue;
               }
 
+              // ------------------------------------------------
+              // Character limit
+              // ------------------------------------------------
+
               if (resultText.length > maxCharacterLimit) {
                 resultText = resultText.substring(0, maxCharacterLimit);
               }
@@ -216,9 +255,13 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           }
         }
       } catch (_) {
-        // Try the next Gemini model.
+        // Try next model.
       }
     }
+
+    // -------------------------------------------------------
+    // All models failed
+    // -------------------------------------------------------
 
     return _generateLocalFallbackResponse(prompt);
   }
@@ -232,6 +275,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
     String reply;
 
+    // -------------------------------------------------------
+    // GREETING
+    // -------------------------------------------------------
+
     if (lower.contains('hi') ||
         lower.contains('hello') ||
         lower.contains('hey')) {
@@ -239,7 +286,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "Hello! 👋 I'm here to support your liver health journey. "
           "Feel free to ask about liver-friendly meals, hydration, "
           "cholesterol management, exercise, or healthy daily routines.";
-    } else if (lower.contains('meal') ||
+    }
+    // -------------------------------------------------------
+    // FOOD
+    // -------------------------------------------------------
+    else if (lower.contains('meal') ||
         lower.contains('food') ||
         lower.contains('eat') ||
         lower.contains('diet')) {
@@ -249,7 +300,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "• Choose lean proteins such as fish, chicken, beans, and lentils.\n"
           "• Choose healthier fats such as nuts, seeds, and olive oil.\n"
           "• Limit deep-fried foods, sugary foods, and highly processed foods.";
-    } else if (lower.contains('water') ||
+    }
+    // -------------------------------------------------------
+    // HYDRATION
+    // -------------------------------------------------------
+    else if (lower.contains('water') ||
         lower.contains('drink') ||
         lower.contains('hydration')) {
       reply =
@@ -260,7 +315,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "activity level, and health conditions.\n"
           "• If you have been given a fluid restriction by a healthcare "
           "professional, follow their advice.";
-    } else if (lower.contains('sleep') ||
+    }
+    // -------------------------------------------------------
+    // SLEEP
+    // -------------------------------------------------------
+    else if (lower.contains('sleep') ||
         lower.contains('rest') ||
         lower.contains('night')) {
       reply =
@@ -270,7 +329,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "• Reduce screen use before bedtime.\n"
           "• A comfortable and quiet sleeping environment can support "
           "better rest.";
-    } else if (lower.contains('cholesterol') || lower.contains('fatty liver')) {
+    }
+    // -------------------------------------------------------
+    // CHOLESTEROL / FATTY LIVER
+    // -------------------------------------------------------
+    else if (lower.contains('cholesterol') || lower.contains('fatty liver')) {
       reply =
           "**Fatty Liver & Cholesterol:**\n\n"
           "• Eat more soluble fiber from oats, beans, lentils, and vegetables.\n"
@@ -278,7 +341,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "• Regular physical activity can support liver and heart health.\n"
           "• Follow your healthcare professional's advice about testing "
           "and treatment.";
-    } else if (lower.contains('exercise') ||
+    }
+    // -------------------------------------------------------
+    // EXERCISE
+    // -------------------------------------------------------
+    else if (lower.contains('exercise') ||
         lower.contains('walk') ||
         lower.contains('workout')) {
       reply =
@@ -287,7 +354,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "• Walking is a simple way to stay active.\n"
           "• Start gradually if you are not currently active.\n"
           "• Choose activities that are comfortable and suitable for you.";
-    } else {
+    }
+    // -------------------------------------------------------
+    // DEFAULT
+    // -------------------------------------------------------
+    else {
       reply =
           "Healthy liver habits include balanced nutrition, regular "
           "physical activity, adequate sleep, and limiting highly "
@@ -295,6 +366,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "What would you like to know about liver health, nutrition, "
           "cholesterol, hydration, sleep, or exercise?";
     }
+
+    // -------------------------------------------------------
+    // Character limit
+    // -------------------------------------------------------
 
     if (reply.length > maxCharacterLimit) {
       reply = reply.substring(0, maxCharacterLimit);
@@ -312,7 +387,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
+
           duration: const Duration(milliseconds: 300),
+
           curve: Curves.easeOut,
         );
       }
@@ -330,21 +407,25 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
       body: SafeArea(
         bottom: false,
+
         child: Column(
           children: [
-            // =================================================
-            // YOUR CUSTOM HEADER
-            // =================================================
+            // -------------------------------------------------
+            // HEADER
+            // -------------------------------------------------
             const CustomHeader(title: 'AI Health Assistant', showBack: true),
 
-            // =================================================
-            // CHAT MESSAGES
-            // =================================================
+            // -------------------------------------------------
+            // CHAT
+            // -------------------------------------------------
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
+
                 padding: const EdgeInsets.all(16),
+
                 itemCount: _messages.length + (_isTyping ? 1 : 0),
+
                 itemBuilder: (context, index) {
                   if (index == _messages.length && _isTyping) {
                     return _buildTypingIndicator();
@@ -357,17 +438,14 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
               ),
             ),
 
-            // =================================================
-            // MESSAGE INPUT
-            // =================================================
+            // -------------------------------------------------
+            // INPUT
+            // -------------------------------------------------
             _buildMessageInput(),
           ],
         ),
       ),
 
-      // =======================================================
-      // SHARED BOTTOM NAVIGATION
-      // =======================================================
       bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 0),
     );
   }
@@ -379,8 +457,10 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   Widget _buildMessageInput() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
       decoration: BoxDecoration(
         color: Colors.white,
+
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withAlpha(25),
@@ -389,6 +469,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           ),
         ],
       ),
+
       child: SafeArea(
         child: Row(
           children: [
@@ -398,16 +479,23 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
                   color: const Color(0xFFF0F4EF),
                   borderRadius: BorderRadius.circular(24),
                 ),
+
                 child: TextField(
                   controller: _messageController,
+
                   textInputAction: TextInputAction.send,
+
                   onSubmitted: (_) {
                     _sendMessage();
                   },
+
                   decoration: const InputDecoration(
                     hintText: 'Type a message...',
+
                     hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+
                     border: InputBorder.none,
+
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
@@ -421,12 +509,15 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
             GestureDetector(
               onTap: _sendMessage,
+
               child: Container(
                 padding: const EdgeInsets.all(12),
+
                 decoration: const BoxDecoration(
                   color: Color(0xFF146B0B),
                   shape: BoxShape.circle,
                 ),
+
                 child: const Icon(
                   Icons.send_rounded,
                   color: Colors.white,
@@ -447,22 +538,30 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   Widget _buildMessageBubble(ChatMessage message) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
+
       child: Row(
         mainAxisAlignment: message.isUser
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
+
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
           if (!message.isUser) ...[
             CircleAvatar(
               radius: 14,
+
               backgroundColor: const Color(0xFF146B0B),
+
               child: ClipOval(
                 child: Image.asset(
                   'assets/images/chatbot.png',
+
                   width: 20,
                   height: 20,
+
                   fit: BoxFit.cover,
+
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(
                       Icons.smart_toy,
@@ -480,25 +579,35 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
               decoration: BoxDecoration(
                 color: message.isUser ? const Color(0xFF146B0B) : Colors.white,
+
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
+
                   topRight: const Radius.circular(16),
+
                   bottomLeft: Radius.circular(message.isUser ? 16 : 4),
+
                   bottomRight: Radius.circular(message.isUser ? 4 : 16),
                 ),
+
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withAlpha(15),
+
                     blurRadius: 4,
+
                     offset: const Offset(0, 2),
                   ),
                 ],
+
                 border: message.isUser
                     ? null
                     : Border.all(color: Colors.grey.shade200),
               ),
+
               child: _MarkdownMessageText(
                 text: message.text,
                 isUser: message.isUser,
@@ -511,7 +620,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
             const CircleAvatar(
               radius: 14,
+
               backgroundColor: Color(0xFFE5F8D8),
+
               child: Icon(Icons.person, size: 16, color: Color(0xFF146B0B)),
             ),
           ],
@@ -527,17 +638,23 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   Widget _buildTypingIndicator() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
+
       child: Row(
         children: [
           CircleAvatar(
             radius: 14,
-            backgroundColor: const Color(0xFF000000),
+
+            backgroundColor: const Color(0xFF146B0B),
+
             child: ClipOval(
               child: Image.asset(
                 'assets/images/chatbot.png',
+
                 width: 20,
                 height: 20,
+
                 fit: BoxFit.cover,
+
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(
                     Icons.smart_toy,
@@ -553,11 +670,15 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+
             decoration: BoxDecoration(
               color: Colors.white,
+
               borderRadius: BorderRadius.circular(16),
+
               border: Border.all(color: Colors.grey.shade200),
             ),
+
             child: Text(
               'AI is typing...',
               style: TextStyle(
@@ -579,6 +700,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
 class _MarkdownMessageText extends StatelessWidget {
   final String text;
+
   final bool isUser;
 
   const _MarkdownMessageText({required this.text, required this.isUser});
@@ -591,6 +713,7 @@ class _MarkdownMessageText extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+
       children: lines.map((line) => _buildLine(line, baseColor)).toList(),
     );
   }
@@ -606,9 +729,9 @@ class _MarkdownMessageText extends StatelessWidget {
       return const SizedBox(height: 6);
     }
 
-    // =======================================================
+    // -------------------------------------------------------
     // HEADINGS
-    // =======================================================
+    // -------------------------------------------------------
 
     if (trimmed.startsWith('### ') ||
         trimmed.startsWith('## ') ||
@@ -617,21 +740,26 @@ class _MarkdownMessageText extends StatelessWidget {
 
       return Padding(
         padding: const EdgeInsets.only(top: 8, bottom: 4),
+
         child: Text(
           headerText,
+
           style: TextStyle(
             color: isUser ? Colors.white : const Color(0xFF146B0B),
+
             fontSize: 15,
+
             fontWeight: FontWeight.bold,
+
             height: 1.3,
           ),
         ),
       );
     }
 
-    // =======================================================
-    // BULLET POINTS
-    // =======================================================
+    // -------------------------------------------------------
+    // BULLETS
+    // -------------------------------------------------------
 
     if (trimmed.startsWith('* ') ||
         trimmed.startsWith('- ') ||
@@ -640,14 +768,19 @@ class _MarkdownMessageText extends StatelessWidget {
 
       return Padding(
         padding: const EdgeInsets.only(left: 4, bottom: 4),
+
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
             Text(
               '• ',
+
               style: TextStyle(
                 color: isUser ? Colors.white70 : const Color(0xFF146B0B),
+
                 fontSize: 14,
+
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -658,9 +791,9 @@ class _MarkdownMessageText extends StatelessWidget {
       );
     }
 
-    // =======================================================
+    // -------------------------------------------------------
     // NUMBERED LIST
-    // =======================================================
+    // -------------------------------------------------------
 
     final RegExpMatch? numMatch = RegExp(
       r'^(\d+[\.\)])\s(.*)',
@@ -673,14 +806,19 @@ class _MarkdownMessageText extends StatelessWidget {
 
       return Padding(
         padding: const EdgeInsets.only(left: 4, bottom: 4),
+
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
             Text(
               '$numberPrefix ',
+
               style: TextStyle(
                 color: isUser ? Colors.white70 : const Color(0xFF146B0B),
+
                 fontSize: 14,
+
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -691,12 +829,13 @@ class _MarkdownMessageText extends StatelessWidget {
       );
     }
 
-    // =======================================================
+    // -------------------------------------------------------
     // NORMAL TEXT
-    // =======================================================
+    // -------------------------------------------------------
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 3),
+
       child: _buildRichInlineText(trimmed, baseColor),
     );
   }
@@ -717,6 +856,7 @@ class _MarkdownMessageText extends StatelessWidget {
         spans.add(
           TextSpan(
             text: text.substring(lastIndex, match.start),
+
             style: TextStyle(color: baseColor, fontSize: 14, height: 1.38),
           ),
         );
@@ -724,43 +864,56 @@ class _MarkdownMessageText extends StatelessWidget {
 
       final String matchText = match.group(0)!;
 
-      // =====================================================
+      // -----------------------------------------------------
       // BOLD
-      // =====================================================
+      // -----------------------------------------------------
 
       if (matchText.startsWith('**') && matchText.endsWith('**')) {
         spans.add(
           TextSpan(
             text: matchText.substring(2, matchText.length - 2),
+
             style: TextStyle(
               color: isUser ? Colors.white : const Color(0xFF18321F),
+
               fontWeight: FontWeight.bold,
+
               fontSize: 14,
+
               height: 1.38,
             ),
           ),
         );
       }
-      // =====================================================
+      // -----------------------------------------------------
       // CODE
-      // =====================================================
+      // -----------------------------------------------------
       else if (matchText.startsWith('`') && matchText.endsWith('`')) {
         spans.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
+
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+
               margin: const EdgeInsets.symmetric(horizontal: 2),
+
               decoration: BoxDecoration(
                 color: isUser ? Colors.white24 : const Color(0xFFE8F5E9),
+
                 borderRadius: BorderRadius.circular(4),
               ),
+
               child: Text(
                 matchText.substring(1, matchText.length - 1),
+
                 style: TextStyle(
                   fontFamily: 'monospace',
+
                   fontSize: 12.5,
+
                   color: isUser ? Colors.white : const Color(0xFF146B0B),
+
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -768,18 +921,22 @@ class _MarkdownMessageText extends StatelessWidget {
           ),
         );
       }
-      // =====================================================
+      // -----------------------------------------------------
       // ITALIC
-      // =====================================================
+      // -----------------------------------------------------
       else if ((matchText.startsWith('*') && matchText.endsWith('*')) ||
           (matchText.startsWith('_') && matchText.endsWith('_'))) {
         spans.add(
           TextSpan(
             text: matchText.substring(1, matchText.length - 1),
+
             style: TextStyle(
               color: baseColor,
+
               fontStyle: FontStyle.italic,
+
               fontSize: 14,
+
               height: 1.38,
             ),
           ),
@@ -789,14 +946,15 @@ class _MarkdownMessageText extends StatelessWidget {
       lastIndex = match.end;
     }
 
-    // =======================================================
+    // -------------------------------------------------------
     // REMAINING TEXT
-    // =======================================================
+    // -------------------------------------------------------
 
     if (lastIndex < text.length) {
       spans.add(
         TextSpan(
           text: text.substring(lastIndex),
+
           style: TextStyle(color: baseColor, fontSize: 14, height: 1.38),
         ),
       );

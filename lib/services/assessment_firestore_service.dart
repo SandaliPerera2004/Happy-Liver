@@ -5,13 +5,14 @@ import '../models/risk_level.dart';
 import 'assessment_service.dart';
 
 class AssessmentFirestoreService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
 
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // =========================================================
-  // GET CURRENT USER ID
-  // =========================================================
+// =========================================================
+// CURRENT USER ID
+// =========================================================
 
   static String? get currentUserId {
     return _auth.currentUser?.uid;
@@ -34,43 +35,51 @@ class AssessmentFirestoreService {
       final user = _auth.currentUser;
 
       if (user == null) {
-        return 'Shehani';
+        return 'user';
       }
 
-      // -------------------------------------------------------
-      // First check Firebase Authentication display name
-      // -------------------------------------------------------
+// -------------------------------------------------------
+// FIRST: Firebase Authentication display name
+// -------------------------------------------------------
 
-      if (user.displayName != null && user.displayName!.trim().isNotEmpty) {
+      if (user.displayName != null &&
+          user.displayName!.trim().isNotEmpty) {
         return user.displayName!.trim();
       }
 
-      // -------------------------------------------------------
-      // If display name is not available,
-      // check Firestore users collection
-      // -------------------------------------------------------
+// -------------------------------------------------------
+// SECOND: Firestore users collection
+// -------------------------------------------------------
 
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (userDoc.exists) {
         final data = userDoc.data();
 
-        final name = data?['name'] ?? data?['fullName'] ?? data?['username'];
+        final name =
+            data?['name'] ??
+                data?['fullName'] ??
+                data?['username'];
 
-        if (name is String && name.trim().isNotEmpty) {
+        if (name is String && name
+            .trim()
+            .isNotEmpty) {
           return name.trim();
         }
       }
     } catch (_) {
-      // If anything fails, use default name.
+// Use default name if anything fails.
     }
 
-    return 'Shehani';
+    return 'user';
   }
 
-  // =========================================================
-  // SAVE COMPLETED ASSESSMENT
-  // =========================================================
+// =========================================================
+// SAVE COMPLETED ASSESSMENT
+// =========================================================
 
   static Future<String> saveAssessment({
     required Map<int, List<int>> answers,
@@ -78,22 +87,22 @@ class AssessmentFirestoreService {
   }) async {
     final user = _auth.currentUser;
 
-    // Make sure a user is logged in
     if (user == null) {
       throw Exception('No authenticated user found.');
     }
 
     final userId = user.uid;
 
-    // -------------------------------------------------------
-    // Convert answers into readable format
-    // -------------------------------------------------------
+// -------------------------------------------------------
+// Convert answers into readable format
+// -------------------------------------------------------
 
-    final answerSummary = AssessmentService.buildAnswerSummary(answers);
+    final answerSummary =
+    AssessmentService.buildAnswerSummary(answers);
 
-    // -------------------------------------------------------
-    // Create a new assessment document
-    // -------------------------------------------------------
+// -------------------------------------------------------
+// Create assessment document
+// -------------------------------------------------------
 
     final assessmentRef = _firestore
         .collection('users')
@@ -103,44 +112,32 @@ class AssessmentFirestoreService {
 
     await assessmentRef.set({
       'assessmentId': assessmentRef.id,
+
       'userId': userId,
 
-      // -----------------------------------------------------
-      // Answers
-      // -----------------------------------------------------
+// Answers
       'answers': answerSummary,
 
-      // -----------------------------------------------------
-      // Fatty liver result
-      // -----------------------------------------------------
+// Fatty liver
       'fattyLiverScore': result.fattyLiverScore,
       'fattyLiverMaxScore': result.fattyLiverMaxScore,
       'fattyLiverRisk': result.fattyLiverRisk.name,
 
-      // -----------------------------------------------------
-      // Cholesterol result
-      // -----------------------------------------------------
+// Cholesterol
       'cholesterolScore': result.cholesterolScore,
       'cholesterolMaxScore': result.cholesterolMaxScore,
       'cholesterolRisk': result.cholesterolRisk.name,
 
-      // -----------------------------------------------------
-      // Date/time
-      // -----------------------------------------------------
+// Date
       'completedAt': FieldValue.serverTimestamp(),
     });
 
     return assessmentRef.id;
   }
 
-  // =========================================================
-  // GET LATEST ASSESSMENT
-  //
-  // This is your original method.
-  //
-  // It returns the Firestore document because other parts
-  // of your application may already use it.
-  // =========================================================
+// =========================================================
+// GET LATEST ASSESSMENT
+// =========================================================
 
   static Future<DocumentSnapshot<Map<String, dynamic>>?>
   getLatestAssessment() async {
@@ -154,7 +151,10 @@ class AssessmentFirestoreService {
         .collection('users')
         .doc(user.uid)
         .collection('assessments')
-        .orderBy('completedAt', descending: true)
+        .orderBy(
+      'completedAt',
+      descending: true,
+    )
         .limit(1)
         .get();
 
@@ -165,13 +165,12 @@ class AssessmentFirestoreService {
     return snapshot.docs.first;
   }
 
-  // =========================================================
-  // GET LATEST ASSESSMENT AS AssessmentResult
-  //
-  // This method is used by the Recommendation screen.
-  // =========================================================
+// =========================================================
+// GET LATEST ASSESSMENT RESULT
+// =========================================================
 
-  static Future<AssessmentResult?> getLatestAssessmentResult() async {
+  static Future<AssessmentResult?>
+  getLatestAssessmentResult() async {
     try {
       final document = await getLatestAssessment();
 
@@ -185,54 +184,15 @@ class AssessmentFirestoreService {
         return null;
       }
 
-      // -----------------------------------------------------
-      // Get fatty liver score
-      // -----------------------------------------------------
-
-      final fattyScore = (data['fattyLiverScore'] as num?)?.toInt() ?? 0;
-
-      final fattyMaxScore = (data['fattyLiverMaxScore'] as num?)?.toInt() ?? 0;
-
-      // -----------------------------------------------------
-      // Get cholesterol score
-      // -----------------------------------------------------
-
-      final cholesterolScore = (data['cholesterolScore'] as num?)?.toInt() ?? 0;
-
-      final cholesterolMaxScore =
-          (data['cholesterolMaxScore'] as num?)?.toInt() ?? 0;
-
-      // -----------------------------------------------------
-      // Convert Firestore risk values to RiskLevel
-      // -----------------------------------------------------
-
-      final fattyRisk = _riskLevelFromString(data['fattyLiverRisk']);
-
-      final cholesterolRisk = _riskLevelFromString(data['cholesterolRisk']);
-
-      // -----------------------------------------------------
-      // Return AssessmentResult
-      // -----------------------------------------------------
-
-      return AssessmentResult(
-        fattyLiverScore: fattyScore,
-        fattyLiverMaxScore: fattyMaxScore,
-        cholesterolScore: cholesterolScore,
-        cholesterolMaxScore: cholesterolMaxScore,
-        fattyLiverRisk: fattyRisk,
-        cholesterolRisk: cholesterolRisk,
-      );
+      return _mapToAssessmentResult(data);
     } catch (_) {
       return null;
     }
   }
 
-  // =========================================================
-  // CONVERT FIRESTORE STRING TO RiskLevel
-  //
-  // Your RiskLevel class does not have fromString(),
-  // so we handle the conversion here.
-  // =========================================================
+// =========================================================
+// CONVERT FIRESTORE RISK STRING
+// =========================================================
 
   static RiskLevel _riskLevelFromString(dynamic value) {
     if (value == null) {
@@ -303,7 +263,8 @@ class AssessmentFirestoreService {
 // GET ASSESSMENT HISTORY
 // =========================================================
 
-  static Future<List<DocumentSnapshot<Map<String, dynamic>>>>
+  static Future<
+      List<DocumentSnapshot<Map<String, dynamic>>>>
   getAssessmentHistory() async {
     final user = _auth.currentUser;
 
@@ -315,22 +276,22 @@ class AssessmentFirestoreService {
         .collection('users')
         .doc(user.uid)
         .collection('assessments')
-        .orderBy('completedAt', descending: true)
+        .orderBy(
+      'completedAt',
+      descending: true,
+    )
         .get();
 
     return snapshot.docs;
   }
 
-  // =========================================================
-  // GET ASSESSMENT RESULT FROM A FIRESTORE DOCUMENT
-  //
-  // This can be useful if another screen already has a
-  // DocumentSnapshot and needs an AssessmentResult.
-  // =========================================================
+// =========================================================
+// CONVERT DOCUMENT TO ASSESSMENT RESULT
+// =========================================================
 
-  static AssessmentResult? assessmentResultFromDocument(
-    DocumentSnapshot<Map<String, dynamic>>? document,
-  ) {
+  static AssessmentResult?
+  assessmentResultFromDocument(
+      DocumentSnapshot<Map<String, dynamic>>? document,) {
     if (document == null) {
       return null;
     }
@@ -344,71 +305,20 @@ class AssessmentFirestoreService {
     return _mapToAssessmentResult(data);
   }
 
-  // =========================================================
-  // MAP FIRESTORE DATA TO AssessmentResult
-  // =========================================================
+// =========================================================
+// GENERATE INSIGHT
+// =========================================================
 
-  static AssessmentResult _mapToAssessmentResult(Map<String, dynamic> data) {
-    // -------------------------------------------------------
-    // Fatty liver score
-    // -------------------------------------------------------
-
-    final fattyScore = (data['fattyLiverScore'] as num?)?.toInt() ?? 0;
-
-    final fattyMaxScore = (data['fattyLiverMaxScore'] as num?)?.toInt() ?? 0;
-
-    // -------------------------------------------------------
-    // Cholesterol score
-    // -------------------------------------------------------
-
-    final cholesterolScore = (data['cholesterolScore'] as num?)?.toInt() ?? 0;
-
-    final cholesterolMaxScore =
-        (data['cholesterolMaxScore'] as num?)?.toInt() ?? 0;
-
-    // -------------------------------------------------------
-    // Risk levels
-    // -------------------------------------------------------
-
-    final fattyRisk = _riskLevelFromString(data['fattyLiverRisk']);
-
-    final cholesterolRisk = _riskLevelFromString(data['cholesterolRisk']);
-
-    // -------------------------------------------------------
-    // Return AssessmentResult
-    // -------------------------------------------------------
-
-    return AssessmentResult(
-      fattyLiverScore: fattyScore,
-      fattyLiverMaxScore: fattyMaxScore,
-      cholesterolScore: cholesterolScore,
-      cholesterolMaxScore: cholesterolMaxScore,
-      fattyLiverRisk: fattyRisk,
-      cholesterolRisk: cholesterolRisk,
-    );
-  }
-
-  // =========================================================
-  // GENERATE INSIGHT MESSAGE
-  // =========================================================
-
-  static String generateInsight(AssessmentResult result) {
+  static String generateInsight(AssessmentResult result,) {
     final fattyRisk = result.fattyLiverRisk;
     final cholesterolRisk = result.cholesterolRisk;
 
-    // -------------------------------------------------------
-    // Both HIGH
-    // -------------------------------------------------------
-
-    if (fattyRisk == RiskLevel.high && cholesterolRisk == RiskLevel.high) {
+    if (fattyRisk == RiskLevel.high &&
+        cholesterolRisk == RiskLevel.high) {
       return 'High risk detected for both fatty liver and cholesterol. '
           'Focus on healthy lifestyle changes and consider consulting '
           'a qualified healthcare professional.';
     }
-
-    // -------------------------------------------------------
-    // Fatty liver HIGH
-    // -------------------------------------------------------
 
     if (fattyRisk == RiskLevel.high) {
       return 'Elevated fatty liver risk detected. '
@@ -416,38 +326,24 @@ class AssessmentFirestoreService {
           'and maintaining regular physical activity.';
     }
 
-    // -------------------------------------------------------
-    // Cholesterol HIGH
-    // -------------------------------------------------------
-
     if (cholesterolRisk == RiskLevel.high) {
       return 'Elevated cholesterol risk detected. '
           'Prioritize high-fiber foods, lean proteins, and healthier '
           'fats while reducing saturated fats.';
     }
 
-    // -------------------------------------------------------
-    // Fatty liver MODERATE + Cholesterol LOW
-    // -------------------------------------------------------
-
-    if (fattyRisk == RiskLevel.moderate && cholesterolRisk == RiskLevel.low) {
+    if (fattyRisk == RiskLevel.moderate &&
+        cholesterolRisk == RiskLevel.low) {
       return 'Focus on improving your lifestyle to reduce fatty liver '
           'risk while maintaining your low cholesterol risk.';
     }
 
-    // -------------------------------------------------------
-    // Fatty liver LOW + Cholesterol MODERATE
-    // -------------------------------------------------------
-
-    if (fattyRisk == RiskLevel.low && cholesterolRisk == RiskLevel.moderate) {
+    if (fattyRisk == RiskLevel.low &&
+        cholesterolRisk == RiskLevel.moderate) {
       return 'Your liver risk is low. Consider increasing physical '
           'activity and choosing more fiber-rich foods to help '
           'keep cholesterol under control.';
     }
-
-    // -------------------------------------------------------
-    // Both MODERATE
-    // -------------------------------------------------------
 
     if (fattyRisk == RiskLevel.moderate &&
         cholesterolRisk == RiskLevel.moderate) {
@@ -456,11 +352,8 @@ class AssessmentFirestoreService {
           'healthy habits can help reduce your risk.';
     }
 
-    // -------------------------------------------------------
-    // Both LOW
-    // -------------------------------------------------------
-
     return 'Great job! Your liver and cholesterol risk levels are low. '
         'Keep maintaining healthy daily habits and a balanced diet.';
   }
 }
+
