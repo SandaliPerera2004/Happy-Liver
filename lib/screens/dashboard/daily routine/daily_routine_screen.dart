@@ -2,34 +2,75 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../profile_screen.dart';
+import 'diet_plan_screen.dart';
+import 'workout_plan_screen.dart';
+import '../../../../widgets/bottom_navigation_bar.dart';
 
 class DailyRoutineScreen extends StatelessWidget {
-  const DailyRoutineScreen({super.key});
+  final bool isDarkMode;
+
+  // Used when opening Settings from the shared bottom navigation.
+  final Future<void> Function(bool) onThemeChanged;
+
+  const DailyRoutineScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   static const Color _green = Color(0xFF2E7D32);
   static const Color _lightGreenHeader = Color(0xFFDFF3D8);
   static const Color _cardBg = Color(0xFFEAF7E9);
   static const Color _darkText = Color(0xFF1B3B1F);
   static const Color _grayText = Color(0xFF6B756E);
-  static const Color _grayNav = Color(0xFF9AA29D);
+
+  static const Color _darkBackground = Color(0xFF121212);
+  static const Color _darkCard = Color(0xFF1E1E1E);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
+      // =========================================================
+      // BACKGROUND
+      // =========================================================
+
+      backgroundColor: isDarkMode
+          ? _darkBackground
+          : const Color(0xFFF5F6F8),
+
+      // =========================================================
+      // BODY
+      // =========================================================
+
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
             _buildHeader(context),
+
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                padding: const EdgeInsets.fromLTRB(
+                  20,
+                  24,
+                  20,
+                  20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // =================================================
+                    // HERO
+                    // =================================================
+
                     _buildHero(),
+
                     const SizedBox(height: 24),
+
+                    // =================================================
+                    // DIET PLAN
+                    // =================================================
+
                     _routineCard(
                       context: context,
                       imageAsset: 'assets/images/Food bowl 1.png',
@@ -37,10 +78,21 @@ class DailyRoutineScreen extends StatelessWidget {
                       description:
                       'Explore healthy meal plans tailored for you.',
                       onTap: () {
-                        // Navigate to Diet Plan screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DietPlanScreen(),
+                          ),
+                        );
                       },
                     ),
+
                     const SizedBox(height: 16),
+
+                    // =================================================
+                    // WORKOUT PLAN
+                    // =================================================
+
                     _routineCard(
                       context: context,
                       imageAsset: 'assets/images/watter bottle 1.png',
@@ -48,7 +100,12 @@ class DailyRoutineScreen extends StatelessWidget {
                       description:
                       'Discover effective workouts to keep you active.',
                       onTap: () {
-                        // Navigate to Workout Plan screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const WorkoutPlanScreen(),
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -58,29 +115,49 @@ class DailyRoutineScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(context),
+
+      // =========================================================
+      // SHARED BOTTOM NAVIGATION
+      // =========================================================
+
+      bottomNavigationBar: HappyLiverBottomNavBar(
+        selectedIndex: 1,
+        isDarkMode: isDarkMode,
+        onThemeChanged: onThemeChanged,
+      ),
     );
   }
 
   // ================================================================
   // HEADER
   // ================================================================
+
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+
       color: _lightGreenHeader,
+
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.maybePop(context),
+            onTap: () {
+              Navigator.maybePop(context);
+            },
             child: SvgPicture.asset(
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
             ),
           ),
+
           const SizedBox(width: 12),
+
           const Text(
             'Daily Routine',
             style: TextStyle(
@@ -95,8 +172,9 @@ class DailyRoutineScreen extends StatelessWidget {
   }
 
   // ================================================================
-  // HERO — tagline + illustration
+  // HERO
   // ================================================================
+
   Widget _buildHero() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -113,7 +191,9 @@ class DailyRoutineScreen extends StatelessWidget {
             ),
           ),
         ),
+
         const SizedBox(width: 12),
+
         Image.asset(
           'assets/images/daily.png',
           width: 120,
@@ -124,8 +204,9 @@ class DailyRoutineScreen extends StatelessWidget {
   }
 
   // ================================================================
-  // ROUTINE CARD (Diet Plan / Workout Plan)
+  // ROUTINE CARD
   // ================================================================
+
   Widget _routineCard({
     required BuildContext context,
     required String imageAsset,
@@ -136,17 +217,29 @@ class DailyRoutineScreen extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
+
       child: Container(
         padding: const EdgeInsets.all(14),
+
         decoration: BoxDecoration(
-          color: _cardBg,
+          color: isDarkMode
+              ? _darkCard
+              : _cardBg,
+
           borderRadius: BorderRadius.circular(18),
         ),
+
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
+            // ======================================================
+            // IMAGE
+            // ======================================================
+
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
+
               child: Image.asset(
                 imageAsset,
                 width: 68,
@@ -154,31 +247,49 @@ class DailyRoutineScreen extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
+
             const SizedBox(width: 14),
+
+            // ======================================================
+            // TEXT + ARROW
+            // ======================================================
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: _darkText,
+
+                      color: isDarkMode
+                          ? Colors.white
+                          : _darkText,
                     ),
                   ),
+
                   const SizedBox(height: 4),
+
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: _grayText,
                       height: 1.35,
+
+                      color: isDarkMode
+                          ? Colors.white70
+                          : _grayText,
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   Align(
                     alignment: Alignment.centerRight,
+
                     child: Image.asset(
                       'assets/images/right arrow.png',
                       width: 30,
@@ -190,99 +301,6 @@ class DailyRoutineScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const UserProfileScreen(),
-                    ),
-                  );
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: true,
-                onTap: () {
-                  // Already on Daily Routine
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: false,
-                onTap: () {
-                  // Navigate to Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-                onTap: () {
-                  // Navigate to Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayNav,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
-            ),
-          ),
-        ],
       ),
     );
   }

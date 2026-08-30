@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../dashboard/daily routine/daily_routine_screen.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/bottom_navigation_bar.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const ChangePasswordScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
@@ -101,61 +108,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       // ============================================================
       // BOTTOM NAVIGATION BAR
       // ============================================================
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            top: BorderSide(color: Colors.black.withOpacity(0.06)),
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _bottomItem(
-                  icon: Icons.home_outlined,
-                  label: 'Home',
-                  selected: true,
-                  onTap: () {
-                    // Already on Home/Dashboard
-                  },
-                ),
-                _bottomItem(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Daily Routine',
-                  selected: false,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DailyRoutineScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _bottomItem(
-                  icon: Icons.person_outline,
-                  label: 'Profile',
-                  selected: false,
-                  onTap: () {
-                    // Navigate to Profile screen
-                  },
-                ),
-                _bottomItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  selected: false,
-                  onTap: () {
-                    // Navigate to Settings screen
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
+      bottomNavigationBar: HappyLiverBottomNavBar(
+        selectedIndex: 2,
+        isDarkMode: widget.isDarkMode,
+        onThemeChanged: widget.onThemeChanged,
       ),
     );
   }
@@ -374,40 +330,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ==============================================================
-  // BOTTOM NAV ITEM
-  // ==============================================================
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayNav,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayNav,
-            ),
-          ),
-        ],
       ),
     );
   }

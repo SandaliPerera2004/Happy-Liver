@@ -1,27 +1,35 @@
 import 'package:flutter/material.dart';
+
 import '../profile/edit_profile_screen.dart';
 import '../profile/change_password_screen.dart';
-import 'daily routine/daily_routine_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
-
+import '../../widgets/bottom_navigation_bar.dart';
+import '../../services/theme_controller.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const UserProfileScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-
-
   static const Color _green = Color(0xFF2DCB59);
   static const Color _darkGreen = Color(0xFF1B5E20);
   static const Color _darkText = Color(0xFF263A31);
   static const Color _grayText = Color(0xFF8A948E);
 
-  // Consistent horizontal margin used by every section below the header.
+  static const Color _darkBackground = Color(0xFF121212);
+  static const Color _darkCard = Color(0xFF1E1E1E);
+
   static const double _hPad = 20;
 
   final UserService _userService = UserService();
@@ -32,12 +40,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Make sure the global theme controller starts
+    // with the theme received by this screen.
+    ThemeController.isDarkMode.value = widget.isDarkMode;
+
     _loadUserProfile();
   }
+
+  // ================================================================
+  // LOAD USER PROFILE
+  // ================================================================
+
   Future<void> _loadUserProfile() async {
     print('LOAD USER PROFILE CALLED');
+
     try {
       final user = await _userService.getCurrentUserProfile();
+
       print('USER RESULT: $user');
 
       if (!mounted) return;
@@ -61,114 +81,226 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
+  // ================================================================
+  // BUILD
+  // ================================================================
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(context),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        _hPad,
-                        24,
-                        _hPad,
-                        0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildStatsRow(),
-                          const SizedBox(height: 26),
-                          const Text(
-                            'Account Settings',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: _darkText,
-                            ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          // =========================================================
+          // BACKGROUND
+          // =========================================================
+
+          backgroundColor: isDarkMode
+              ? _darkBackground
+              : const Color(0xFFF5F6F8),
+
+          // =========================================================
+          // BODY
+          // =========================================================
+
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // =================================================
+                        // HEADER
+                        // =================================================
+
+                        _buildHeader(
+                          context,
+                          isDarkMode,
+                        ),
+
+                        // =================================================
+                        // MAIN CONTENT
+                        // =================================================
+
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            _hPad,
+                            24,
+                            _hPad,
+                            0,
                           ),
-                          const SizedBox(height: 12),
-                          _buildAccountSettingsCard(context),
-                        ],
-                      ),
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.stretch,
+                            children: [
+                              // =================================================
+                              // STATS
+                              // =================================================
+
+                              _buildStatsRow(isDarkMode),
+
+                              const SizedBox(height: 26),
+
+                              // =================================================
+                              // ACCOUNT SETTINGS TITLE
+                              // =================================================
+
+                              Text(
+                                'Account Settings',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : _darkText,
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              // =================================================
+                              // ACCOUNT SETTINGS CARD
+                              // =================================================
+
+                              _buildAccountSettingsCard(
+                                context,
+                                isDarkMode,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavBar(context),
+          ),
+
+          // =========================================================
+          // SHARED BOTTOM NAVIGATION
+          // =========================================================
+
+          bottomNavigationBar: HappyLiverBottomNavBar(
+            selectedIndex: 2,
+
+            // IMPORTANT:
+            // Use the current ValueNotifier value,
+            // NOT widget.isDarkMode.
+            isDarkMode: isDarkMode,
+
+            onThemeChanged: widget.onThemeChanged,
+          ),
+        );
+      },
     );
   }
 
   // ================================================================
   // HEADER
   // ================================================================
-  Widget _buildHeader(BuildContext context) {
+
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 24, bottom: 28),
+
+      padding: const EdgeInsets.only(
+        top: 24,
+        bottom: 28,
+      ),
+
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [_darkGreen, _green],
+          colors: [
+            _darkGreen,
+            _green,
+          ],
         ),
       ),
+
       child: Column(
         children: [
+          // =========================================================
+          // PROFILE IMAGE
+          // =========================================================
+
           Container(
             width: 96,
             height: 96,
+
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.black, width: 3),
+
+              border: Border.all(
+                color: Colors.black,
+                width: 3,
+              ),
+
               image: const DecorationImage(
-                image: AssetImage('assets/images/profile_image.png'),
+                image: AssetImage(
+                  'assets/images/profile_image.png',
+                ),
                 fit: BoxFit.cover,
               ),
             ),
           ),
+
           const SizedBox(height: 14),
+
+          // =========================================================
+          // USERNAME
+          // =========================================================
+
           Text(
             _user?.username ?? 'User',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
           ),
+
           const SizedBox(height: 12),
+
+          // =========================================================
+          // EDIT PROFILE BUTTON
+          // =========================================================
+
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const EditProfileScreen(),
+                  builder: (_) => EditProfileScreen(
+                    // IMPORTANT:
+                    // Pass the CURRENT theme value.
+                    isDarkMode: isDarkMode,
+                    onThemeChanged: widget.onThemeChanged,
+                  ),
                 ),
               );
             },
+
             child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 10,
               ),
+
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),
               ),
+
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -177,7 +309,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     width: 16,
                     height: 16,
                   ),
+
                   const SizedBox(width: 8),
+
                   const Text(
                     'Edit Profile',
                     style: TextStyle(
@@ -198,7 +332,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ================================================================
   // STATS ROW
   // ================================================================
-  Widget _buildStatsRow() {
+
+  Widget _buildStatsRow(bool isDarkMode) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,38 +342,57 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             imageAsset: 'assets/images/weekly.png',
             label: 'WEEKLY REPORT',
             value: '85%',
+            isDarkMode: isDarkMode,
           ),
         ),
+
         const SizedBox(width: 14),
+
         Expanded(
           child: _statCard(
             imageAsset: 'assets/images/target.png',
             label: 'ACHIEVED GOALS',
             value: '12/15',
+            isDarkMode: isDarkMode,
           ),
         ),
       ],
     );
   }
 
+  // ================================================================
+  // STAT CARD
+  // ================================================================
+
   Widget _statCard({
     required String imageAsset,
     required String label,
     required String value,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
+
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? _darkCard
+            : Colors.white,
+
         borderRadius: BorderRadius.circular(18),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.25)
+                : Colors.black.withOpacity(0.05),
+
             blurRadius: 10,
+
             offset: const Offset(0, 4),
           ),
         ],
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -247,23 +401,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             width: 70,
             height: 70,
           ),
+
           const SizedBox(height: 14),
+
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.4,
-              color: _grayText,
+              color: isDarkMode
+                  ? Colors.white70
+                  : _grayText,
             ),
           ),
+
           const SizedBox(height: 4),
+
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: _darkText,
+              color: isDarkMode
+                  ? Colors.white
+                  : _darkText,
             ),
           ),
         ],
@@ -274,49 +436,103 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ================================================================
   // ACCOUNT SETTINGS CARD
   // ================================================================
-  Widget _buildAccountSettingsCard(BuildContext context) {
+
+  Widget _buildAccountSettingsCard(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? _darkCard
+            : Colors.white,
+
         borderRadius: BorderRadius.circular(18),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.25)
+                : Colors.black.withOpacity(0.05),
+
             blurRadius: 10,
+
             offset: const Offset(0, 4),
           ),
         ],
       ),
+
       child: Column(
         children: [
+          // ========================================================
+          // CHANGE PASSWORD
+          // ========================================================
+
           _settingsRow(
             iconAsset: 'assets/images/change.png',
             iconBg: const Color(0xFFE9F9EE),
             label: 'Change Password',
+            isDarkMode: isDarkMode,
+
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const ChangePasswordScreen(),
+                  builder: (_) => ChangePasswordScreen(
+                    // IMPORTANT:
+                    // Pass CURRENT theme value.
+                    isDarkMode: isDarkMode,
+                    onThemeChanged: widget.onThemeChanged,
+                  ),
                 ),
               );
             },
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
+
+          Divider(
+            height: 1,
+            indent: 16,
+            endIndent: 16,
+            color: isDarkMode
+                ? Colors.white12
+                : Colors.grey.shade200,
+          ),
+
+          // ========================================================
+          // PREMIUM FEATURES
+          // ========================================================
+
           _settingsRow(
             iconAsset: 'assets/images/crown.png',
             iconBg: const Color(0xFFFFF6DE),
             label: 'Premium Features',
+            isDarkMode: isDarkMode,
+
             onTap: () {
-              // Navigate to premium screen
+              // Navigate to Premium Features screen
             },
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
+
+          Divider(
+            height: 1,
+            indent: 16,
+            endIndent: 16,
+            color: isDarkMode
+                ? Colors.white12
+                : Colors.grey.shade200,
+          ),
+
+          // ========================================================
+          // LOG OUT
+          // ========================================================
+
           _settingsRow(
             iconAsset: 'assets/images/logout.png',
             iconBg: const Color(0xFFFCEAEA),
             label: 'Log Out',
             labelColor: const Color(0xFFE3453A),
+            isDarkMode: isDarkMode,
+
             onTap: () {
               // Handle logout
             },
@@ -326,27 +542,44 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  // ================================================================
+  // SETTINGS ROW
+  // ================================================================
+
   Widget _settingsRow({
     required String iconAsset,
     required Color iconBg,
     required String label,
     required VoidCallback onTap,
-    Color labelColor = _darkText,
+    required bool isDarkMode,
+    Color? labelColor,
   }) {
     return InkWell(
       onTap: onTap,
+
       borderRadius: BorderRadius.circular(18),
+
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+
         child: Row(
           children: [
+            // =======================================================
+            // ICON BACKGROUND
+            // =======================================================
+
             Container(
               width: 36,
               height: 36,
+
               decoration: BoxDecoration(
                 color: iconBg,
                 borderRadius: BorderRadius.circular(10),
               ),
+
               child: Center(
                 child: Image.asset(
                   iconAsset,
@@ -355,117 +588,43 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
             ),
+
             const SizedBox(width: 12),
+
+            // =======================================================
+            // LABEL
+            // =======================================================
+
             Expanded(
               child: Text(
                 label,
+
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: labelColor,
+
+                  color: labelColor ??
+                      (isDarkMode
+                          ? Colors.white
+                          : _darkText),
                 ),
               ),
             ),
-            const Icon(
+
+            // =======================================================
+            // ARROW
+            // =======================================================
+
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: _grayText,
+
+              color: isDarkMode
+                  ? Colors.white60
+                  : _grayText,
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ================================================================
-  // BOTTOM NAVIGATION BAR
-  // ================================================================
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.black.withOpacity(0.06)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _bottomItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                selected: false,
-                onTap: () {
-                  // Navigate to Home screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.calendar_today_outlined,
-                label: 'Daily Routine',
-                selected: false,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const DailyRoutineScreen(),
-                    ),
-                  );
-                },
-              ),
-              _bottomItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                selected: true,
-                onTap: () {
-                  // Already on Profile screen
-                },
-              ),
-              _bottomItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-                onTap: () {
-                  // Navigate to Settings screen
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _bottomItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: selected ? _green : _grayText,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              color: selected ? _green : _grayText,
-            ),
-          ),
-        ],
       ),
     );
   }
