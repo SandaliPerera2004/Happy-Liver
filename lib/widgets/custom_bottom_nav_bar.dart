@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'package:happy_liver/screens/dashboard/profile_screen.dart';
+
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
 
-  const CustomBottomNavBar({super.key, this.selectedIndex = 0});
+  const CustomBottomNavBar({
+    super.key,
+    this.selectedIndex = 0,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   static const Color green = Color(0xFF23943A);
   static const Color grayNav = Color(0xFF7A817C);
@@ -13,7 +22,11 @@ class CustomBottomNavBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.06))),
+        border: Border(
+          top: BorderSide(
+            color: Colors.black.withValues(alpha: 0.06),
+          ),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -29,7 +42,10 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: 'Home',
                 index: 0,
                 onTap: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
+                  Navigator.popUntil(
+                    context,
+                        (route) => route.isFirst,
+                  );
                 },
               ),
 
@@ -40,8 +56,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: 'Daily Routine',
                 index: 1,
                 onTap: () {
-                  // TODO:
-                  // Navigate to Daily Routine screen
+                  // Daily Routine can be connected later.
                 },
               ),
 
@@ -52,8 +67,15 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: 'Profile',
                 index: 2,
                 onTap: () {
-                  // TODO:
-                  // Navigate to Profile screen
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => UserProfileScreen(
+                        isDarkMode: isDarkMode,
+                        onThemeChanged: onThemeChanged,
+                      ),
+                    ),
+                  );
                 },
               ),
 
@@ -64,8 +86,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: 'Settings',
                 index: 3,
                 onTap: () {
-                  // TODO:
-                  // Navigate to Settings screen
+                  // Settings can be connected later.
                 },
               ),
             ],
@@ -76,20 +97,23 @@ class CustomBottomNavBar extends StatelessWidget {
   }
 
   Widget _bottomItem(
-    BuildContext context, {
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-    required int index,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required IconData activeIcon,
+        required String label,
+        required int index,
+        required VoidCallback onTap,
+      }) {
     final bool selected = selectedIndex == index;
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 2,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -98,14 +122,13 @@ class CustomBottomNavBar extends StatelessWidget {
               size: 22,
               color: selected ? green : grayNav,
             ),
-
             const SizedBox(height: 4),
-
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                fontWeight:
+                selected ? FontWeight.w800 : FontWeight.w700,
                 color: selected ? green : grayNav,
               ),
             ),

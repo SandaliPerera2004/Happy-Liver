@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/risk_level.dart';
 import 'assessment_result_screen.dart';
+import '../../services/assessment_firestore_service.dart';
 
 class AssessmentResultLoadingScreen extends StatefulWidget {
   final AssessmentResult result;
@@ -29,14 +29,15 @@ class _AssessmentResultLoadingScreenState
   static const Color backgroundGreen = Color(0xFFEAF6E4);
   static const Color textColor = Color(0xFF314337);
 
-  String get userName {
-    final user = FirebaseAuth.instance.currentUser;
-    return user?.displayName ?? 'User';
-  }
+  String _userName = 'User';
 
   @override
   void initState() {
     super.initState();
+
+    // ============================================================
+    // HOURGLASS ANIMATION
+    // ============================================================
 
     _controller = AnimationController(
       vsync: this,
@@ -53,16 +54,44 @@ class _AssessmentResultLoadingScreenState
       ),
     );
 
+    // ============================================================
+    // LOAD USER NAME
+    // ============================================================
+
+    _loadUserName();
+
+    // ============================================================
+    // AFTER 3 SECONDS → ACTUAL RESULT SCREEN
+    // ============================================================
+
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
+      Navigator.pushReplacement(
+        context,
         MaterialPageRoute(
-          builder: (_) => AssessmentResultScreen(
+          builder: (context) => AssessmentResultScreen(
             result: widget.result,
+            isDarkMode: false,
+            onThemeChanged: (value) async {},
           ),
         ),
       );
+    });
+  }
+
+  // ============================================================
+  // LOAD USER NAME FROM FIREBASE
+  // ============================================================
+
+  Future<void> _loadUserName() async {
+    final name =
+    await AssessmentFirestoreService.getUserDisplayName();
+
+    if (!mounted) return;
+
+    setState(() {
+      _userName = name;
     });
   }
 
@@ -83,9 +112,12 @@ class _AssessmentResultLoadingScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Good Job + User Name
+                // ==================================================
+                // GOOD JOB + USER NAME
+                // ==================================================
+
                 Text(
-                  'Good Job $userName !',
+                  'Good Job $_userName !',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 22,
@@ -96,9 +128,15 @@ class _AssessmentResultLoadingScreenState
 
                 const SizedBox(height: 30),
 
+                // ==================================================
+                // COMPLETED CARD
+                // ==================================================
+
                 Container(
                   width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 320),
+                  constraints: const BoxConstraints(
+                    maxWidth: 320,
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 30,
@@ -132,6 +170,10 @@ class _AssessmentResultLoadingScreenState
 
                       const SizedBox(height: 28),
 
+                      // ==================================================
+                      // ANIMATED HOURGLASS
+                      // ==================================================
+
                       AnimatedBuilder(
                         animation: _rotationAnimation,
                         builder: (context, child) {
@@ -154,11 +196,23 @@ class _AssessmentResultLoadingScreenState
                             width: 48,
                             height: 48,
                             fit: BoxFit.contain,
+                            errorBuilder:
+                                (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.hourglass_empty_rounded,
+                                color: darkGreen,
+                                size: 40,
+                              );
+                            },
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 28),
+
+                      // ==================================================
+                      // PLEASE WAIT
+                      // ==================================================
 
                       const Text(
                         'Please wait',

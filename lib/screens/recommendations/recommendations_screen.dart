@@ -7,16 +7,53 @@ import '../../widgets/custom_bottom_nav_bar.dart';
 import 'ai_chatbot.dart';
 
 class RecommendationsScreen extends StatefulWidget {
-  const RecommendationsScreen({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const RecommendationsScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
-  State<RecommendationsScreen> createState() => _RecommendationsScreenState();
+  State<RecommendationsScreen> createState() =>
+      _RecommendationsScreenState();
 }
 
 class _RecommendationsScreenState extends State<RecommendationsScreen> {
+  // =========================================================
+  // THEME COLORS
+  // =========================================================
+
+  Color get _backgroundColor => widget.isDarkMode
+      ? const Color(0xFF121212)
+      : const Color(0xFFF4F7F4);
+
+  Color get _cardColor => widget.isDarkMode
+      ? const Color(0xFF1E1E1E)
+      : Colors.white;
+
+  Color get _textColor => widget.isDarkMode
+      ? Colors.white
+      : const Color(0xFF1C2D1F);
+
+  Color get _secondaryTextColor => widget.isDarkMode
+      ? Colors.white70
+      : Colors.grey.shade600;
+
+  Color get _borderColor => widget.isDarkMode
+      ? const Color(0xFF333333)
+      : const Color(0xFFEAEAEA);
+
+  // =========================================================
+  // VARIABLES
+  // =========================================================
+
   String _userName = 'user';
 
   RiskLevel _fattyLiverRisk = RiskLevel.low;
+
   RiskLevel _cholesterolRisk = RiskLevel.low;
 
   bool _isLoading = true;
@@ -40,10 +77,12 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
   Future<void> _loadRecommendationData() async {
     try {
-      final userName = await AssessmentFirestoreService.getUserDisplayName();
+      final userName =
+      await AssessmentFirestoreService.getUserDisplayName();
 
       final AssessmentResult? latestResult =
-          await AssessmentFirestoreService.getLatestAssessmentResult();
+      await AssessmentFirestoreService
+          .getLatestAssessmentResult();
 
       if (!mounted) {
         return;
@@ -52,9 +91,11 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       if (latestResult == null) {
         setState(() {
           _userName = userName;
+
           _isLoading = false;
+
           _errorMessage =
-              'No completed assessment was found. '
+          'No completed assessment was found. '
               'Please complete an assessment first.';
         });
 
@@ -81,7 +122,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         _isLoading = false;
 
         _errorMessage =
-            'Unable to load your recommendations. '
+        'Unable to load your recommendations. '
             'Please try again.';
       });
     }
@@ -112,13 +153,25 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7F4),
+      backgroundColor: _backgroundColor,
 
-      appBar: const CustomHeader(title: 'Recommendations', showBack: true),
+      appBar: const CustomHeader(
+        title: 'Recommendations',
+        showBack: true,
+      ),
 
-      body: SafeArea(bottom: false, child: _buildBody()),
+      body: SafeArea(
+        bottom: false,
+        child: _buildBody(),
+      ),
 
-      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 0),
+      // IMPORTANT:
+      // CustomBottomNavBar requires BOTH parameters.
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: 0,
+        isDarkMode: widget.isDarkMode,
+        onThemeChanged: widget.onThemeChanged,
+      ),
     );
   }
 
@@ -129,7 +182,9 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF146B0B)),
+        child: CircularProgressIndicator(
+          color: Color(0xFF146B0B),
+        ),
       );
     }
 
@@ -139,27 +194,33 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
     return RefreshIndicator(
       color: const Color(0xFF146B0B),
+
       onRefresh: _loadRecommendationData,
+
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
 
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
 
         children: [
-
           _buildAiHeroBanner(),
-
 
           const SizedBox(height: 14),
 
-          // ---------------------------------------------------
+          // =================================================
           // MEALS
-          // ---------------------------------------------------
+          // =================================================
+
           _buildModernCard(
             icon: Icons.restaurant_menu_rounded,
             assetImagePath: 'assets/images/meal_image.png',
             accentColor: const Color(0xFF2E7D32),
-            lightColor: const Color(0xFFE8F5E9),
+            lightColor: widget.isDarkMode
+                ? const Color(0xFF1B3520)
+                : const Color(0xFFE8F5E9),
             tag: 'MEALS',
             title: _mealsTitle(),
             subtitle: _mealsSubtitle(),
@@ -167,14 +228,17 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
           const SizedBox(height: 12),
 
-          // ---------------------------------------------------
+          // =================================================
           // HYDRATION
-          // ---------------------------------------------------
+          // =================================================
+
           _buildModernCard(
             icon: Icons.water_drop_rounded,
             assetImagePath: 'assets/images/hydration_image.png',
             accentColor: const Color(0xFF0288D1),
-            lightColor: const Color(0xFFE1F5FE),
+            lightColor: widget.isDarkMode
+                ? const Color(0xFF102C3A)
+                : const Color(0xFFE1F5FE),
             tag: 'HYDRATION',
             title: _hydrationTitle(),
             subtitle: _hydrationSubtitle(),
@@ -182,14 +246,17 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
           const SizedBox(height: 12),
 
-          // ---------------------------------------------------
+          // =================================================
           // SLEEP
-          // ---------------------------------------------------
+          // =================================================
+
           _buildModernCard(
             icon: Icons.bedtime_rounded,
             assetImagePath: 'assets/images/sleep_image.png',
-            accentColor: const Color(0xFF5E35B1),
-            lightColor: const Color(0xFFEDE7F6),
+            accentColor: const Color(0xFF9575CD),
+            lightColor: widget.isDarkMode
+                ? const Color(0xFF29203D)
+                : const Color(0xFFEDE7F6),
             tag: 'SLEEP',
             title: _sleepTitle(),
             subtitle: _sleepSubtitle(),
@@ -197,14 +264,17 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
           const SizedBox(height: 12),
 
-          // ---------------------------------------------------
+          // =================================================
           // LIFESTYLE
-          // ---------------------------------------------------
+          // =================================================
+
           _buildModernCard(
             icon: Icons.sanitizer_rounded,
             assetImagePath: 'assets/images/vitamin_image.png',
-            accentColor: const Color(0xFFE65100),
-            lightColor: const Color(0xFFFFF3E0),
+            accentColor: const Color(0xFFFF8A00),
+            lightColor: widget.isDarkMode
+                ? const Color(0xFF3A2817)
+                : const Color(0xFFFFF3E0),
             tag: 'LIFESTYLE',
             title: _supplementsTitle(),
             subtitle: _supplementsSubtitle(),
@@ -216,7 +286,6 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     );
   }
 
-
   // =========================================================
   // AI BANNER
   // =========================================================
@@ -226,15 +295,23 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       padding: const EdgeInsets.all(18),
 
       decoration: BoxDecoration(
-        color: const Color(0xFFCFF7D3),
+        color: widget.isDarkMode
+            ? const Color(0xFF193B24)
+            : const Color(0xFFCFF7D3),
 
         borderRadius: BorderRadius.circular(24),
 
-        border: Border.all(color: const Color(0xFFE0EBE0)),
+        border: Border.all(
+          color: widget.isDarkMode
+              ? const Color(0xFF2E5A3A)
+              : const Color(0xFFE0EBE0),
+        ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(
+              widget.isDarkMode ? 50 : 10,
+            ),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -256,9 +333,11 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               fit: BoxFit.contain,
 
               errorBuilder: (context, error, stackTrace) {
-                return const Icon(
+                return Icon(
                   Icons.smart_toy_rounded,
-                  color: Color(0xFF0C370D),
+                  color: widget.isDarkMode
+                      ? Colors.white
+                      : const Color(0xFF0C370D),
                   size: 32,
                 );
               },
@@ -270,16 +349,22 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+
               children: [
                 Row(
                   children: [
-                    const Flexible(
+                    Flexible(
                       child: Text(
                         'AI Health Assistant',
+
                         style: TextStyle(
                           fontSize: 15,
+
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1C2D1F),
+
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : const Color(0xFF1C2D1F),
                         ),
                       ),
                     ),
@@ -302,9 +387,14 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
                 Text(
                   'Get personalized answers for your liver health care instantly.',
+
                   style: TextStyle(
                     fontSize: 11.5,
-                    color: Colors.grey.shade600,
+
+                    color: widget.isDarkMode
+                        ? Colors.white70
+                        : Colors.grey.shade600,
+
                     height: 1.3,
                   ),
                 ),
@@ -318,18 +408,27 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
             onPressed: () {
               Navigator.push(
                 context,
+
                 MaterialPageRoute(
-                  builder: (context) => const AiChatbotScreen(),
+                  builder: (context) => AiChatbotScreen(
+                    isDarkMode: widget.isDarkMode,
+                    onThemeChanged: widget.onThemeChanged,
+                  ),
                 ),
               );
             },
 
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF146B0B),
+
               foregroundColor: Colors.white,
+
               elevation: 0,
 
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 11,
+              ),
 
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -338,14 +437,17 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
             child: const Text(
               'ASK AI',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
 
   // =========================================================
   // MEALS
@@ -488,16 +590,22 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       padding: const EdgeInsets.all(15),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardColor,
 
         borderRadius: BorderRadius.circular(22),
 
-        border: Border.all(color: const Color(0xFFEAEAEA)),
+        border: Border.all(
+          color: _borderColor,
+        ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(8),
+            color: Colors.black.withAlpha(
+              widget.isDarkMode ? 45 : 8,
+            ),
+
             blurRadius: 12,
+
             offset: const Offset(0, 4),
           ),
         ],
@@ -517,32 +625,50 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
                 decoration: BoxDecoration(
                   color: lightColor,
+
                   borderRadius: BorderRadius.circular(16),
                 ),
 
                 child: assetImagePath != null
                     ? Image.asset(
-                        assetImagePath,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(icon, color: accentColor, size: 24);
-                        },
-                      )
-                    : Icon(icon, color: accentColor, size: 22),
+                  assetImagePath,
+
+                  fit: BoxFit.contain,
+
+                  errorBuilder:
+                      (context, error, stackTrace) {
+                    return Icon(
+                      icon,
+                      color: accentColor,
+                      size: 24,
+                    );
+                  },
+                )
+                    : Icon(
+                  icon,
+                  color: accentColor,
+                  size: 22,
+                ),
               ),
 
               const SizedBox(width: 12),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
                   children: [
                     Text(
                       tag,
+
                       style: TextStyle(
                         fontSize: 15,
+
                         fontWeight: FontWeight.w800,
+
                         letterSpacing: 1.1,
+
                         color: accentColor,
                       ),
                     ),
@@ -551,10 +677,13 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
                     Text(
                       title,
-                      style: const TextStyle(
+
+                      style: TextStyle(
                         fontSize: 14,
+
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1C2D1F),
+
+                        color: _textColor,
                       ),
                     ),
                   ],
@@ -567,10 +696,14 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
           Text(
             subtitle,
+
             style: TextStyle(
               fontSize: 12.5,
-              color: Colors.grey.shade600,
+
+              color: _secondaryTextColor,
+
               fontWeight: FontWeight.w400,
+
               height: 1.35,
             ),
           ),
@@ -580,7 +713,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   }
 
   // =========================================================
-  // ERROR
+  // ERROR STATE
   // =========================================================
 
   Widget _buildErrorState() {
@@ -597,26 +730,35 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               height: 70,
 
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
+                color: widget.isDarkMode
+                    ? const Color(0xFF1B3520)
+                    : const Color(0xFFE8F5E9),
+
                 borderRadius: BorderRadius.circular(20),
               ),
 
               child: const Icon(
                 Icons.info_outline_rounded,
+
                 color: Color(0xFF146B0B),
+
                 size: 36,
               ),
             ),
 
             const SizedBox(height: 18),
 
-            const Text(
+            Text(
               'Unable to load recommendations',
+
               textAlign: TextAlign.center,
+
               style: TextStyle(
                 fontSize: 18,
+
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF18321F),
+
+                color: _textColor,
               ),
             ),
 
@@ -624,10 +766,14 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
             Text(
               _errorMessage ?? 'Something went wrong.',
+
               textAlign: TextAlign.center,
+
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+
+                color: _secondaryTextColor,
+
                 height: 1.4,
               ),
             ),
@@ -639,6 +785,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF146B0B),
+
                 foregroundColor: Colors.white,
 
                 padding: const EdgeInsets.symmetric(
@@ -653,7 +800,10 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
               child: const Text(
                 'TRY AGAIN',
-                style: TextStyle(fontWeight: FontWeight.bold),
+
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

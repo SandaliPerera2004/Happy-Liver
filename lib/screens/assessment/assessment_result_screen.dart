@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 import '../../models/risk_level.dart';
 import '../../services/assessment_firestore_service.dart';
 import 'package:happy_liver/widgets/custom_header.dart';
-import 'package:happy_liver/widgets/custom_bottom_nav_bar.dart';
+import 'package:happy_liver/widgets/bottom_navigation_bar.dart';
 import '../recommendations/recommendations_screen.dart';
 
 class AssessmentResultScreen extends StatelessWidget {
   final AssessmentResult result;
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
 
   const AssessmentResultScreen({
     super.key,
     required this.result,
+    required this.isDarkMode,
+    required this.onThemeChanged,
   });
 
   // ============================================================
@@ -234,8 +238,10 @@ class AssessmentResultScreen extends StatelessWidget {
       // BOTTOM NAVIGATION
       // ========================================================
 
-      bottomNavigationBar: const CustomBottomNavBar(
+      bottomNavigationBar: HappyLiverBottomNavBar(
         selectedIndex: 0,
+        isDarkMode: isDarkMode,
+        onThemeChanged: onThemeChanged,
       ),
     );
   }
@@ -661,8 +667,10 @@ class AssessmentResultScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-              const RecommendationsScreen(),
+              builder: (context) => RecommendationsScreen(
+                isDarkMode: isDarkMode,
+                onThemeChanged: onThemeChanged,
+              ),
             ),
           );
         },

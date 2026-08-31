@@ -163,10 +163,9 @@ class _AssessmentQuestionScreenState
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              AssessmentResultLoadingScreen(
-                result: result,
-              ),
+          builder: (context) => AssessmentResultLoadingScreen(
+            result: result,
+          ),
         ),
       );
     } catch (e, stackTrace) {

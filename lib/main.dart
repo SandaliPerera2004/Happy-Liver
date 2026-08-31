@@ -181,10 +181,7 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
       ),
 
       // Member 1's SplashScreen
-      home: SettingsScreen(
-        isDarkMode: _isDarkMode,
-        onThemeChanged: changeTheme,
-      ),
+      home: SplashScreen(),
     );
   }
 }

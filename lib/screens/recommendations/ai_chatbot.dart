@@ -51,13 +51,14 @@ const String geminiSystemPrompt =
 
 class ChatMessage {
   final String text;
-
   final bool isUser;
-
   final DateTime timestamp;
 
-  ChatMessage({required this.text, required this.isUser, DateTime? timestamp})
-    : timestamp = timestamp ?? DateTime.now();
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 }
 
 // =========================================================
@@ -65,21 +66,78 @@ class ChatMessage {
 // =========================================================
 
 class AiChatbotScreen extends StatefulWidget {
-  const AiChatbotScreen({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const AiChatbotScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<AiChatbotScreen> createState() => _AiChatbotScreenState();
 }
 
 class _AiChatbotScreenState extends State<AiChatbotScreen> {
-  final TextEditingController _messageController = TextEditingController();
 
-  final ScrollController _scrollController = ScrollController();
+  // =========================================================
+  // THEME COLORS
+  // =========================================================
+
+  Color get _backgroundColor =>
+      widget.isDarkMode
+          ? const Color(0xFF121212)
+          : const Color(0xFFF7FCF4);
+
+  Color get _cardColor =>
+      widget.isDarkMode
+          ? const Color(0xFF1E1E1E)
+          : Colors.white;
+
+  Color get _inputColor =>
+      widget.isDarkMode
+          ? const Color(0xFF2A2A2A)
+          : const Color(0xFFF0F4EF);
+
+  Color get _textColor =>
+      widget.isDarkMode
+          ? Colors.white
+          : const Color(0xFF1C2D1F);
+
+  Color get _secondaryTextColor =>
+      widget.isDarkMode
+          ? Colors.white70
+          : Colors.grey.shade600;
+
+  Color get _borderColor =>
+      widget.isDarkMode
+          ? Colors.grey.shade700
+          : Colors.grey.shade200;
+
+  Color get _botBubbleColor =>
+      widget.isDarkMode
+          ? const Color(0xFF1E2A20)
+          : Colors.white;
+
+  // =========================================================
+  // CONTROLLERS
+  // =========================================================
+
+  final TextEditingController _messageController =
+  TextEditingController();
+
+  final ScrollController _scrollController =
+  ScrollController();
+
+  // =========================================================
+  // MESSAGES
+  // =========================================================
 
   final List<ChatMessage> _messages = [
     ChatMessage(
       text:
-          "Hello! 👋 I'm your HappyLiver AI Health Assistant powered by Gemini. "
+      "Hello! 👋 I'm your HappyLiver AI Health Assistant powered by Gemini. "
           "How can I assist you with your liver health, diet, hydration, "
           "or daily routines today?",
       isUser: false,
@@ -95,7 +153,6 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   @override
   void dispose() {
     _messageController.dispose();
-
     _scrollController.dispose();
 
     super.dispose();
@@ -113,7 +170,12 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     }
 
     setState(() {
-      _messages.add(ChatMessage(text: text, isUser: true));
+      _messages.add(
+        ChatMessage(
+          text: text,
+          isUser: true,
+        ),
+      );
 
       _messageController.clear();
 
@@ -122,7 +184,8 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
     _scrollToBottom();
 
-    final String aiReply = await _fetchGeminiResponse(text);
+    final String aiReply =
+    await _fetchGeminiResponse(text);
 
     if (!mounted) {
       return;
@@ -131,7 +194,12 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     setState(() {
       _isTyping = false;
 
-      _messages.add(ChatMessage(text: aiReply, isUser: false));
+      _messages.add(
+        ChatMessage(
+          text: aiReply,
+          isUser: false,
+        ),
+      );
     });
 
     _scrollToBottom();
@@ -141,7 +209,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // GEMINI API
   // =========================================================
 
-  Future<String> _fetchGeminiResponse(String prompt) async {
+  Future<String> _fetchGeminiResponse(
+      String prompt) async {
+
     // -------------------------------------------------------
     // Check API key
     // -------------------------------------------------------
@@ -169,8 +239,8 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       try {
         final Uri url = Uri.parse(
           'https://generativelanguage.googleapis.com/'
-          'v1beta/models/$model:generateContent'
-          '?key=$geminiApiKey',
+              'v1beta/models/$model:generateContent'
+              '?key=$geminiApiKey',
         );
 
         // ---------------------------------------------------
@@ -179,15 +249,22 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
         final List<Map<String, dynamic>> contents = [];
 
-        final List<ChatMessage> recentMessages = _messages.length > 8
-            ? _messages.sublist(_messages.length - 8)
+        final List<ChatMessage> recentMessages =
+        _messages.length > 8
+            ? _messages.sublist(
+          _messages.length - 8,
+        )
             : _messages;
 
         for (final message in recentMessages) {
           contents.add({
-            'role': message.isUser ? 'user' : 'model',
+            'role': message.isUser
+                ? 'user'
+                : 'model',
             'parts': [
-              {'text': message.text},
+              {
+                'text': message.text,
+              },
             ],
           });
         }
@@ -199,13 +276,16 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
         final Map<String, dynamic> body = {
           'system_instruction': {
             'parts': [
-              {'text': geminiSystemPrompt},
+              {
+                'text': geminiSystemPrompt,
+              },
             ],
           },
-
           'contents': contents,
-
-          'generationConfig': {'temperature': 0.7, 'maxOutputTokens': 1000},
+          'generationConfig': {
+            'temperature': 0.7,
+            'maxOutputTokens': 1000,
+          },
         };
 
         // ---------------------------------------------------
@@ -214,29 +294,45 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
         final response = await http
             .post(
-              url,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode(body),
-            )
-            .timeout(const Duration(seconds: 20));
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(body),
+        )
+            .timeout(
+          const Duration(seconds: 20),
+        );
 
         // ---------------------------------------------------
         // SUCCESS
         // ---------------------------------------------------
 
         if (response.statusCode == 200) {
-          final dynamic data = jsonDecode(response.body);
+          final dynamic data =
+          jsonDecode(response.body);
 
           final List<dynamic>? candidates =
-              data['candidates'] as List<dynamic>?;
+          data['candidates']
+          as List<dynamic>?;
 
-          if (candidates != null && candidates.isNotEmpty) {
-            final dynamic content = candidates[0]['content'];
+          if (candidates != null &&
+              candidates.isNotEmpty) {
 
-            final List<dynamic>? parts = content?['parts'] as List<dynamic>?;
+            final dynamic content =
+            candidates[0]['content'];
 
-            if (parts != null && parts.isNotEmpty) {
-              String resultText = parts[0]['text']?.toString() ?? '';
+            final List<dynamic>? parts =
+            content?['parts']
+            as List<dynamic>?;
+
+            if (parts != null &&
+                parts.isNotEmpty) {
+
+              String resultText =
+                  parts[0]['text']
+                      ?.toString() ??
+                      '';
 
               if (resultText.isEmpty) {
                 continue;
@@ -246,8 +342,13 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
               // Character limit
               // ------------------------------------------------
 
-              if (resultText.length > maxCharacterLimit) {
-                resultText = resultText.substring(0, maxCharacterLimit);
+              if (resultText.length >
+                  maxCharacterLimit) {
+                resultText =
+                    resultText.substring(
+                      0,
+                      maxCharacterLimit,
+                    );
               }
 
               return resultText.trim();
@@ -270,8 +371,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // LOCAL FALLBACK
   // =========================================================
 
-  String _generateLocalFallbackResponse(String text) {
-    final String lower = text.toLowerCase();
+  String _generateLocalFallbackResponse(
+      String text) {
+
+    final String lower =
+    text.toLowerCase();
 
     String reply;
 
@@ -282,33 +386,40 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     if (lower.contains('hi') ||
         lower.contains('hello') ||
         lower.contains('hey')) {
+
       reply =
-          "Hello! 👋 I'm here to support your liver health journey. "
+      "Hello! 👋 I'm here to support your liver health journey. "
           "Feel free to ask about liver-friendly meals, hydration, "
           "cholesterol management, exercise, or healthy daily routines.";
     }
+
     // -------------------------------------------------------
     // FOOD
     // -------------------------------------------------------
+
     else if (lower.contains('meal') ||
         lower.contains('food') ||
         lower.contains('eat') ||
         lower.contains('diet')) {
+
       reply =
-          "**Liver-Friendly Food Tips:**\n\n"
+      "**Liver-Friendly Food Tips:**\n\n"
           "• Eat more vegetables, fruits, whole grains, and legumes.\n"
           "• Choose lean proteins such as fish, chicken, beans, and lentils.\n"
           "• Choose healthier fats such as nuts, seeds, and olive oil.\n"
           "• Limit deep-fried foods, sugary foods, and highly processed foods.";
     }
+
     // -------------------------------------------------------
     // HYDRATION
     // -------------------------------------------------------
+
     else if (lower.contains('water') ||
         lower.contains('drink') ||
         lower.contains('hydration')) {
+
       reply =
-          "**Hydration Tips:**\n\n"
+      "**Hydration Tips:**\n\n"
           "• Drink water regularly throughout the day.\n"
           "• Choose water instead of sugary soft drinks.\n"
           "• Your individual fluid needs can vary depending on your body, "
@@ -316,51 +427,64 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           "• If you have been given a fluid restriction by a healthcare "
           "professional, follow their advice.";
     }
+
     // -------------------------------------------------------
     // SLEEP
     // -------------------------------------------------------
+
     else if (lower.contains('sleep') ||
         lower.contains('rest') ||
         lower.contains('night')) {
+
       reply =
-          "**Healthy Sleep:**\n\n"
+      "**Healthy Sleep:**\n\n"
           "• Aim for around 7–9 hours of sleep each night.\n"
           "• Keep a consistent sleeping and waking schedule.\n"
           "• Reduce screen use before bedtime.\n"
           "• A comfortable and quiet sleeping environment can support "
           "better rest.";
     }
+
     // -------------------------------------------------------
     // CHOLESTEROL / FATTY LIVER
     // -------------------------------------------------------
-    else if (lower.contains('cholesterol') || lower.contains('fatty liver')) {
+
+    else if (lower.contains('cholesterol') ||
+        lower.contains('fatty liver')) {
+
       reply =
-          "**Fatty Liver & Cholesterol:**\n\n"
+      "**Fatty Liver & Cholesterol:**\n\n"
           "• Eat more soluble fiber from oats, beans, lentils, and vegetables.\n"
           "• Limit foods high in saturated and trans fats.\n"
           "• Regular physical activity can support liver and heart health.\n"
           "• Follow your healthcare professional's advice about testing "
           "and treatment.";
     }
+
     // -------------------------------------------------------
     // EXERCISE
     // -------------------------------------------------------
+
     else if (lower.contains('exercise') ||
         lower.contains('walk') ||
         lower.contains('workout')) {
+
       reply =
-          "**Physical Activity:**\n\n"
+      "**Physical Activity:**\n\n"
           "• Regular physical activity can support liver and heart health.\n"
           "• Walking is a simple way to stay active.\n"
           "• Start gradually if you are not currently active.\n"
           "• Choose activities that are comfortable and suitable for you.";
     }
+
     // -------------------------------------------------------
     // DEFAULT
     // -------------------------------------------------------
+
     else {
+
       reply =
-          "Healthy liver habits include balanced nutrition, regular "
+      "Healthy liver habits include balanced nutrition, regular "
           "physical activity, adequate sleep, and limiting highly "
           "processed foods and sugary drinks.\n\n"
           "What would you like to know about liver health, nutrition, "
@@ -371,8 +495,13 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     // Character limit
     // -------------------------------------------------------
 
-    if (reply.length > maxCharacterLimit) {
-      reply = reply.substring(0, maxCharacterLimit);
+    if (reply.length >
+        maxCharacterLimit) {
+
+      reply = reply.substring(
+        0,
+        maxCharacterLimit,
+      );
     }
 
     return reply;
@@ -383,13 +512,15 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // =========================================================
 
   void _scrollToBottom() {
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
       if (_scrollController.hasClients) {
+
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-
-          duration: const Duration(milliseconds: 300),
-
+          duration:
+          const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
       }
@@ -402,38 +533,57 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FCF4),
+      backgroundColor: _backgroundColor,
 
       body: SafeArea(
         bottom: false,
 
         child: Column(
           children: [
+
             // -------------------------------------------------
             // HEADER
             // -------------------------------------------------
-            const CustomHeader(title: 'AI Health Assistant', showBack: true),
+
+            CustomHeader(
+              title: 'AI Health Assistant',
+              showBack: true,
+            ),
 
             // -------------------------------------------------
             // CHAT
             // -------------------------------------------------
+
             Expanded(
               child: ListView.builder(
-                controller: _scrollController,
+                controller:
+                _scrollController,
 
-                padding: const EdgeInsets.all(16),
+                padding:
+                const EdgeInsets.all(16),
 
-                itemCount: _messages.length + (_isTyping ? 1 : 0),
+                itemCount:
+                _messages.length +
+                    (_isTyping ? 1 : 0),
 
-                itemBuilder: (context, index) {
-                  if (index == _messages.length && _isTyping) {
+                itemBuilder:
+                    (context, index) {
+
+                  if (index ==
+                      _messages.length &&
+                      _isTyping) {
+
                     return _buildTypingIndicator();
                   }
 
-                  final ChatMessage message = _messages[index];
+                  final ChatMessage message =
+                  _messages[index];
 
-                  return _buildMessageBubble(message);
+                  return _buildMessageBubble(
+                    message,
+                  );
                 },
               ),
             ),
@@ -441,12 +591,21 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
             // -------------------------------------------------
             // INPUT
             // -------------------------------------------------
+
             _buildMessageInput(),
           ],
         ),
       ),
 
-      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 0),
+      // -------------------------------------------------------
+      // BOTTOM NAVIGATION
+      // -------------------------------------------------------
+
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: 0,
+        isDarkMode: widget.isDarkMode,
+        onThemeChanged: widget.onThemeChanged,
+      ),
     );
   }
 
@@ -455,17 +614,26 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // =========================================================
 
   Widget _buildMessageInput() {
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
+      ),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardColor,
 
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withAlpha(25),
+            color:
+            Colors.grey.withAlpha(25),
+
             blurRadius: 10,
-            offset: const Offset(0, -3),
+
+            offset:
+            const Offset(0, -3),
           ),
         ],
       ),
@@ -473,30 +641,52 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       child: SafeArea(
         child: Row(
           children: [
+
+            // -------------------------------------------------
+            // TEXT FIELD
+            // -------------------------------------------------
+
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F4EF),
-                  borderRadius: BorderRadius.circular(24),
+                  color: _inputColor,
+
+                  borderRadius:
+                  BorderRadius.circular(24),
                 ),
 
                 child: TextField(
-                  controller: _messageController,
+                  controller:
+                  _messageController,
 
-                  textInputAction: TextInputAction.send,
+                  style: TextStyle(
+                    color: _textColor,
+                    fontSize: 14,
+                  ),
+
+                  cursorColor:
+                  const Color(0xFF146B0B),
+
+                  textInputAction:
+                  TextInputAction.send,
 
                   onSubmitted: (_) {
                     _sendMessage();
                   },
 
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Type a message...',
 
-                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                    hintStyle: TextStyle(
+                      fontSize: 14,
+                      color: widget.isDarkMode
+                          ? Colors.white54
+                          : Colors.grey,
+                    ),
 
                     border: InputBorder.none,
 
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
                     ),
@@ -507,20 +697,32 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
             const SizedBox(width: 8),
 
+            // -------------------------------------------------
+            // SEND BUTTON
+            // -------------------------------------------------
+
             GestureDetector(
               onTap: _sendMessage,
 
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding:
+                const EdgeInsets.all(12),
 
-                decoration: const BoxDecoration(
-                  color: Color(0xFF146B0B),
-                  shape: BoxShape.circle,
+                decoration:
+                const BoxDecoration(
+                  color:
+                  Color(0xFF146B0B),
+
+                  shape:
+                  BoxShape.circle,
                 ),
 
                 child: const Icon(
                   Icons.send_rounded,
-                  color: Colors.white,
+
+                  color:
+                  Colors.white,
+
                   size: 20,
                 ),
               ),
@@ -535,23 +737,36 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // MESSAGE BUBBLE
   // =========================================================
 
-  Widget _buildMessageBubble(ChatMessage message) {
+  Widget _buildMessageBubble(
+      ChatMessage message) {
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding:
+      const EdgeInsets.symmetric(
+        vertical: 6,
+      ),
 
       child: Row(
-        mainAxisAlignment: message.isUser
+        mainAxisAlignment:
+        message.isUser
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
 
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
 
         children: [
+
+          // -------------------------------------------------
+          // AI ICON
+          // -------------------------------------------------
+
           if (!message.isUser) ...[
             CircleAvatar(
               radius: 14,
 
-              backgroundColor: const Color(0xFF146B0B),
+              backgroundColor:
+              const Color(0xFF146B0B),
 
               child: ClipOval(
                 child: Image.asset(
@@ -562,10 +777,15 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
                   fit: BoxFit.cover,
 
-                  errorBuilder: (context, error, stackTrace) {
+                  errorBuilder:
+                      (context, error, stackTrace) {
+
                     return const Icon(
                       Icons.smart_toy,
-                      color: Colors.white,
+
+                      color:
+                      Colors.white,
+
                       size: 16,
                     );
                   },
@@ -576,54 +796,110 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
             const SizedBox(width: 8),
           ],
 
+          // -------------------------------------------------
+          // MESSAGE
+          // -------------------------------------------------
+
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding:
+              const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
 
               decoration: BoxDecoration(
-                color: message.isUser ? const Color(0xFF146B0B) : Colors.white,
 
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
+                color: message.isUser
+                    ? const Color(0xFF146B0B)
+                    : _botBubbleColor,
 
-                  topRight: const Radius.circular(16),
+                borderRadius:
+                BorderRadius.only(
+                  topLeft:
+                  const Radius.circular(16),
 
-                  bottomLeft: Radius.circular(message.isUser ? 16 : 4),
+                  topRight:
+                  const Radius.circular(16),
 
-                  bottomRight: Radius.circular(message.isUser ? 4 : 16),
+                  bottomLeft:
+                  Radius.circular(
+                    message.isUser
+                        ? 16
+                        : 4,
+                  ),
+
+                  bottomRight:
+                  Radius.circular(
+                    message.isUser
+                        ? 4
+                        : 16,
+                  ),
                 ),
 
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withAlpha(15),
+                    color:
+                    Colors.black.withAlpha(
+                      widget.isDarkMode
+                          ? 30
+                          : 15,
+                    ),
 
                     blurRadius: 4,
 
-                    offset: const Offset(0, 2),
+                    offset:
+                    const Offset(0, 2),
                   ),
                 ],
 
                 border: message.isUser
                     ? null
-                    : Border.all(color: Colors.grey.shade200),
+                    : Border.all(
+                  color:
+                  _borderColor,
+                ),
               ),
 
-              child: _MarkdownMessageText(
-                text: message.text,
-                isUser: message.isUser,
+              child:
+              _MarkdownMessageText(
+                text:
+                message.text,
+
+                isUser:
+                message.isUser,
+
+                isDarkMode:
+                widget.isDarkMode,
               ),
             ),
           ),
 
+          // -------------------------------------------------
+          // USER ICON
+          // -------------------------------------------------
+
           if (message.isUser) ...[
             const SizedBox(width: 8),
 
-            const CircleAvatar(
+            CircleAvatar(
               radius: 14,
 
-              backgroundColor: Color(0xFFE5F8D8),
+              backgroundColor:
+              widget.isDarkMode
+                  ? const Color(0xFF263D2A)
+                  : const Color(0xFFE5F8D8),
 
-              child: Icon(Icons.person, size: 16, color: Color(0xFF146B0B)),
+              child: Icon(
+                Icons.person,
+
+                size: 16,
+
+                color:
+                widget.isDarkMode
+                    ? const Color(0xFF8EDB91)
+                    : const Color(0xFF146B0B),
+              ),
             ),
           ],
         ],
@@ -636,15 +912,25 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   // =========================================================
 
   Widget _buildTypingIndicator() {
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding:
+      const EdgeInsets.symmetric(
+        vertical: 6,
+      ),
 
       child: Row(
         children: [
+
+          // -------------------------------------------------
+          // AI ICON
+          // -------------------------------------------------
+
           CircleAvatar(
             radius: 14,
 
-            backgroundColor: const Color(0xFF146B0B),
+            backgroundColor:
+            const Color(0xFF146B0B),
 
             child: ClipOval(
               child: Image.asset(
@@ -655,10 +941,15 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
                 fit: BoxFit.cover,
 
-                errorBuilder: (context, error, stackTrace) {
+                errorBuilder:
+                    (context, error, stackTrace) {
+
                   return const Icon(
                     Icons.smart_toy,
-                    color: Colors.white,
+
+                    color:
+                    Colors.white,
+
                     size: 16,
                   );
                 },
@@ -668,23 +959,41 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 
           const SizedBox(width: 8),
 
+          // -------------------------------------------------
+          // TYPING BOX
+          // -------------------------------------------------
+
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding:
+            const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 10,
+            ),
 
             decoration: BoxDecoration(
-              color: Colors.white,
+              color:
+              _botBubbleColor,
 
-              borderRadius: BorderRadius.circular(16),
+              borderRadius:
+              BorderRadius.circular(16),
 
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(
+                color:
+                _borderColor,
+              ),
             ),
 
             child: Text(
               'AI is typing...',
+
               style: TextStyle(
                 fontSize: 13,
-                fontStyle: FontStyle.italic,
-                color: Colors.grey.shade600,
+
+                fontStyle:
+                FontStyle.italic,
+
+                color:
+                _secondaryTextColor,
               ),
             ),
           ),
@@ -698,23 +1007,46 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
 // MARKDOWN MESSAGE TEXT
 // =========================================================
 
-class _MarkdownMessageText extends StatelessWidget {
+class _MarkdownMessageText
+    extends StatelessWidget {
+
   final String text;
 
   final bool isUser;
 
-  const _MarkdownMessageText({required this.text, required this.isUser});
+  final bool isDarkMode;
+
+  const _MarkdownMessageText({
+    required this.text,
+    required this.isUser,
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final Color baseColor = isUser ? Colors.white : const Color(0xFF1C2D1F);
 
-    final List<String> lines = text.split('\n');
+    final Color baseColor =
+    isUser
+        ? Colors.white
+        : isDarkMode
+        ? Colors.white
+        : const Color(0xFF1C2D1F);
+
+    final List<String> lines =
+    text.split('\n');
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
 
-      children: lines.map((line) => _buildLine(line, baseColor)).toList(),
+      children:
+      lines.map(
+            (line) =>
+            _buildLine(
+              line,
+              baseColor,
+            ),
+      ).toList(),
     );
   }
 
@@ -722,11 +1054,17 @@ class _MarkdownMessageText extends StatelessWidget {
   // BUILD LINE
   // =========================================================
 
-  Widget _buildLine(String line, Color baseColor) {
-    final String trimmed = line.trim();
+  Widget _buildLine(
+      String line,
+      Color baseColor) {
+
+    final String trimmed =
+    line.trim();
 
     if (trimmed.isEmpty) {
-      return const SizedBox(height: 6);
+      return const SizedBox(
+        height: 6,
+      );
     }
 
     // -------------------------------------------------------
@@ -736,20 +1074,34 @@ class _MarkdownMessageText extends StatelessWidget {
     if (trimmed.startsWith('### ') ||
         trimmed.startsWith('## ') ||
         trimmed.startsWith('# ')) {
-      final String headerText = trimmed.replaceFirst(RegExp(r'^#+\s\*'), '');
+
+      final String headerText =
+      trimmed.replaceFirst(
+        RegExp(r'^#+\s\*'),
+        '',
+      );
 
       return Padding(
-        padding: const EdgeInsets.only(top: 8, bottom: 4),
+        padding:
+        const EdgeInsets.only(
+          top: 8,
+          bottom: 4,
+        ),
 
         child: Text(
           headerText,
 
           style: TextStyle(
-            color: isUser ? Colors.white : const Color(0xFF146B0B),
+            color: isUser
+                ? Colors.white
+                : isDarkMode
+                ? const Color(0xFF8EDB91)
+                : const Color(0xFF146B0B),
 
             fontSize: 15,
 
-            fontWeight: FontWeight.bold,
+            fontWeight:
+            FontWeight.bold,
 
             height: 1.3,
           ),
@@ -764,28 +1116,47 @@ class _MarkdownMessageText extends StatelessWidget {
     if (trimmed.startsWith('* ') ||
         trimmed.startsWith('- ') ||
         trimmed.startsWith('• ')) {
-      final String content = trimmed.substring(2).trim();
+
+      final String content =
+      trimmed.substring(2).trim();
 
       return Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 4),
+        padding:
+        const EdgeInsets.only(
+          left: 4,
+          bottom: 4,
+        ),
 
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
 
           children: [
+
             Text(
               '• ',
 
               style: TextStyle(
-                color: isUser ? Colors.white70 : const Color(0xFF146B0B),
+                color: isUser
+                    ? Colors.white70
+                    : isDarkMode
+                    ? const Color(0xFF8EDB91)
+                    : const Color(0xFF146B0B),
 
                 fontSize: 14,
 
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                FontWeight.bold,
               ),
             ),
 
-            Expanded(child: _buildRichInlineText(content, baseColor)),
+            Expanded(
+              child:
+              _buildRichInlineText(
+                content,
+                baseColor,
+              ),
+            ),
           ],
         ),
       );
@@ -795,35 +1166,56 @@ class _MarkdownMessageText extends StatelessWidget {
     // NUMBERED LIST
     // -------------------------------------------------------
 
-    final RegExpMatch? numMatch = RegExp(
+    final RegExpMatch? numMatch =
+    RegExp(
       r'^(\d+[\.\)])\s(.*)',
     ).firstMatch(trimmed);
 
     if (numMatch != null) {
-      final String numberPrefix = numMatch.group(1)!;
 
-      final String content = numMatch.group(2)!;
+      final String numberPrefix =
+      numMatch.group(1)!;
+
+      final String content =
+      numMatch.group(2)!;
 
       return Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 4),
+        padding:
+        const EdgeInsets.only(
+          left: 4,
+          bottom: 4,
+        ),
 
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
 
           children: [
+
             Text(
               '$numberPrefix ',
 
               style: TextStyle(
-                color: isUser ? Colors.white70 : const Color(0xFF146B0B),
+                color: isUser
+                    ? Colors.white70
+                    : isDarkMode
+                    ? const Color(0xFF8EDB91)
+                    : const Color(0xFF146B0B),
 
                 fontSize: 14,
 
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                FontWeight.bold,
               ),
             ),
 
-            Expanded(child: _buildRichInlineText(content, baseColor)),
+            Expanded(
+              child:
+              _buildRichInlineText(
+                content,
+                baseColor,
+              ),
+            ),
           ],
         ),
       );
@@ -834,9 +1226,16 @@ class _MarkdownMessageText extends StatelessWidget {
     // -------------------------------------------------------
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding:
+      const EdgeInsets.only(
+        bottom: 3,
+      ),
 
-      child: _buildRichInlineText(trimmed, baseColor),
+      child:
+      _buildRichInlineText(
+        trimmed,
+        baseColor,
+      ),
     );
   }
 
@@ -844,39 +1243,35 @@ class _MarkdownMessageText extends StatelessWidget {
   // RICH TEXT
   // =========================================================
 
-  Widget _buildRichInlineText(String text, Color baseColor) {
-    final List<InlineSpan> spans = [];
+  Widget _buildRichInlineText(
+      String text,
+      Color baseColor) {
 
-    final RegExp exp = RegExp(r'(\*\*[^\*]+\*\*|\*[^\*]+\*|_[^_]+_|`[^`]+`)');
+    final List<InlineSpan> spans =
+    [];
+
+    final RegExp exp = RegExp(
+      r'(\*\*[^\*]+\*\*|\*[^\*]+\*|_[^_]+_|`[^`]+`)',
+    );
 
     int lastIndex = 0;
 
-    for (final Match match in exp.allMatches(text)) {
-      if (match.start > lastIndex) {
+    for (final Match match
+    in exp.allMatches(text)) {
+
+      if (match.start >
+          lastIndex) {
+
         spans.add(
           TextSpan(
-            text: text.substring(lastIndex, match.start),
-
-            style: TextStyle(color: baseColor, fontSize: 14, height: 1.38),
-          ),
-        );
-      }
-
-      final String matchText = match.group(0)!;
-
-      // -----------------------------------------------------
-      // BOLD
-      // -----------------------------------------------------
-
-      if (matchText.startsWith('**') && matchText.endsWith('**')) {
-        spans.add(
-          TextSpan(
-            text: matchText.substring(2, matchText.length - 2),
+            text:
+            text.substring(
+              lastIndex,
+              match.start,
+            ),
 
             style: TextStyle(
-              color: isUser ? Colors.white : const Color(0xFF18321F),
-
-              fontWeight: FontWeight.bold,
+              color: baseColor,
 
               fontSize: 14,
 
@@ -885,55 +1280,137 @@ class _MarkdownMessageText extends StatelessWidget {
           ),
         );
       }
+
+      final String matchText =
+      match.group(0)!;
+
+      // -----------------------------------------------------
+      // BOLD
+      // -----------------------------------------------------
+
+      if (matchText.startsWith('**') &&
+          matchText.endsWith('**')) {
+
+        spans.add(
+          TextSpan(
+            text:
+            matchText.substring(
+              2,
+              matchText.length - 2,
+            ),
+
+            style: TextStyle(
+              color: isUser
+                  ? Colors.white
+                  : isDarkMode
+                  ? Colors.white
+                  : const Color(0xFF18321F),
+
+              fontWeight:
+              FontWeight.bold,
+
+              fontSize: 14,
+
+              height: 1.38,
+            ),
+          ),
+        );
+      }
+
       // -----------------------------------------------------
       // CODE
       // -----------------------------------------------------
-      else if (matchText.startsWith('`') && matchText.endsWith('`')) {
+
+      else if (matchText.startsWith('`') &&
+          matchText.endsWith('`')) {
+
         spans.add(
           WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
+            alignment:
+            PlaceholderAlignment.middle,
 
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              padding:
+              const EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 1,
+              ),
 
-              margin: const EdgeInsets.symmetric(horizontal: 2),
+              margin:
+              const EdgeInsets.symmetric(
+                horizontal: 2,
+              ),
 
-              decoration: BoxDecoration(
-                color: isUser ? Colors.white24 : const Color(0xFFE8F5E9),
+              decoration:
+              BoxDecoration(
+                color: isUser
+                    ? Colors.white24
+                    : isDarkMode
+                    ? const Color(
+                  0xFF263D2A,
+                )
+                    : const Color(
+                  0xFFE8F5E9,
+                ),
 
-                borderRadius: BorderRadius.circular(4),
+                borderRadius:
+                BorderRadius.circular(4),
               ),
 
               child: Text(
-                matchText.substring(1, matchText.length - 1),
+                matchText.substring(
+                  1,
+                  matchText.length - 1,
+                ),
 
                 style: TextStyle(
-                  fontFamily: 'monospace',
+                  fontFamily:
+                  'monospace',
 
                   fontSize: 12.5,
 
-                  color: isUser ? Colors.white : const Color(0xFF146B0B),
+                  color: isUser
+                      ? Colors.white
+                      : isDarkMode
+                      ? const Color(
+                    0xFF8EDB91,
+                  )
+                      : const Color(
+                    0xFF146B0B,
+                  ),
 
-                  fontWeight: FontWeight.w600,
+                  fontWeight:
+                  FontWeight.w600,
                 ),
               ),
             ),
           ),
         );
       }
+
       // -----------------------------------------------------
       // ITALIC
       // -----------------------------------------------------
-      else if ((matchText.startsWith('*') && matchText.endsWith('*')) ||
-          (matchText.startsWith('_') && matchText.endsWith('_'))) {
+
+      else if (
+      (matchText.startsWith('*') &&
+          matchText.endsWith('*')) ||
+          (matchText.startsWith('_') &&
+              matchText.endsWith('_'))) {
+
         spans.add(
           TextSpan(
-            text: matchText.substring(1, matchText.length - 1),
+            text:
+            matchText.substring(
+              1,
+              matchText.length - 1,
+            ),
 
             style: TextStyle(
               color: baseColor,
 
-              fontStyle: FontStyle.italic,
+              fontStyle:
+              FontStyle.italic,
 
               fontSize: 14,
 
@@ -950,16 +1427,29 @@ class _MarkdownMessageText extends StatelessWidget {
     // REMAINING TEXT
     // -------------------------------------------------------
 
-    if (lastIndex < text.length) {
+    if (lastIndex <
+        text.length) {
+
       spans.add(
         TextSpan(
-          text: text.substring(lastIndex),
+          text:
+          text.substring(lastIndex),
 
-          style: TextStyle(color: baseColor, fontSize: 14, height: 1.38),
+          style: TextStyle(
+            color: baseColor,
+
+            fontSize: 14,
+
+            height: 1.38,
+          ),
         ),
       );
     }
 
-    return RichText(text: TextSpan(children: spans));
+    return RichText(
+      text: TextSpan(
+        children: spans,
+      ),
+    );
   }
 }
