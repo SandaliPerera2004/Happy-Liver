@@ -59,10 +59,7 @@ class _AssessmentResultLoadingScreenState
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => AssessmentResultScreen(
-            fattyLiverRisk: widget.result.fattyLiverRisk,
-            cholesterolRisk: widget.result.cholesterolRisk,
-            fattyLiverScore: widget.result.fattyLiverScore,
-            cholesterolScore: widget.result.cholesterolScore,
+            result: widget.result,
           ),
         ),
       );
