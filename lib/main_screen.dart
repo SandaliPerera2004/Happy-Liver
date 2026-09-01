@@ -17,11 +17,11 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
 
-    pages = const [
-      HomePage(),
-      DietPage(),
-      WorkoutPage(),
-      ProfilePage(),
+    pages = [
+      const HomePage(),
+      const DietPage(),
+      const WorkoutPage(),
+      const ProfilePage(),
     ];
   }
 
@@ -52,7 +52,6 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _navItem(
             Icons.home_outlined,
@@ -153,12 +152,13 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                  const WeeklyReportScreen(),
+                  builder: (context) => WeeklyReportScreen(),
                 ),
               );
             },
-            icon: const Icon(Icons.bar_chart),
+            icon: const Icon(
+              Icons.bar_chart,
+            ),
             label: const Text(
               'Weekly Report',
               style: TextStyle(

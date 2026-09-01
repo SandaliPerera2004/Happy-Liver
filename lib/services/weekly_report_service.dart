@@ -1,6 +1,56 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+class WeeklyReportData {
+  final DateTime weekStart;
+  final DateTime weekEnd;
+
+  // Diet
+  final int dietFollowedDays;
+  final int dietPercentage;
+  final int healthyChoices;
+  final int averageCalories;
+
+  // Workout
+  final int workoutsCompleted;
+  final int workoutPercentage;
+  final int totalDuration;
+  final int totalCalories;
+  final String averageIntensity;
+
+  // Progress
+  final int currentScore;
+  final int previousScore;
+  final int improvement;
+
+  // Daily status
+  final List<bool> workoutDays;
+  final List<bool> dietDays;
+
+  // Tip
+  final String tip;
+
+  WeeklyReportData({
+    required this.weekStart,
+    required this.weekEnd,
+    required this.dietFollowedDays,
+    required this.dietPercentage,
+    required this.healthyChoices,
+    required this.averageCalories,
+    required this.workoutsCompleted,
+    required this.workoutPercentage,
+    required this.totalDuration,
+    required this.totalCalories,
+    required this.averageIntensity,
+    required this.currentScore,
+    required this.previousScore,
+    required this.improvement,
+    required this.workoutDays,
+    required this.dietDays,
+    required this.tip,
+  });
+}
+
 class WeeklyReportService {
   final FirebaseFirestore _firestore =
       FirebaseFirestore.instance;
@@ -9,603 +59,580 @@ class WeeklyReportService {
       FirebaseAuth.instance;
 
   // ============================================================
-  // CURRENT USER ID
+  // GET CURRENT USER
   // ============================================================
 
-  String get userId {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      throw Exception('User is not logged in');
-    }
-
-    return user.uid;
+  String? get currentUserId {
+    return _auth.currentUser?.uid;
   }
 
   // ============================================================
-  // WEEK START
+  // GET CURRENT WEEK
+  // Monday -> Sunday
   // ============================================================
 
-  DateTime getWeekStart(DateTime date) {
-    final day = DateTime(
-      date.year,
-      date.month,
-      date.day,
+  DateTime getCurrentMonday() {
+    final now = DateTime.now();
+
+    final difference =
+        now.weekday - DateTime.monday;
+
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(
+      Duration(days: difference),
     );
 
-    return day.subtract(
-      Duration(
-        days: day.weekday - DateTime.monday,
-      ),
-    );
+    return monday;
   }
 
-  // ============================================================
-  // WEEK END
-  // ============================================================
-
-  DateTime getWeekEnd(DateTime date) {
-    return getWeekStart(date).add(
+  DateTime getSunday(DateTime monday) {
+    return monday.add(
       const Duration(days: 6),
     );
   }
 
   // ============================================================
-  // DATE ONLY
+  // MAIN REPORT FUNCTION
   // ============================================================
 
-  DateTime _dateOnly(DateTime date) {
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
+  Future<WeeklyReportData> getWeeklyReport({
+    DateTime? selectedWeekStart,
+  }) async {
+
+    final userId = currentUserId;
+
+    if (userId == null) {
+      throw Exception(
+        'User is not logged in.',
+      );
+    }
+
+    final weekStart =
+        selectedWeekStart ??
+            getCurrentMonday();
+
+    final weekEnd =
+    getSunday(weekStart);
+
+    // Current week data
+    final workoutDocuments =
+    await _getWorkoutDocuments(
+      userId,
+      weekStart,
+      weekEnd,
     );
-  }
 
-  // ============================================================
-  // GET DIET DATA
-  // ============================================================
+    final dietDocuments =
+    await _getDietDocuments(
+      userId,
+      weekStart,
+      weekEnd,
+    );
 
-  Future<List<Map<String, dynamic>>> getDietData(
-      DateTime selectedDate,
-      ) async {
-    final weekStart = getWeekStart(selectedDate);
-    final weekEnd = getWeekEnd(selectedDate);
+    // Previous week
+    final previousWeekStart =
+    weekStart.subtract(
+      const Duration(days: 7),
+    );
 
-    final snapshot = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('diet_logs')
-        .get();
+    final previousWeekEnd =
+    weekStart.subtract(
+      const Duration(days: 1),
+    );
 
-    final List<Map<String, dynamic>> result = [];
+    final previousWorkoutDocuments =
+    await _getWorkoutDocuments(
+      userId,
+      previousWeekStart,
+      previousWeekEnd,
+    );
 
-    for (final doc in snapshot.docs) {
-      final data = doc.data();
+    final previousDietDocuments =
+    await _getDietDocuments(
+      userId,
+      previousWeekStart,
+      previousWeekEnd,
+    );
 
-      final dateValue = data['date'];
+    // ==========================================================
+    // WORKOUT CALCULATIONS
+    // ==========================================================
 
-      if (dateValue is! Timestamp) {
+    int workoutsCompleted = 0;
+    int totalDuration = 0;
+    int totalCalories = 0;
+
+    final workoutDays =
+    List<bool>.filled(7, false);
+
+    final intensityValues =
+    <int>[];
+
+    for (final document
+    in workoutDocuments) {
+
+      final data = document.data();
+
+      final date =
+      _getDate(data['date']);
+
+      if (date == null) {
         continue;
       }
 
-      final date = _dateOnly(
-        dateValue.toDate(),
+      final dayIndex =
+      _getDayIndex(
+        date,
+        weekStart,
       );
 
-      if (!date.isBefore(weekStart) &&
-          !date.isAfter(weekEnd)) {
-        result.add({
-          'id': doc.id,
-          ...data,
-        });
+      if (dayIndex < 0 ||
+          dayIndex > 6) {
+        continue;
       }
+
+      final completed =
+      _getBool(
+        data['completed'],
+        defaultValue: true,
+      );
+
+      if (completed) {
+        workoutDays[dayIndex] = true;
+        workoutsCompleted++;
+      }
+
+      totalDuration +=
+          _getInt(
+            data['duration'],
+          );
+
+      totalCalories +=
+          _getInt(
+            data['caloriesBurned'],
+          );
+
+      intensityValues.add(
+        _intensityToNumber(
+          data['intensity'],
+        ),
+      );
     }
 
-    result.sort(
-          (a, b) {
-        final aDate =
-        (a['date'] as Timestamp).toDate();
+    final workoutPercentage =
+    ((workoutsCompleted / 7) * 100)
+        .round();
 
-        final bDate =
-        (b['date'] as Timestamp).toDate();
-
-        return aDate.compareTo(bDate);
-      },
+    final averageIntensity =
+    _calculateIntensity(
+      intensityValues,
     );
 
-    return result;
+    // ==========================================================
+    // DIET CALCULATIONS
+    // ==========================================================
+
+    int dietFollowedDays = 0;
+    int totalDietCalories = 0;
+    int totalHealthyChoices = 0;
+    int dietCount = 0;
+
+    final dietDays =
+    List<bool>.filled(7, false);
+
+    for (final document
+    in dietDocuments) {
+
+      final data = document.data();
+
+      final date =
+      _getDate(data['date']);
+
+      if (date == null) {
+        continue;
+      }
+
+      final dayIndex =
+      _getDayIndex(
+        date,
+        weekStart,
+      );
+
+      if (dayIndex < 0 ||
+          dayIndex > 6) {
+        continue;
+      }
+
+      final followed =
+      _getBool(
+        data['followedPlan'],
+        defaultValue: false,
+      );
+
+      if (followed) {
+        dietDays[dayIndex] = true;
+        dietFollowedDays++;
+      }
+
+      totalDietCalories +=
+          _getInt(
+            data['calories'],
+          );
+
+      totalHealthyChoices +=
+          _getInt(
+            data['healthyChoices'],
+          );
+
+      dietCount++;
+    }
+
+    final dietPercentage =
+    ((dietFollowedDays / 7) * 100)
+        .round();
+
+    final averageCalories =
+    dietCount > 0
+        ? (totalDietCalories /
+        dietCount)
+        .round()
+        : 0;
+
+    final healthyChoices =
+    dietCount > 0
+        ? (totalHealthyChoices /
+        dietCount)
+        .round()
+        : 0;
+
+    // ==========================================================
+    // CURRENT SCORE
+    // ==========================================================
+
+    final currentScore =
+        (
+            workoutPercentage +
+                dietPercentage +
+                healthyChoices
+        ) ~/
+            3;
+
+    // ==========================================================
+    // PREVIOUS WEEK SCORE
+    // ==========================================================
+
+    final previousScore =
+    _calculatePreviousScore(
+      previousWorkoutDocuments,
+      previousDietDocuments,
+    );
+
+    final improvement =
+        currentScore - previousScore;
+
+    // ==========================================================
+    // WEEKLY TIP
+    // ==========================================================
+
+    final tip =
+    _generateTip(
+      workoutPercentage:
+      workoutPercentage,
+      dietPercentage:
+      dietPercentage,
+      totalDuration:
+      totalDuration,
+      healthyChoices:
+      healthyChoices,
+    );
+
+    return WeeklyReportData(
+      weekStart: weekStart,
+      weekEnd: weekEnd,
+
+      dietFollowedDays:
+      dietFollowedDays,
+
+      dietPercentage:
+      dietPercentage,
+
+      healthyChoices:
+      healthyChoices,
+
+      averageCalories:
+      averageCalories,
+
+      workoutsCompleted:
+      workoutsCompleted,
+
+      workoutPercentage:
+      workoutPercentage,
+
+      totalDuration:
+      totalDuration,
+
+      totalCalories:
+      totalCalories,
+
+      averageIntensity:
+      averageIntensity,
+
+      currentScore:
+      currentScore,
+
+      previousScore:
+      previousScore,
+
+      improvement:
+      improvement,
+
+      workoutDays:
+      workoutDays,
+
+      dietDays:
+      dietDays,
+
+      tip:
+      tip,
+    );
   }
 
   // ============================================================
   // GET WORKOUT DATA
   // ============================================================
 
-  Future<List<Map<String, dynamic>>> getWorkoutData(
-      DateTime selectedDate,
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+  _getWorkoutDocuments(
+      String userId,
+      DateTime start,
+      DateTime end,
       ) async {
-    final weekStart = getWeekStart(selectedDate);
-    final weekEnd = getWeekEnd(selectedDate);
 
-    final snapshot = await _firestore
+    final snapshot =
+    await _firestore
         .collection('users')
         .doc(userId)
-        .collection('workout_logs')
+        .collection('workouts')
         .get();
 
-    final List<Map<String, dynamic>> result = [];
+    return snapshot.docs.where((doc) {
 
-    for (final doc in snapshot.docs) {
-      final data = doc.data();
-
-      final dateValue = data['date'];
-
-      if (dateValue is! Timestamp) {
-        continue;
-      }
-
-      final date = _dateOnly(
-        dateValue.toDate(),
+      final date =
+      _getDate(
+        doc.data()['date'],
       );
 
-      if (!date.isBefore(weekStart) &&
-          !date.isAfter(weekEnd)) {
-        result.add({
-          'id': doc.id,
-          ...data,
-        });
+      if (date == null) {
+        return false;
       }
-    }
 
-    result.sort(
-          (a, b) {
-        final aDate =
-        (a['date'] as Timestamp).toDate();
+      final cleanDate =
+      DateTime(
+        date.year,
+        date.month,
+        date.day,
+      );
 
-        final bDate =
-        (b['date'] as Timestamp).toDate();
+      return !cleanDate.isBefore(
+        DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ),
+      ) &&
+          !cleanDate.isAfter(
+            DateTime(
+              end.year,
+              end.month,
+              end.day,
+            ),
+          );
 
-        return aDate.compareTo(bDate);
-      },
-    );
-
-    return result;
+    }).toList();
   }
 
   // ============================================================
-  // GENERATE WEEKLY REPORT
+  // GET DIET DATA
   // ============================================================
 
-  Future<Map<String, dynamic>> generateWeeklyReport(
-      DateTime selectedDate,
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+  _getDietDocuments(
+      String userId,
+      DateTime start,
+      DateTime end,
       ) async {
-    final diet =
-    await getDietData(selectedDate);
 
-    final workout =
-    await getWorkoutData(selectedDate);
+    final snapshot =
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('diets')
+        .get();
 
-    // ==========================================================
-    // DIET CALCULATIONS
-    // ==========================================================
+    return snapshot.docs.where((doc) {
 
-    int dietCompleted = 0;
-    int healthyChoices = 0;
-    double totalCalories = 0;
+      final date =
+      _getDate(
+        doc.data()['date'],
+      );
 
-    for (final item in diet) {
-      if (item['followed'] == true) {
-        dietCompleted++;
+      if (date == null) {
+        return false;
       }
 
-      if (item['healthy'] == true) {
-        healthyChoices++;
-      }
+      final cleanDate =
+      DateTime(
+        date.year,
+        date.month,
+        date.day,
+      );
 
-      final calories = item['calories'];
+      return !cleanDate.isBefore(
+        DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ),
+      ) &&
+          !cleanDate.isAfter(
+            DateTime(
+              end.year,
+              end.month,
+              end.day,
+            ),
+          );
 
-      if (calories is num) {
-        totalCalories +=
-            calories.toDouble();
+    }).toList();
+  }
+
+  // ============================================================
+  // PREVIOUS SCORE
+  // ============================================================
+
+  int _calculatePreviousScore(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>>
+      workouts,
+      List<QueryDocumentSnapshot<Map<String, dynamic>>>
+      diets,
+      ) {
+
+    int completed =
+    0;
+
+    for (final doc in workouts) {
+
+      final completedValue =
+      _getBool(
+        doc.data()['completed'],
+        defaultValue: true,
+      );
+
+      if (completedValue) {
+        completed++;
       }
     }
 
-    final int dietPercentage =
-    ((dietCompleted / 7) * 100)
-        .round()
-        .clamp(0, 100);
-
-    final int healthyPercentage =
-    diet.isEmpty
-        ? 0
-        : ((healthyChoices / diet.length) * 100)
-        .round()
-        .clamp(0, 100);
-
-    final int averageCalories =
-    diet.isEmpty
-        ? 0
-        : (totalCalories / diet.length)
+    final workoutPercentage =
+    ((completed / 7) * 100)
         .round();
 
-    // ==========================================================
-    // WORKOUT CALCULATIONS
-    // ==========================================================
+    int followed =
+    0;
 
-    int workoutCompleted = 0;
-    int totalDuration = 0;
-    double totalWorkoutCalories = 0;
+    int calories =
+    0;
 
-    final List<String> intensities = [];
+    int healthy =
+    0;
 
-    for (final item in workout) {
-      if (item['completed'] == true) {
-        workoutCompleted++;
+    for (final doc in diets) {
+
+      final data =
+      doc.data();
+
+      if (_getBool(
+        data['followedPlan'],
+        defaultValue: false,
+      )) {
+        followed++;
       }
 
-      final duration =
-      item['durationMinutes'];
+      calories +=
+          _getInt(
+            data['calories'],
+          );
 
-      if (duration is num) {
-        totalDuration += duration.toInt();
-      }
-
-      final calories =
-      item['caloriesBurned'];
-
-      if (calories is num) {
-        totalWorkoutCalories +=
-            calories.toDouble();
-      }
-
-      if (item['intensity'] != null) {
-        intensities.add(
-          item['intensity'].toString(),
-        );
-      }
+      healthy +=
+          _getInt(
+            data['healthyChoices'],
+          );
     }
 
-    final int workoutPercentage =
-    ((workoutCompleted / 7) * 100)
+    final dietPercentage =
+    ((followed / 7) * 100)
+        .round();
+
+    final healthyPercentage =
+    diets.isNotEmpty
+        ? (healthy / diets.length)
         .round()
-        .clamp(0, 100);
-
-    final String averageIntensity =
-    calculateAverageIntensity(
-      intensities,
-    );
-
-    // ==========================================================
-    // DAILY DATA
-    //
-    // Used by:
-    // 1. Calendar
-    // 2. Calories Chart
-    // 3. Workout Chart
-    // ==========================================================
-
-    final List<Map<String, dynamic>>
-    dailyData = [];
-
-    final weekStart =
-    getWeekStart(selectedDate);
-
-    for (int i = 0; i < 7; i++) {
-      final day = weekStart.add(
-        Duration(days: i),
-      );
-
-      final dayDiet = diet.where(
-            (item) {
-          final date =
-          (item['date'] as Timestamp)
-              .toDate();
-
-          return _dateOnly(date)
-              .isAtSameMomentAs(day);
-        },
-      ).toList();
-
-      final dayWorkout = workout.where(
-            (item) {
-          final date =
-          (item['date'] as Timestamp)
-              .toDate();
-
-          return _dateOnly(date)
-              .isAtSameMomentAs(day);
-        },
-      ).toList();
-
-      // --------------------------------------------------------
-      // DAILY DIET CALORIES
-      // --------------------------------------------------------
-
-      double dayCalories = 0;
-
-      for (final item in dayDiet) {
-        final calories =
-        item['calories'];
-
-        if (calories is num) {
-          dayCalories +=
-              calories.toDouble();
-        }
-      }
-
-      // --------------------------------------------------------
-      // DAILY WORKOUT DURATION
-      // --------------------------------------------------------
-
-      int dayWorkoutDuration = 0;
-
-      for (final item in dayWorkout) {
-        final duration =
-        item['durationMinutes'];
-
-        if (duration is num) {
-          dayWorkoutDuration +=
-              duration.toInt();
-        }
-      }
-
-      // --------------------------------------------------------
-      // DAILY WORKOUT CALORIES
-      // --------------------------------------------------------
-
-      int dayWorkoutCalories = 0;
-
-      for (final item in dayWorkout) {
-        final calories =
-        item['caloriesBurned'];
-
-        if (calories is num) {
-          dayWorkoutCalories +=
-              calories.toInt();
-        }
-      }
-
-      // --------------------------------------------------------
-      // DAILY STATUS
-      // --------------------------------------------------------
-
-      final bool dietDone =
-      dayDiet.any(
-            (item) =>
-        item['followed'] == true,
-      );
-
-      final bool workoutDone =
-      dayWorkout.any(
-            (item) =>
-        item['completed'] == true,
-      );
-
-      // --------------------------------------------------------
-      // STORE DAILY DATA
-      // --------------------------------------------------------
-
-      dailyData.add({
-        'date': day,
-        'dietCalories':
-        dayCalories.round(),
-        'workoutCalories':
-        dayWorkoutCalories,
-        'workoutDuration':
-        dayWorkoutDuration,
-        'dietDone': dietDone,
-        'workoutDone': workoutDone,
-        'dietData': dayDiet,
-        'workoutData': dayWorkout,
-      });
-    }
-
-    // ==========================================================
-    // WEEKLY PROGRESS
-    // ==========================================================
-
-    int weeklyProgress = 0;
-
-    try {
-      final previousWeek =
-      selectedDate.subtract(
-        const Duration(days: 7),
-      );
-
-      final previous =
-      await generateWeeklyReport(
-        previousWeek,
-      );
-
-      final double currentScore =
-          (dietPercentage +
-              workoutPercentage) /
-              2;
-
-      final int previousDiet =
-      previous['dietPercentage']
-      as int;
-
-      final int previousWorkout =
-      previous['workoutPercentage']
-      as int;
-
-      final double previousScore =
-          (previousDiet +
-              previousWorkout) /
-              2;
-
-      if (previousScore == 0) {
-        weeklyProgress =
-            currentScore.round();
-      } else {
-        weeklyProgress =
-            (((currentScore -
-                previousScore) /
-                previousScore) *
-                100)
-                .round();
-      }
-    } catch (e) {
-      weeklyProgress = 0;
-    }
-
-    // ==========================================================
-    // DAILY CALORIES LIST
-    // ==========================================================
-
-    final List<int> dailyCalories =
-    dailyData.map<int>(
-          (day) {
-        return day['dietCalories']
-        as int;
-      },
-    ).toList();
-
-    // ==========================================================
-    // DAILY WORKOUT DURATION LIST
-    // ==========================================================
-
-    final List<int> dailyWorkoutDuration =
-    dailyData.map<int>(
-          (day) {
-        return day['workoutDuration']
-        as int;
-      },
-    ).toList();
-
-    // ==========================================================
-    // FINAL REPORT
-    // ==========================================================
-
-    return {
-      // --------------------------------------------------------
-      // WEEK
-      // --------------------------------------------------------
-
-      'weekStart': weekStart,
-
-      'weekEnd':
-      getWeekEnd(selectedDate),
-
-      // --------------------------------------------------------
-      // DIET
-      // --------------------------------------------------------
-
-      'dietCompleted':
-      dietCompleted,
-
-      'dietPercentage':
-      dietPercentage,
-
-      'healthyChoices':
-      healthyChoices,
-
-      'healthyPercentage':
-      healthyPercentage,
-
-      'averageCalories':
-      averageCalories,
-
-      // --------------------------------------------------------
-      // WORKOUT
-      // --------------------------------------------------------
-
-      'workoutCompleted':
-      workoutCompleted,
-
-      'workoutPercentage':
-      workoutPercentage,
-
-      'totalWorkouts':
-      workoutCompleted,
-
-      'totalDuration':
-      totalDuration,
-
-      'totalWorkoutCalories':
-      totalWorkoutCalories.round(),
-
-      'averageIntensity':
-      averageIntensity,
-
-      // --------------------------------------------------------
-      // CHART DATA
-      // --------------------------------------------------------
-
-      'dailyCalories':
-      dailyCalories,
-
-      'dailyWorkoutDuration':
-      dailyWorkoutDuration,
-
-      // --------------------------------------------------------
-      // CALENDAR DATA
-      // --------------------------------------------------------
-
-      'dailyData':
-      dailyData,
-
-      // --------------------------------------------------------
-      // WEEKLY PROGRESS
-      // --------------------------------------------------------
-
-      'weeklyProgress':
-      weeklyProgress,
-
-      // --------------------------------------------------------
-      // RAW DATA
-      // --------------------------------------------------------
-
-      'diet': diet,
-
-      'workout': workout,
-
-      // --------------------------------------------------------
-      // TIP
-      // --------------------------------------------------------
-
-      'weeklyTip': _generateTip(
-        dietPercentage,
-        workoutPercentage,
-      ),
-    };
+        : 0;
+
+    return (
+        workoutPercentage +
+            dietPercentage +
+            healthyPercentage
+    ) ~/
+        3;
   }
 
   // ============================================================
-  // AVERAGE INTENSITY
+  // INTENSITY
   // ============================================================
 
-  String calculateAverageIntensity(
-      List<String> intensities,
+  int _intensityToNumber(
+      dynamic value,
       ) {
-    if (intensities.isEmpty) {
-      return 'No data';
+
+    final text =
+    value
+        ?.toString()
+        .toLowerCase()
+        .trim();
+
+    if (text == 'high') {
+      return 3;
     }
 
-    int low = 0;
-    int moderate = 0;
-    int high = 0;
-
-    for (final value in intensities) {
-      final intensity =
-      value.toLowerCase().trim();
-
-      if (intensity == 'low') {
-        low++;
-      } else if (intensity == 'moderate') {
-        moderate++;
-      } else if (intensity == 'high') {
-        high++;
-      }
+    if (text == 'moderate') {
+      return 2;
     }
 
-    if (high >= moderate &&
-        high >= low) {
+    return 1;
+  }
+
+  String _calculateIntensity(
+      List<int> values,
+      ) {
+
+    if (values.isEmpty) {
+      return 'Moderate';
+    }
+
+    final average =
+        values.reduce(
+              (a, b) => a + b,
+        ) /
+            values.length;
+
+    if (average >= 2.5) {
       return 'High';
     }
 
-    if (moderate >= low) {
+    if (average >= 1.5) {
       return 'Moderate';
     }
 
@@ -613,88 +640,156 @@ class WeeklyReportService {
   }
 
   // ============================================================
-  // WEEKLY TIP
+  // TIP
   // ============================================================
 
-  String _generateTip(
-      int dietPercentage,
-      int workoutPercentage,
+  String _generateTip({
+    required int workoutPercentage,
+    required int dietPercentage,
+    required int totalDuration,
+    required int healthyChoices,
+  }) {
+
+    if (workoutPercentage < 50) {
+      return
+        'Try to complete more workouts next week.';
+    }
+
+    if (dietPercentage < 50) {
+      return
+        'Try to follow your diet plan more consistently.';
+    }
+
+    if (totalDuration < 180) {
+      return
+        'Try to increase your workout time on the weekend.';
+    }
+
+    if (healthyChoices < 70) {
+      return
+        'Try to make healthier food choices this week.';
+    }
+
+    return
+      "Great job! You're consistent this week.\n"
+          "Try to increase your workout time on weekend.";
+  }
+
+  // ============================================================
+  // DATE
+  // ============================================================
+
+  DateTime? _getDate(
+      dynamic value,
       ) {
-    if (dietPercentage >= 80 &&
-        workoutPercentage >= 80) {
-      return "Excellent work! you're consistent this week\n"
-          "Keep maintaining your healthy diet and workout routine";
+
+    if (value == null) {
+      return null;
     }
 
-    if (dietPercentage >= 70) {
-      return "Great job! you're doing well with your diet\n"
-          "Try to stay consistent with your workouts";
+    if (value is Timestamp) {
+      return value.toDate();
     }
 
-    if (workoutPercentage >= 70) {
-      return "Great workout progress this week!\n"
-          "Try to maintain healthy food choices every day";
+    if (value is DateTime) {
+      return value;
     }
 
-    return "Keep going! every small step counts\n"
-        "Try to improve your diet and workout consistency next week";
+    if (value is String) {
+
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    return null;
   }
 
   // ============================================================
-  // PREVIOUS WEEK
+  // INTEGER
   // ============================================================
 
-  Future<Map<String, dynamic>> getPreviousWeekReport(
-      DateTime selectedDate,
-      ) async {
-    final previousWeek =
-    selectedDate.subtract(
-      const Duration(days: 7),
-    );
+  int _getInt(
+      dynamic value,
+      ) {
 
-    return generateWeeklyReport(
-      previousWeek,
-    );
+    if (value == null) {
+      return 0;
+    }
+
+    if (value is int) {
+      return value;
+    }
+
+    if (value is double) {
+      return value.round();
+    }
+
+    if (value is num) {
+      return value.toInt();
+    }
+
+    return int.tryParse(
+      value.toString(),
+    ) ??
+        0;
   }
 
   // ============================================================
-  // WEEKLY PROGRESS
+  // BOOLEAN
   // ============================================================
 
-  Future<int> calculateWeeklyProgress(
-      DateTime selectedDate,
-      ) async {
-    final current =
-    await generateWeeklyReport(
-      selectedDate,
-    );
+  bool _getBool(
+      dynamic value, {
+        required bool defaultValue,
+      }) {
 
-    final previous =
-    await getPreviousWeekReport(
-      selectedDate,
-    );
-
-    final double currentScore =
-        ((current['dietPercentage']
-        as int) +
-            (current['workoutPercentage']
-            as int)) /
-            2;
-
-    final double previousScore =
-        ((previous['dietPercentage']
-        as int) +
-            (previous['workoutPercentage']
-            as int)) /
-            2;
-
-    if (previousScore == 0) {
-      return currentScore.round();
+    if (value == null) {
+      return defaultValue;
     }
 
-    return (((currentScore -
-        previousScore) /
-        previousScore) *
-        100).round();
+    if (value is bool) {
+      return value;
+    }
+
+    if (value is String) {
+
+      return value.toLowerCase() ==
+          'true';
+    }
+
+    return defaultValue;
+  }
+
+  // ============================================================
+  // DAY INDEX
+  // Monday = 0
+  // Sunday = 6
+  // ============================================================
+
+  int _getDayIndex(
+      DateTime date,
+      DateTime weekStart,
+      ) {
+
+    final cleanDate =
+    DateTime(
+      date.year,
+      date.month,
+      date.day,
+    );
+
+    final cleanStart =
+    DateTime(
+      weekStart.year,
+      weekStart.month,
+      weekStart.day,
+    );
+
+    return cleanDate
+        .difference(cleanStart)
+        .inDays;
   }
 }
