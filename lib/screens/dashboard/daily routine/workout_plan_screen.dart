@@ -9,8 +9,31 @@ import 'package:happy_liver/widgets/bottom_navigation_bar.dart';
 import 'package:happy_liver/services/workout_progress_service.dart';
 
 class WorkoutPlanScreen extends StatefulWidget {
-  // TEMPORARY:
-  // Later this will come from the assessment results.
+  // ================================================================
+  // RISK LEVEL
+  // ================================================================
+  //
+  // The risk level comes from the assessment result.
+  //
+  // Valid values:
+  //   Low
+  //   Moderate
+  //   High
+  //
+  // These are actual risk levels, not workout difficulty levels.
+  //
+  // Firestore structure:
+  //
+  // workoutPlans
+  //   ├── low
+  //   │    └── exercises
+  //   ├── moderate
+  //   │    └── exercises
+  //   └── high
+  //        └── exercises
+  //
+  // ================================================================
+
   final String riskLevel;
 
   const WorkoutPlanScreen({
@@ -25,6 +48,10 @@ class WorkoutPlanScreen extends StatefulWidget {
 
 class _WorkoutPlanScreenState
     extends State<WorkoutPlanScreen> {
+  // ================================================================
+  // COLORS
+  // ================================================================
+
   static const Color _green =
   Color(0xFF2DCB59);
 
@@ -48,7 +75,7 @@ class _WorkoutPlanScreenState
   Color(0xFF1E1E1E);
 
   // ================================================================
-  // SIX DAYS
+  // SIX WORKOUT DAYS
   // ================================================================
 
   static const List<String> _days = [
@@ -60,24 +87,72 @@ class _WorkoutPlanScreenState
     'Sat',
   ];
 
-  // Thursday selected initially
-  int _selectedDayIndex = 3;
+  // ================================================================
+  // SELECTED DAY
+  // ================================================================
+  //
+  // The selected day is automatically set to TODAY.
+  //
+  // DateTime.weekday values:
+  //
+  // Monday    = 1
+  // Tuesday   = 2
+  // Wednesday = 3
+  // Thursday  = 4
+  // Friday    = 5
+  // Saturday  = 6
+  // Sunday    = 7
+  //
+  // Our list uses:
+  //
+  // Mon = 0
+  // Tue = 1
+  // Wed = 2
+  // Thu = 3
+  // Fri = 4
+  // Sat = 5
+  //
+  // Therefore:
+  //
+  // DateTime.now().weekday - 1
+  //
+  // gives the correct index for Monday-Saturday.
+  //
+  // Sunday is not part of the 6-day workout plan.
+  //
+  // ================================================================
+
+  int _selectedDayIndex =
+  DateTime.now().weekday <= 6
+      ? DateTime.now().weekday - 1
+      : 0;
+
+  // ================================================================
+  // SERVICES
+  // ================================================================
 
   final WorkoutService _workoutService =
   WorkoutService();
 
-  // Workout progress service
   final WorkoutProgressService _progressService =
   WorkoutProgressService();
 
-  // Store loaded workouts
+  // ================================================================
+  // DATA
+  // ================================================================
+
+  // Loaded workouts for the user's risk level.
   List<WorkoutModel> _workouts = [];
 
-  // Store today's progress
+  // Today's progress for each workout.
   Map<String, double> _todayProgress = {};
 
-  // Loading state for progress
+  // Loading state for progress.
   bool _progressLoading = true;
+
+  // ================================================================
+  // INIT STATE
+  // ================================================================
 
   @override
   void initState() {
@@ -127,6 +202,79 @@ class _WorkoutPlanScreenState
   Future<void> _refreshProgress() async {
     await _loadWorkoutProgress();
   }
+
+  // ================================================================
+  // NORMALIZE RISK LEVEL
+  // ================================================================
+  //
+  // Makes sure:
+  //
+  // HIGH     -> high
+  // Moderate -> moderate
+  // LOW      -> low
+  //
+  // This is useful because Firestore document names are lowercase.
+  //
+  // ================================================================
+
+  String _normalizedRiskLevel() {
+    final level =
+    widget.riskLevel.trim().toLowerCase();
+
+    switch (level) {
+      case 'high':
+        return 'high';
+
+      case 'moderate':
+      case 'medium':
+        return 'moderate';
+
+      case 'low':
+        return 'low';
+
+      default:
+      // If an unexpected value is received,
+      // use low as the safe default.
+        return 'low';
+    }
+  }
+
+  // ================================================================
+  // DISPLAY RISK LEVEL
+  // ================================================================
+
+  String _displayRiskLevel() {
+    switch (_normalizedRiskLevel()) {
+      case 'high':
+        return 'High';
+
+      case 'moderate':
+        return 'Moderate';
+
+      case 'low':
+      default:
+        return 'Low';
+    }
+  }
+
+  // ================================================================
+  // GET TODAY'S DAY NAME
+  // ================================================================
+
+  String _getTodayName() {
+    final weekday = DateTime.now().weekday;
+
+    if (weekday >= 1 && weekday <= 6) {
+      return _days[weekday - 1];
+    }
+
+    // Sunday is outside the 6-day workout plan.
+    return 'Sun';
+  }
+
+  // ================================================================
+  // BUILD
+  // ================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -191,6 +339,26 @@ class _WorkoutPlanScreenState
                               color: isDarkMode
                                   ? Colors.white
                                   : _darkText,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            height: 6,
+                          ),
+
+                          // ==================================================
+                          // RISK LEVEL
+                          // ==================================================
+
+                          Text(
+                            '${_displayRiskLevel()} risk workout plan',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight:
+                              FontWeight.w500,
+                              color: isDarkMode
+                                  ? Colors.white60
+                                  : _grayText,
                             ),
                           ),
 
@@ -287,20 +455,54 @@ class _WorkoutPlanScreenState
       BuildContext context,
       bool isDarkMode,
       ) {
-    return FutureBuilder<
-        List<WorkoutModel>>(
+    // ================================================================
+    // GET NORMALIZED RISK LEVEL
+    // ================================================================
+
+    final String riskLevel =
+    _normalizedRiskLevel();
+
+    print('====================================');
+    print('WORKOUT PLAN');
+    print(
+      'ORIGINAL RISK LEVEL: ${widget.riskLevel}',
+    );
+    print(
+      'NORMALIZED RISK LEVEL: $riskLevel',
+    );
+    print(
+      'TODAY: ${_getTodayName()}',
+    );
+    print(
+      'FIRESTORE PATH: workoutPlans/$riskLevel/exercises',
+    );
+    print('====================================');
+
+    return FutureBuilder<List<WorkoutModel>>(
       future:
       _workoutService.getWorkoutsByLevel(
-        widget.riskLevel,
+        riskLevel,
       ),
       builder:
           (context, snapshot) {
+        // ============================================================
+        // DEBUG INFORMATION
+        // ============================================================
+
         print(
           '====================================',
         );
 
         print(
           'RISK LEVEL: ${widget.riskLevel}',
+        );
+
+        print(
+          'NORMALIZED LEVEL: $riskLevel',
+        );
+
+        print(
+          'TODAY: ${_getTodayName()}',
         );
 
         print(
@@ -408,12 +610,17 @@ class _WorkoutPlanScreenState
           );
         }
 
+        // ============================================================
+        // GET WORKOUTS
+        // ============================================================
+
         final workouts =
             snapshot.data ?? [];
 
-        // Save workouts locally
-        // so progress can be calculated
-        // using the actual workout IDs.
+        // ============================================================
+        // SAVE WORKOUTS LOCALLY
+        // ============================================================
+
         if (_workouts.isEmpty &&
             workouts.isNotEmpty) {
           WidgetsBinding.instance
@@ -473,6 +680,22 @@ class _WorkoutPlanScreenState
                         : _darkText,
                   ),
                 ),
+
+                const SizedBox(
+                  height: 5,
+                ),
+
+                Text(
+                  'No workouts were found for ${_displayRiskLevel()} risk.',
+                  textAlign:
+                  TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode
+                        ? Colors.white60
+                        : _grayText,
+                  ),
+                ),
               ],
             ),
           );
@@ -501,17 +724,14 @@ class _WorkoutPlanScreenState
       ) {
     return Container(
       width: double.infinity,
-
       padding:
       const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-
       color: isDarkMode
           ? const Color(0xFFDFF3D8)
           : _lightGreenHeader,
-
       child: Row(
         children: [
           GestureDetector(
@@ -556,8 +776,7 @@ class _WorkoutPlanScreenState
       ) {
     return Row(
       mainAxisAlignment:
-      MainAxisAlignment
-          .spaceBetween,
+      MainAxisAlignment.spaceBetween,
       children: List.generate(
         _days.length,
             (index) {
@@ -652,9 +871,7 @@ class _WorkoutPlanScreenState
     (overallProgress * 100)
         .round();
 
-    // IMPORTANT:
-    // This is the number of workouts,
-    // NOT the number of days.
+    // Number of workouts loaded
     final int totalWorkouts =
         _workouts.length;
 
@@ -721,12 +938,6 @@ class _WorkoutPlanScreenState
                 )
               else
                 Text(
-                  // Example:
-                  // 0/4 completed
-                  // 1/4 completed
-                  // 2/4 completed
-                  // 3/4 completed
-                  // 4/4 completed
                   totalWorkouts == 0
                       ? '0/0 completed'
                       : '$completedCount/$totalWorkouts completed',
@@ -751,8 +962,7 @@ class _WorkoutPlanScreenState
 
           Row(
             crossAxisAlignment:
-            CrossAxisAlignment
-                .center,
+            CrossAxisAlignment.center,
             children: [
               SizedBox(
                 width: 64,
@@ -810,8 +1020,7 @@ class _WorkoutPlanScreenState
                   overallProgress >=
                       1.0
                       ? 'Great job! You completed all today\'s workouts. Keep it up!'
-                      : overallProgress >
-                      0
+                      : overallProgress > 0
                       ? 'You\'re making progress. Complete your remaining workouts to stay on track.'
                       : 'Start your workout today. Every session supports liver health and cholesterol balance.',
                   style:
@@ -928,8 +1137,7 @@ class _WorkoutPlanScreenState
 
         child: Column(
           crossAxisAlignment:
-          CrossAxisAlignment
-              .start,
+          CrossAxisAlignment.start,
           children: [
             // ========================================================
             // IMAGE
@@ -992,8 +1200,7 @@ class _WorkoutPlanScreenState
                       BoxDecoration(
                         color: _green,
                         shape:
-                        BoxShape
-                            .circle,
+                        BoxShape.circle,
                         border:
                         Border.all(
                           color:
