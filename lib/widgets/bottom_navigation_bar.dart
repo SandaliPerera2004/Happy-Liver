@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/dashboard/daily%20routine/daily_routine_screen.dart';
 import '../screens/dashboard/profile_screen.dart';
+import '../screens/assessment/assessment_result_screen.dart';
+import '../services/assessment_firestore_service.dart';
 import '../settings.dart';
 
-class HappyLiverBottomNavBar extends StatelessWidget {
+class HappyLiverBottomNavBar extends StatefulWidget {
   final int selectedIndex;
   final bool isDarkMode;
   final Future<void> Function(bool) onThemeChanged;
@@ -17,27 +19,40 @@ class HappyLiverBottomNavBar extends StatelessWidget {
     required this.onThemeChanged,
   });
 
+  @override
+  State<HappyLiverBottomNavBar> createState() =>
+      _HappyLiverBottomNavBarState();
+}
+
+class _HappyLiverBottomNavBarState
+    extends State<HappyLiverBottomNavBar> {
   static const Color _green = Color(0xFF2DCB59);
   static const Color _gray = Color(0xFF9AA29D);
+
+  bool _isLoadingResults = false;
 
   // ================================================================
   // NAVIGATION
   // ================================================================
 
-  void _navigate(BuildContext context, int index) {
+  Future<void> _navigate(
+      BuildContext context,
+      int index,
+      ) async {
     // Already on this screen
-    if (index == selectedIndex) {
+    if (index == widget.selectedIndex) {
       return;
     }
 
     switch (index) {
+
     // ============================================================
-    // HOME
+    // ASSESSMENT RESULTS
     // ============================================================
 
       case 0:
-      // Dashboard will be connected later by Member 1.
-        return;
+        await _openAssessmentResults(context);
+        break;
 
     // ============================================================
     // DAILY ROUTINE
@@ -48,8 +63,8 @@ class HappyLiverBottomNavBar extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => DailyRoutineScreen(
-              isDarkMode: isDarkMode,
-              onThemeChanged: onThemeChanged,
+              isDarkMode: widget.isDarkMode,
+              onThemeChanged: widget.onThemeChanged,
             ),
           ),
         );
@@ -64,8 +79,8 @@ class HappyLiverBottomNavBar extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => UserProfileScreen(
-              isDarkMode: isDarkMode,
-              onThemeChanged: onThemeChanged,
+              isDarkMode: widget.isDarkMode,
+              onThemeChanged: widget.onThemeChanged,
             ),
           ),
         );
@@ -80,8 +95,8 @@ class HappyLiverBottomNavBar extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => SettingsScreen(
-              isDarkMode: isDarkMode,
-              onThemeChanged: onThemeChanged,
+              isDarkMode: widget.isDarkMode,
+              onThemeChanged: widget.onThemeChanged,
             ),
           ),
         );
@@ -93,6 +108,76 @@ class HappyLiverBottomNavBar extends StatelessWidget {
   }
 
   // ================================================================
+  // OPEN ASSESSMENT RESULTS
+  // ================================================================
+
+  Future<void> _openAssessmentResults(
+      BuildContext context,
+      ) async {
+    if (_isLoadingResults) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingResults = true;
+    });
+
+    try {
+      // Get latest assessment from Firestore
+      final result =
+      await AssessmentFirestoreService
+          .getLatestAssessmentResult();
+
+      if (!mounted) {
+        return;
+      }
+
+      // No assessment found
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No completed assessment found.',
+            ),
+          ),
+        );
+
+        return;
+      }
+
+      // Open Assessment Results screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AssessmentResultScreen(
+            result: result,
+            isDarkMode: widget.isDarkMode,
+            onThemeChanged: widget.onThemeChanged,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to load assessment results.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingResults = false;
+        });
+      }
+    }
+  }
+
+  // ================================================================
   // BUILD
   // ================================================================
 
@@ -100,13 +185,13 @@ class HappyLiverBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isDarkMode
+        color: widget.isDarkMode
             ? const Color(0xFF1E1E1E)
             : Colors.white,
 
         border: Border(
           top: BorderSide(
-            color: isDarkMode
+            color: widget.isDarkMode
                 ? Colors.white12
                 : Colors.black.withOpacity(0.06),
           ),
@@ -126,14 +211,15 @@ class HappyLiverBottomNavBar extends StatelessWidget {
             MainAxisAlignment.spaceAround,
 
             children: [
+
               // ======================================================
-              // HOME
+              // ASSESSMENT RESULTS
               // ======================================================
 
               _bottomItem(
                 context: context,
                 icon: Icons.home_outlined,
-                label: 'Home',
+                label: 'Result',
                 index: 0,
               ),
 
@@ -186,11 +272,12 @@ class HappyLiverBottomNavBar extends StatelessWidget {
     required String label,
     required int index,
   }) {
-    final bool selected = selectedIndex == index;
+    final bool selected =
+        widget.selectedIndex == index;
 
     final Color itemColor = selected
         ? _green
-        : isDarkMode
+        : widget.isDarkMode
         ? Colors.white60
         : _gray;
 
