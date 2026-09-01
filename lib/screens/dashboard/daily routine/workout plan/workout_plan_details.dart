@@ -173,7 +173,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           backgroundColor: isDarkMode
               ? _darkBackground
               : _lightBackground,
-
           body: SafeArea(
             child: Column(
               children: [
@@ -188,7 +187,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                   ),
                   child: Row(
                     children: [
-                      // Back button
                       GestureDetector(
                         onTap: () {
                           Navigator.pop(context);
@@ -221,7 +219,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         ),
                       ),
 
-                      // Bookmark
                       Container(
                         width: 38,
                         height: 38,
@@ -299,8 +296,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             crossAxisAlignment:
                             CrossAxisAlignment.start,
                             children: [
-                              // TITLE + DURATION
-
                               Row(
                                 crossAxisAlignment:
                                 CrossAxisAlignment.center,
@@ -320,8 +315,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                   ),
 
                                   const SizedBox(width: 8),
-
-                                  // Duration
 
                                   Container(
                                     padding:
@@ -432,7 +425,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                     const Icon(
                                       Icons.favorite,
                                       size: 13,
-                                      color: Color(0xFF6755E8),
+                                      color:
+                                      Color(0xFF6755E8),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -470,6 +464,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                   widget.workout
                                       .instructions[index],
                                   isDarkMode,
+                                  isLast: index ==
+                                      widget.workout
+                                          .instructions
+                                          .length -
+                                          1,
                                 );
                               },
                             ),
@@ -486,14 +485,21 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         _buildSectionCard(
                           title: 'Benefits',
                           child: Column(
-                            children: widget.workout.benefits
-                                .map(
-                                  (benefit) => _benefit(
-                                benefit,
-                                isDarkMode,
-                              ),
-                            )
-                                .toList(),
+                            children: List.generate(
+                              widget.workout.benefits.length,
+                                  (index) {
+                                return _benefit(
+                                  widget.workout
+                                      .benefits[index],
+                                  isDarkMode,
+                                  isLast: index ==
+                                      widget.workout
+                                          .benefits
+                                          .length -
+                                          1,
+                                );
+                              },
+                            ),
                           ),
                           isDarkMode: isDarkMode,
                         ),
@@ -523,12 +529,16 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                 MaterialPageRoute(
                                   builder: (_) =>
                                       ExerciseTimerScreen(
-                                        workoutId: widget.workout.id,
-                                        workoutName: widget.workout.name,
-                                        totalDuration: Duration(
-                                          minutes: widget.workout.duration,
+                                        workoutId:
+                                        widget.workout.id,
+                                        workoutName:
+                                        widget.workout.name,
+                                        totalDuration:
+                                        Duration(
+                                          minutes: widget.workout
+                                              .duration,
                                         ),
-                                      )
+                                      ),
                                 ),
                               );
                             },
@@ -762,27 +772,37 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   Widget _instruction(
       String number,
       String text,
-      bool isDarkMode,
-      ) {
+      bool isDarkMode, {
+        bool isLast = false,
+      }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 1),
+      padding: EdgeInsets.only(
+        bottom: isLast ? 0 : 7,
+      ),
       child: Row(
         crossAxisAlignment:
         CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 20,
-            height: 15,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFE9F9EE),
-            ),
-            child: Center(
+          // --------------------------------------------------------
+          // FIXED NUMBER COLUMN
+          // --------------------------------------------------------
+
+          SizedBox(
+            width: 22,
+            height: 20,
+            child: Container(
+              width: 20,
+              height: 20,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFE9F9EE),
+              ),
               child: Text(
                 number,
                 style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
                   color: _green,
                 ),
               ),
@@ -791,11 +811,17 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
           const SizedBox(width: 8),
 
+          // --------------------------------------------------------
+          // TEXT
+          // --------------------------------------------------------
+
           Expanded(
             child: Text(
               text,
+              textAlign: TextAlign.left,
               style: TextStyle(
                 fontSize: 12,
+                height: 1.35,
                 color: isDarkMode
                     ? _darkSecondaryText
                     : _lightSecondaryText,
@@ -813,27 +839,47 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
   Widget _benefit(
       String text,
-      bool isDarkMode,
-      ) {
+      bool isDarkMode, {
+        bool isLast = false,
+      }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: EdgeInsets.only(
+        bottom: isLast ? 0 : 7,
+      ),
       child: Row(
         crossAxisAlignment:
         CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.check_circle,
-            size: 15,
-            color: _green,
+          // --------------------------------------------------------
+          // FIXED ICON COLUMN
+          // --------------------------------------------------------
+
+          SizedBox(
+            width: 22,
+            height: 20,
+            child: const Align(
+              alignment: Alignment.topLeft,
+              child: Icon(
+                Icons.check_circle,
+                size: 20,
+                color: _green,
+              ),
+            ),
           ),
 
           const SizedBox(width: 8),
 
+          // --------------------------------------------------------
+          // TEXT
+          // --------------------------------------------------------
+
           Expanded(
             child: Text(
               text,
+              textAlign: TextAlign.left,
               style: TextStyle(
                 fontSize: 12,
+                height: 1.35,
                 color: isDarkMode
                     ? _darkSecondaryText
                     : _lightSecondaryText,
