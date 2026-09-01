@@ -11,6 +11,9 @@ class UserModel {
   final double? bmi;
   final DateTime? createdAt;
 
+  // NEW
+  final bool assessmentCompleted;
+
   UserModel({
     required this.uid,
     required this.username,
@@ -21,6 +24,9 @@ class UserModel {
     this.weight,
     this.bmi,
     this.createdAt,
+
+    // NEW
+    this.assessmentCompleted = false,
   });
 
   factory UserModel.fromFirestore(
@@ -38,6 +44,10 @@ class UserModel {
       weight: (data['weight'] as num?)?.toDouble(),
       bmi: (data['bmi'] as num?)?.toDouble(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+
+      // NEW
+      assessmentCompleted:
+      data['assessmentCompleted'] ?? false,
     );
   }
 
@@ -51,6 +61,9 @@ class UserModel {
       'weight': weight,
       'bmi': bmi,
       'createdAt': createdAt,
+
+      // NEW
+      'assessmentCompleted': assessmentCompleted,
     };
   }
 }

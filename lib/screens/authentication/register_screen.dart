@@ -94,6 +94,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'username': usernameController.text.trim(),
         'email': emailController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
+
+        // Assessment has not been completed yet
+        'assessmentCompleted': false,
       });
 
       if (!mounted) return;

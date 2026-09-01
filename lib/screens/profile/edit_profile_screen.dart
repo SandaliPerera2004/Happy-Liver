@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../dashboard/daily routine/daily_routine_screen.dart';
 import '../../../services/user_service.dart';
@@ -43,8 +46,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   final UserService _userService = UserService();
 
+  final ImagePicker _imagePicker = ImagePicker();
+
   String _gender = 'Female';
   bool _isSaving = false;
+
+  // ================================================================
+  // PROFILE IMAGE
+  // ================================================================
+
+  File? _profileImage;
 
   // ================================================================
   // BMI
@@ -63,8 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final heightInMeters = height / 100;
 
-    return weight /
-        (heightInMeters * heightInMeters);
+    return weight / (heightInMeters * heightInMeters);
   }
 
   // ================================================================
@@ -102,8 +112,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _nameController.text = user.username;
 
         if (user.age != null) {
-          _ageController.text =
-              user.age.toString();
+          _ageController.text = user.age.toString();
         }
 
         if (user.height != null) {
@@ -129,6 +138,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         SnackBar(
           content: Text(
             'Failed to load profile: $e',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ================================================================
+  // CHANGE PROFILE PHOTO
+  // ================================================================
+
+  Future<void> _changeProfilePhoto() async {
+    try {
+      final XFile? pickedFile =
+      await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
+
+      if (pickedFile == null) {
+        return;
+      }
+
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to select photo: $e',
           ),
         ),
       );
@@ -244,10 +287,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ? _darkBackground
           : const Color(0xFFF5F6F8),
 
-      // =========================================================
-      // BODY
-      // =========================================================
-
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -303,10 +342,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ),
 
-      // =========================================================
-      // SHARED BOTTOM NAVIGATION
-      // =========================================================
-
       bottomNavigationBar:
       HappyLiverBottomNavBar(
         selectedIndex: 2,
@@ -329,6 +364,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _weightController.text = '65';
 
       _gender = 'Female';
+
+      // Reset selected profile image
+      _profileImage = null;
     });
   }
 
@@ -383,45 +421,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildAvatar() {
     return Column(
       children: [
-        Stack(
-          children: [
-            Container(
-              width: 96,
-              height: 96,
+        GestureDetector(
+          onTap: _changeProfilePhoto,
+          child: Stack(
+            children: [
+              Container(
+                width: 96,
+                height: 96,
 
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
 
-                border: Border.all(
-                  color: Colors.white,
-                  width: 3,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 3,
+                  ),
+
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                      Colors.black.withOpacity(0.08),
+                      blurRadius: 8,
+                    ),
+                  ],
                 ),
 
-                image: const DecorationImage(
-                  image: AssetImage(
+                child: ClipOval(
+                  child: _profileImage != null
+                      ? Image.file(
+                    _profileImage!,
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                  )
+                      : Image.asset(
                     'assets/images/profile_image.png',
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
                   ),
-                  fit: BoxFit.cover,
                 ),
-
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                    Colors.black.withOpacity(0.08),
-                    blurRadius: 8,
-                  ),
-                ],
               ),
-            ),
 
-            Positioned(
-              bottom: 0,
-              right: 0,
-
-              child: GestureDetector(
-                onTap: () {
-                  // Handle photo change
-                },
+              Positioned(
+                bottom: 0,
+                right: 0,
 
                 child: Container(
                   width: 30,
@@ -432,9 +476,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     shape: BoxShape.circle,
 
                     border: Border.all(
-                      color: const Color(
-                        0xFFE5EAE7,
-                      ),
+                      color:
+                      const Color(0xFFE5EAE7),
                     ),
                   ),
 
@@ -445,19 +488,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
 
         const SizedBox(height: 10),
 
-        Text(
-          'Tap to change photo',
-          style: TextStyle(
-            fontSize: 13,
-            color: widget.isDarkMode
-                ? Colors.white60
-                : _grayText,
+        GestureDetector(
+          onTap: _changeProfilePhoto,
+          child: Text(
+            'Tap to change photo',
+            style: TextStyle(
+              fontSize: 13,
+              color: widget.isDarkMode
+                  ? Colors.white60
+                  : _grayText,
+            ),
           ),
         ),
       ],

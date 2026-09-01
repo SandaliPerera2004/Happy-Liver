@@ -20,6 +20,7 @@ import 'package:happy_liver/screens/profile/edit_profile_screen.dart';
 import 'package:happy_liver/screens/settings/notification_screen.dart';
 import 'package:happy_liver/screens/settings/help_feedback_submitted_screen.dart';
 import 'package:happy_liver/screens/settings/about_us_screen.dart';
+import 'package:happy_liver/screens/start/app_start_screen.dart';
 
 import 'models/app_settings_model.dart';
 import 'services/app_settings_service.dart';
@@ -181,7 +182,7 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
       ),
 
       // Member 1's SplashScreen
-      home: SplashScreen(),
+      home: const AppStartScreen(),
     );
   }
 }
