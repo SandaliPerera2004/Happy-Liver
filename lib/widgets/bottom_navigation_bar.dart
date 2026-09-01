@@ -219,7 +219,7 @@ class _HappyLiverBottomNavBarState
               _bottomItem(
                 context: context,
                 icon: Icons.home_outlined,
-                label: 'Result',
+                label: 'Home',
                 index: 0,
               ),
 
