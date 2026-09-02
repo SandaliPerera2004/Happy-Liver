@@ -37,13 +37,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   UserModel? _user;
   bool _isLoading = true;
 
+  // ================================================================
+  // PROFILE IMAGE URL
+  // ================================================================
+
+  String? _profileImageUrl;
+
   @override
   void initState() {
     super.initState();
 
-    // Make sure the global theme controller starts
-    // with the theme received by this screen.
-    ThemeController.isDarkMode.value = widget.isDarkMode;
+    ThemeController.isDarkMode.value =
+        widget.isDarkMode;
 
     _loadUserProfile();
   }
@@ -56,17 +61,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     print('LOAD USER PROFILE CALLED');
 
     try {
-      final user = await _userService.getCurrentUserProfile();
+      final user =
+      await _userService.getCurrentUserProfile();
 
       print('USER RESULT: $user');
+
+      // Load profile picture URL
+      final imageUrl =
+      await _userService.getProfilePictureUrl();
+
+      print('PROFILE IMAGE URL: $imageUrl');
 
       if (!mounted) return;
 
       setState(() {
         _user = user;
+        _profileImageUrl = imageUrl;
         _isLoading = false;
       });
     } catch (e) {
+      print('PROFILE LOAD ERROR: $e');
+
       if (!mounted) return;
 
       setState(() {
@@ -75,7 +90,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load profile: $e'),
+          content: Text(
+            'Failed to load profile: $e',
+          ),
         ),
       );
     }
@@ -88,30 +105,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: ThemeController.isDarkMode,
-      builder: (context, isDarkMode, child) {
-        return Scaffold(
-          // =========================================================
-          // BACKGROUND
-          // =========================================================
+      valueListenable:
+      ThemeController.isDarkMode,
 
+      builder: (
+          context,
+          isDarkMode,
+          child,
+          ) {
+        return Scaffold(
           backgroundColor: isDarkMode
               ? _darkBackground
               : const Color(0xFFF5F6F8),
 
-          // =========================================================
-          // BODY
-          // =========================================================
-
           body: SafeArea(
             bottom: false,
+
             child: Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 20),
+                    padding:
+                    const EdgeInsets.only(
+                      bottom: 20,
+                    ),
+
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment:
+                      CrossAxisAlignment.stretch,
+
                       children: [
                         // =================================================
                         // HEADER
@@ -127,23 +149,30 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         // =================================================
 
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(
+                          padding:
+                          const EdgeInsets.fromLTRB(
                             _hPad,
                             24,
                             _hPad,
                             0,
                           ),
+
                           child: Column(
                             crossAxisAlignment:
                             CrossAxisAlignment.stretch,
+
                             children: [
                               // =================================================
                               // STATS
                               // =================================================
 
-                              _buildStatsRow(isDarkMode),
+                              _buildStatsRow(
+                                isDarkMode,
+                              ),
 
-                              const SizedBox(height: 26),
+                              const SizedBox(
+                                height: 26,
+                              ),
 
                               // =================================================
                               // ACCOUNT SETTINGS TITLE
@@ -151,16 +180,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                               Text(
                                 'Account Settings',
+
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight:
+                                  FontWeight.w700,
+
                                   color: isDarkMode
                                       ? Colors.white
                                       : _darkText,
                                 ),
                               ),
 
-                              const SizedBox(height: 12),
+                              const SizedBox(
+                                height: 12,
+                              ),
 
                               // =================================================
                               // ACCOUNT SETTINGS CARD
@@ -182,18 +216,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
 
           // =========================================================
-          // SHARED BOTTOM NAVIGATION
+          // BOTTOM NAVIGATION
           // =========================================================
 
-          bottomNavigationBar: HappyLiverBottomNavBar(
+          bottomNavigationBar:
+          HappyLiverBottomNavBar(
             selectedIndex: 2,
 
-            // IMPORTANT:
-            // Use the current ValueNotifier value,
-            // NOT widget.isDarkMode.
             isDarkMode: isDarkMode,
 
-            onThemeChanged: widget.onThemeChanged,
+            onThemeChanged:
+            widget.onThemeChanged,
           ),
         );
       },
@@ -216,10 +249,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         bottom: 28,
       ),
 
-      decoration: const BoxDecoration(
+      decoration:
+      const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+
           colors: [
             _darkGreen,
             _green,
@@ -237,24 +272,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             width: 96,
             height: 96,
 
-            decoration: BoxDecoration(
+            decoration:
+            BoxDecoration(
               shape: BoxShape.circle,
 
               border: Border.all(
                 color: Colors.black,
                 width: 3,
               ),
+            ),
 
-              image: const DecorationImage(
-                image: AssetImage(
-                  'assets/images/profile_image.png',
-                ),
-                fit: BoxFit.cover,
-              ),
+            child: ClipOval(
+              child:
+              _buildProfileImage(),
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(
+            height: 14,
+          ),
 
           // =========================================================
           // USERNAME
@@ -262,47 +298,66 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
           Text(
             _user?.username ?? 'User',
+
             style: const TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontWeight:
+              FontWeight.w900,
               color: Colors.white,
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(
+            height: 12,
+          ),
 
           // =========================================================
           // EDIT PROFILE BUTTON
           // =========================================================
 
           GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
+
                 MaterialPageRoute(
-                  builder: (_) => EditProfileScreen(
-                    // IMPORTANT:
-                    // Pass the CURRENT theme value.
-                    isDarkMode: isDarkMode,
-                    onThemeChanged: widget.onThemeChanged,
-                  ),
+                  builder: (_) =>
+                      EditProfileScreen(
+                        isDarkMode:
+                        isDarkMode,
+
+                        onThemeChanged:
+                        widget.onThemeChanged,
+                      ),
                 ),
               );
+
+              // Reload profile when returning
+              // from Edit Profile screen.
+              _loadUserProfile();
             },
 
             child: Container(
-              padding: const EdgeInsets.symmetric(
+              padding:
+              const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 10,
               ),
 
-              decoration: BoxDecoration(
+              decoration:
+              BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+
+                borderRadius:
+                BorderRadius.circular(
+                  30,
+                ),
               ),
 
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize:
+                MainAxisSize.min,
+
                 children: [
                   Image.asset(
                     'assets/images/Edit.png',
@@ -310,13 +365,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     height: 16,
                   ),
 
-                  const SizedBox(width: 8),
+                  const SizedBox(
+                    width: 8,
+                  ),
 
                   const Text(
                     'Edit Profile',
+
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight:
+                      FontWeight.w600,
                       color: _darkGreen,
                     ),
                   ),
@@ -330,30 +389,97 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   // ================================================================
+  // PROFILE IMAGE
+  // ================================================================
+
+  Widget _buildProfileImage() {
+    // --------------------------------------------------------------
+    // USER HAS A PROFILE IMAGE
+    // --------------------------------------------------------------
+
+    if (_profileImageUrl != null &&
+        _profileImageUrl!.trim().isNotEmpty) {
+      return Image.network(
+        _profileImageUrl!,
+
+        width: 96,
+        height: 96,
+
+        fit: BoxFit.cover,
+
+        // If the URL fails, show default image.
+        errorBuilder: (
+            context,
+            error,
+            stackTrace,
+            ) {
+          return Image.asset(
+            'assets/images/profile_image.png',
+
+            width: 96,
+            height: 96,
+
+            fit: BoxFit.cover,
+          );
+        },
+      );
+    }
+
+    // --------------------------------------------------------------
+    // NO PROFILE IMAGE
+    // --------------------------------------------------------------
+
+    return Image.asset(
+      'assets/images/profile_image.png',
+
+      width: 96,
+      height: 96,
+
+      fit: BoxFit.cover,
+    );
+  }
+
+  // ================================================================
   // STATS ROW
   // ================================================================
 
-  Widget _buildStatsRow(bool isDarkMode) {
+  Widget _buildStatsRow(
+      bool isDarkMode,
+      ) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+
       children: [
         Expanded(
           child: _statCard(
-            imageAsset: 'assets/images/weekly.png',
+            imageAsset:
+            'assets/images/weekly.png',
+
             label: 'WEEKLY REPORT',
+
             value: '85%',
-            isDarkMode: isDarkMode,
+
+            isDarkMode:
+            isDarkMode,
           ),
         ),
 
-        const SizedBox(width: 14),
+        const SizedBox(
+          width: 14,
+        ),
 
         Expanded(
           child: _statCard(
-            imageAsset: 'assets/images/target.png',
+            imageAsset:
+            'assets/images/target.png',
+
             label: 'ACHIEVED GOALS',
+
             value: '12/15',
-            isDarkMode: isDarkMode,
+
+            isDarkMode:
+            isDarkMode,
           ),
         ),
       ],
@@ -371,30 +497,38 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     required bool isDarkMode,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding:
+      const EdgeInsets.all(16),
 
-      decoration: BoxDecoration(
+      decoration:
+      BoxDecoration(
         color: isDarkMode
             ? _darkCard
             : Colors.white,
 
-        borderRadius: BorderRadius.circular(18),
+        borderRadius:
+        BorderRadius.circular(18),
 
         boxShadow: [
           BoxShadow(
             color: isDarkMode
-                ? Colors.black.withOpacity(0.25)
-                : Colors.black.withOpacity(0.05),
+                ? Colors.black
+                .withOpacity(0.25)
+                : Colors.black
+                .withOpacity(0.05),
 
             blurRadius: 10,
 
-            offset: const Offset(0, 4),
+            offset:
+            const Offset(0, 4),
           ),
         ],
       ),
 
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+
         children: [
           Image.asset(
             imageAsset,
@@ -402,27 +536,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             height: 70,
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(
+            height: 14,
+          ),
 
           Text(
             label,
+
             style: TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w800,
+              fontWeight:
+              FontWeight.w800,
               letterSpacing: 0.4,
+
               color: isDarkMode
                   ? Colors.white70
                   : _grayText,
             ),
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(
+            height: 4,
+          ),
 
           Text(
             value,
+
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight:
+              FontWeight.w800,
+
               color: isDarkMode
                   ? Colors.white
                   : _darkText,
@@ -442,22 +586,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       bool isDarkMode,
       ) {
     return Container(
-      decoration: BoxDecoration(
+      decoration:
+      BoxDecoration(
         color: isDarkMode
             ? _darkCard
             : Colors.white,
 
-        borderRadius: BorderRadius.circular(18),
+        borderRadius:
+        BorderRadius.circular(18),
 
         boxShadow: [
           BoxShadow(
             color: isDarkMode
-                ? Colors.black.withOpacity(0.25)
-                : Colors.black.withOpacity(0.05),
+                ? Colors.black
+                .withOpacity(0.25)
+                : Colors.black
+                .withOpacity(0.05),
 
             blurRadius: 10,
 
-            offset: const Offset(0, 4),
+            offset:
+            const Offset(0, 4),
           ),
         ],
       ),
@@ -469,21 +618,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           // ========================================================
 
           _settingsRow(
-            iconAsset: 'assets/images/change.png',
-            iconBg: const Color(0xFFE9F9EE),
-            label: 'Change Password',
-            isDarkMode: isDarkMode,
+            iconAsset:
+            'assets/images/change.png',
+
+            iconBg:
+            const Color(0xFFE9F9EE),
+
+            label:
+            'Change Password',
+
+            isDarkMode:
+            isDarkMode,
 
             onTap: () {
               Navigator.push(
                 context,
+
                 MaterialPageRoute(
-                  builder: (_) => ChangePasswordScreen(
-                    // IMPORTANT:
-                    // Pass CURRENT theme value.
-                    isDarkMode: isDarkMode,
-                    onThemeChanged: widget.onThemeChanged,
-                  ),
+                  builder: (_) =>
+                      ChangePasswordScreen(
+                        isDarkMode:
+                        isDarkMode,
+
+                        onThemeChanged:
+                        widget.onThemeChanged,
+                      ),
                 ),
               );
             },
@@ -493,6 +652,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             height: 1,
             indent: 16,
             endIndent: 16,
+
             color: isDarkMode
                 ? Colors.white12
                 : Colors.grey.shade200,
@@ -503,10 +663,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           // ========================================================
 
           _settingsRow(
-            iconAsset: 'assets/images/crown.png',
-            iconBg: const Color(0xFFFFF6DE),
-            label: 'Premium Features',
-            isDarkMode: isDarkMode,
+            iconAsset:
+            'assets/images/crown.png',
+
+            iconBg:
+            const Color(0xFFFFF6DE),
+
+            label:
+            'Premium Features',
+
+            isDarkMode:
+            isDarkMode,
 
             onTap: () {
               // Navigate to Premium Features screen
@@ -517,6 +684,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             height: 1,
             indent: 16,
             endIndent: 16,
+
             color: isDarkMode
                 ? Colors.white12
                 : Colors.grey.shade200,
@@ -527,11 +695,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           // ========================================================
 
           _settingsRow(
-            iconAsset: 'assets/images/logout.png',
-            iconBg: const Color(0xFFFCEAEA),
-            label: 'Log Out',
-            labelColor: const Color(0xFFE3453A),
-            isDarkMode: isDarkMode,
+            iconAsset:
+            'assets/images/logout.png',
+
+            iconBg:
+            const Color(0xFFFCEAEA),
+
+            label:
+            'Log Out',
+
+            labelColor:
+            const Color(0xFFE3453A),
+
+            isDarkMode:
+            isDarkMode,
 
             onTap: () {
               // Handle logout
@@ -557,10 +734,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return InkWell(
       onTap: onTap,
 
-      borderRadius: BorderRadius.circular(18),
+      borderRadius:
+      BorderRadius.circular(18),
 
       child: Padding(
-        padding: const EdgeInsets.symmetric(
+        padding:
+        const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 14,
         ),
@@ -575,9 +754,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               width: 36,
               height: 36,
 
-              decoration: BoxDecoration(
+              decoration:
+              BoxDecoration(
                 color: iconBg,
-                borderRadius: BorderRadius.circular(10),
+
+                borderRadius:
+                BorderRadius.circular(
+                  10,
+                ),
               ),
 
               child: Center(
@@ -589,7 +773,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(
+              width: 12,
+            ),
 
             // =======================================================
             // LABEL
@@ -601,7 +787,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight:
+                  FontWeight.w600,
 
                   color: labelColor ??
                       (isDarkMode

@@ -57,6 +57,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   File? _profileImage;
 
+  String? _profileImageUrl;
+
   // ================================================================
   // BMI
   // ================================================================
@@ -108,11 +110,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (!mounted || user == null) return;
 
+      final imageUrl =
+      await _userService.getProfilePictureUrl();
+
+      if (!mounted) return;
+
       setState(() {
         _nameController.text = user.username;
 
         if (user.age != null) {
-          _ageController.text = user.age.toString();
+          _ageController.text =
+              user.age.toString();
         }
 
         if (user.height != null) {
@@ -130,6 +138,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 user.gender == 'Female')) {
           _gender = user.gender!;
         }
+
+        _profileImageUrl = imageUrl;
       });
     } catch (e) {
       if (!mounted) return;
@@ -163,7 +173,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       setState(() {
-        _profileImage = File(pickedFile.path);
+        _profileImage =
+            File(pickedFile.path);
       });
     } catch (e) {
       if (!mounted) return;
@@ -223,6 +234,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
+      // ------------------------------------------------------------
+      // UPDATE PROFILE INFORMATION
+      // ------------------------------------------------------------
+
       await _userService.updateUserProfile(
         username: name,
         age: age,
@@ -231,6 +246,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         weight: weight,
         bmi: _bmi,
       );
+
+      // ------------------------------------------------------------
+      // UPLOAD PROFILE PICTURE
+      // ------------------------------------------------------------
+
+      if (_profileImage != null) {
+        final uploadedImageUrl =
+        await _userService.uploadProfilePicture(
+          _profileImage!,
+        );
+
+        _profileImageUrl =
+            uploadedImageUrl;
+      }
 
       if (!mounted) return;
 
@@ -365,7 +394,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       _gender = 'Female';
 
-      // Reset selected profile image
       _profileImage = null;
     });
   }
@@ -423,6 +451,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       children: [
         GestureDetector(
           onTap: _changeProfilePhoto,
+
           child: Stack(
             children: [
               Container(
@@ -453,6 +482,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     width: 96,
                     height: 96,
                     fit: BoxFit.cover,
+                  )
+                      : _profileImageUrl != null &&
+                      _profileImageUrl!
+                          .isNotEmpty
+                      ? Image.network(
+                    _profileImageUrl!,
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (
+                        context,
+                        error,
+                        stackTrace,
+                        ) {
+                      return Image.asset(
+                        'assets/images/profile_image.png',
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                      );
+                    },
                   )
                       : Image.asset(
                     'assets/images/profile_image.png',
@@ -496,6 +547,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         GestureDetector(
           onTap: _changeProfilePhoto,
+
           child: Text(
             'Tap to change photo',
             style: TextStyle(
@@ -687,6 +739,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const EdgeInsets.only(
                   bottom: 3,
                 ),
+
                 child: Text(
                   'kg/m²',
                   style: TextStyle(
@@ -818,8 +871,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black
-                .withOpacity(
+            color: Colors.black.withOpacity(
               widget.isDarkMode
                   ? 0.25
                   : 0.05,
