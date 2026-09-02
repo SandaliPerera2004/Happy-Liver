@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/notification_settings_model.dart';
 import '../../services/notification_settings_service.dart';
 
+
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -299,6 +300,7 @@ class _NotificationSettingsScreenState
             }
                 : (_) {},
           ),
+          const SizedBox(height: 10),
         ],
       ),
     );
