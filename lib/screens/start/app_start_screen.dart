@@ -37,60 +37,26 @@ class _AppStartScreenState extends State<AppStartScreen> {
 
     if (!mounted) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-
     // =========================================================
-    // RETURNING LOGGED-IN USER
-    // =========================================================
-
-    if (user != null) {
-      await _routeLoggedInUser(user);
-      return;
-    }
-
-    // =========================================================
-    // USER IS NOT LOGGED IN
+    // TEMPORARY TESTING FLOW
+    // Always start from the beginning
     // =========================================================
 
-    final prefs =
-    await SharedPreferences.getInstance();
-
-    final languageSelected =
-        prefs.getBool('languageSelected') ?? false;
-
-    if (!mounted) return;
-
-    // =========================================================
-    // LANGUAGE NOT SELECTED
-    // =========================================================
-
-    if (!languageSelected) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-          const LanguageSelectionScreen(),
-        ),
-      );
-    }
-
-    // =========================================================
-    // LANGUAGE ALREADY SELECTED
-    // =========================================================
-
-    else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-          const LoginScreen(),
-        ),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+        const LanguageSelectionScreen(),
+      ),
+    );
   }
 
   // =========================================================
   // ROUTE LOGGED-IN USER
+  // =========================================================
+  // KEPT FOR LATER
+  // This is temporarily not called while testing
+  // the complete first-time user flow.
   // =========================================================
 
   Future<void> _routeLoggedInUser(User user) async {
@@ -137,13 +103,6 @@ class _AppStartScreenState extends State<AppStartScreen> {
       // =======================================================
       // ASSESSMENT COMPLETED
       // =======================================================
-      //
-      // IMPORTANT:
-      // Do NOT go to DashboardScreen here.
-      //
-      // Get the latest assessment result and open
-      // AssessmentResultScreen directly.
-      // =======================================================
 
       if (assessmentCompleted) {
         final result =
@@ -163,11 +122,7 @@ class _AppStartScreenState extends State<AppStartScreen> {
               builder: (context) =>
                   AssessmentResultScreen(
                     result: result,
-
-                    // Change these if you already have a
-                    // different theme controller.
                     isDarkMode: false,
-
                     onThemeChanged:
                         (bool value) async {
                       // Theme callback
@@ -184,9 +139,6 @@ class _AppStartScreenState extends State<AppStartScreen> {
         // ASSESSMENT FLAG EXISTS BUT RESULT NOT FOUND
         // =====================================================
 
-        // This protects the app from getting stuck if the
-        // user document says completed but the assessment
-        // document is missing.
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -220,10 +172,6 @@ class _AppStartScreenState extends State<AppStartScreen> {
 
       // =======================================================
       // FALLBACK
-      // =======================================================
-      //
-      // If Firestore fails, send the user to assessment
-      // instead of incorrectly showing an old dashboard.
       // =======================================================
 
       Navigator.pushAndRemoveUntil(

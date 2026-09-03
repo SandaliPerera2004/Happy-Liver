@@ -17,11 +17,16 @@ class NotificationSettingsModel {
     };
   }
 
-  factory NotificationSettingsModel.fromMap(Map<String, dynamic> map) {
+  factory NotificationSettingsModel.fromMap(
+      Map<String, dynamic> map,
+      ) {
     return NotificationSettingsModel(
-      allowNotifications: map['allowNotifications'] ?? true,
-      healthTips: map['healthTips'] ?? true,
-      routineReminder: map['routineReminder'] ?? true,
+      allowNotifications:
+      map['allowNotifications'] ?? true,
+      healthTips:
+      map['healthTips'] ?? true,
+      routineReminder:
+      map['routineReminder'] ?? true,
     );
   }
 }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../dashboard/dashboard_screen.dart';
+import 'package:happy_liver/screens/dashboard/dashboard_screen.dart';
+
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
@@ -28,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool obscurePassword = true;
   bool isLoading = false;
 
-  // Google Sign-In initialization
   late Future<void> googleSignInInitialization;
 
   @override
@@ -51,208 +50,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ============================================================
   // ROUTE USER AFTER LOGIN
+  // TEMPORARY TESTING MODE
   // ============================================================
 
   Future<void> routeUserAfterLogin() async {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      throw Exception('No authenticated user found.');
+      throw Exception(
+        'No authenticated user found.',
+      );
     }
 
     debugPrint('====================================');
-    debugPrint('CHECKING USER AFTER LOGIN');
+    debugPrint('LOGIN SUCCESS');
     debugPrint('UID: ${user.uid}');
     debugPrint('EMAIL: ${user.email}');
+    debugPrint('TEMPORARY TESTING MODE');
+    debugPrint('ROUTING TO DASHBOARD');
     debugPrint('====================================');
 
-    try {
-      // ----------------------------------------------------------
-      // GET USER DOCUMENT
-      // ----------------------------------------------------------
+    if (!mounted) return;
 
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      debugPrint('USER DOCUMENT EXISTS: ${userDoc.exists}');
-      debugPrint('USER DATA: ${userDoc.data()}');
-
-      // ----------------------------------------------------------
-      // USER DOCUMENT EXISTS
-      // ----------------------------------------------------------
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-
-        final assessmentCompleted =
-        data?['assessmentCompleted'];
-
-        debugPrint(
-          'assessmentCompleted: $assessmentCompleted',
-        );
-
-        // --------------------------------------------------------
-        // CASE 1:
-        // ASSESSMENT COMPLETED
-        // --------------------------------------------------------
-
-        if (assessmentCompleted == true) {
-          debugPrint(
-            'EXISTING USER - ASSESSMENT COMPLETED',
-          );
-
-          if (!mounted) return;
-
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-              const DashboardScreen(),
-            ),
-                (route) => false,
-          );
-
-          return;
-        }
-
-        // --------------------------------------------------------
-        // CASE 2:
-        // ASSESSMENT NOT COMPLETED
-        // --------------------------------------------------------
-
-        if (assessmentCompleted == false) {
-          debugPrint(
-            'USER HAS NOT COMPLETED ASSESSMENT',
-          );
-
-          if (!mounted) return;
-
-          // TODO:
-          // Replace DashboardScreen with your actual
-          // assessment intro/start screen when ready.
-
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-              const DashboardScreen(),
-            ),
-                (route) => false,
-          );
-
-          return;
-        }
-
-        // --------------------------------------------------------
-        // CASE 3:
-        // FIELD DOES NOT EXIST
-        // --------------------------------------------------------
-
-        debugPrint(
-          'assessmentCompleted FIELD NOT FOUND',
-        );
-      }
-
-      // ----------------------------------------------------------
-      // FALLBACK FOR EXISTING USERS
-      // ----------------------------------------------------------
-      //
-      // This handles users who already completed an assessment
-      // before the assessmentCompleted field was introduced.
-      //
-      // We check:
-      //
-      // users/{uid}/assessments
-      //
-      // ----------------------------------------------------------
-
-      debugPrint(
-        'CHECKING ASSESSMENT SUBCOLLECTION...',
-      );
-
-      final assessmentSnapshot =
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('assessments')
-          .limit(1)
-          .get();
-
-      debugPrint(
-        'ASSESSMENT COUNT FOUND: '
-            '${assessmentSnapshot.docs.length}',
-      );
-
-      // --------------------------------------------------------
-      // ASSESSMENT EXISTS
-      // --------------------------------------------------------
-
-      if (assessmentSnapshot.docs.isNotEmpty) {
-        debugPrint(
-          'EXISTING USER - ASSESSMENT FOUND',
-        );
-
-        if (!mounted) return;
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-            const DashboardScreen(),
-          ),
-              (route) => false,
-        );
-
-        return;
-      }
-
-      // --------------------------------------------------------
-      // NO ASSESSMENT FOUND
-      // --------------------------------------------------------
-
-      debugPrint(
-        'NO ASSESSMENT FOUND FOR THIS USER',
-      );
-
-      if (!mounted) return;
-
-      // TODO:
-      // Replace DashboardScreen with your actual
-      // assessment intro/start screen when ready.
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-          const DashboardScreen(),
-        ),
-            (route) => false,
-      );
-    } catch (e, stackTrace) {
-      debugPrint(
-        '====================================',
-      );
-      debugPrint(
-        'ERROR WHILE CHECKING USER',
-      );
-      debugPrint('ERROR: $e');
-      debugPrint('STACK TRACE: $stackTrace');
-      debugPrint(
-        '====================================',
-      );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to load your account. Please try again.',
-          ),
-        ),
-      );
-    }
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+        const DashboardScreen(),
+      ),
+          (route) => false,
+    );
   }
 
   // ============================================================
@@ -269,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       );
+
       return;
     }
 
@@ -277,10 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // ----------------------------------------------------------
-      // SIGN IN
-      // ----------------------------------------------------------
-
       await FirebaseAuth.instance
           .signInWithEmailAndPassword(
         email: emailController.text.trim(),
@@ -298,10 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
-
-      // ----------------------------------------------------------
-      // CHECK USER STATUS AND ROUTE
-      // ----------------------------------------------------------
 
       await routeUserAfterLogin();
     } on FirebaseAuthException catch (e) {
@@ -381,29 +201,13 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // ----------------------------------------------------------
-      // 1. Initialize Google Sign-In
-      // ----------------------------------------------------------
-
       await googleSignInInitialization;
-
-      // ----------------------------------------------------------
-      // 2. Start Google account selection
-      // ----------------------------------------------------------
 
       final GoogleSignInAccount googleUser =
       await GoogleSignIn.instance.authenticate();
 
-      // ----------------------------------------------------------
-      // 3. Get Google authentication information
-      // ----------------------------------------------------------
-
       final GoogleSignInAuthentication googleAuth =
           googleUser.authentication;
-
-      // ----------------------------------------------------------
-      // 4. Check ID token
-      // ----------------------------------------------------------
 
       final String? idToken =
           googleAuth.idToken;
@@ -416,18 +220,10 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
 
-      // ----------------------------------------------------------
-      // 5. Create Firebase credential
-      // ----------------------------------------------------------
-
       final OAuthCredential credential =
       GoogleAuthProvider.credential(
         idToken: idToken,
       );
-
-      // ----------------------------------------------------------
-      // 6. Sign in to Firebase
-      // ----------------------------------------------------------
 
       await FirebaseAuth.instance
           .signInWithCredential(
@@ -446,29 +242,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      // ----------------------------------------------------------
-      // 7. CHECK USER STATUS AND ROUTE
-      // ----------------------------------------------------------
-
       await routeUserAfterLogin();
-    }
-
-    // ==========================================================
-    // GOOGLE SIGN-IN ERROR
-    // ==========================================================
-
-    on GoogleSignInException catch (e) {
+    } on GoogleSignInException catch (e) {
       debugPrint(
         '====================================',
       );
+
       debugPrint(
         'GOOGLE SIGN-IN ERROR',
       );
-      debugPrint('Code: ${e.code}');
+
+      debugPrint(
+        'Code: ${e.code}',
+      );
+
       debugPrint(
         'Description: ${e.description}',
       );
-      debugPrint('Exception: $e');
+
+      debugPrint(
+        'Exception: $e',
+      );
+
       debugPrint(
         '====================================',
       );
@@ -486,19 +281,18 @@ class _LoginScreenState extends State<LoginScreen> {
           const Duration(seconds: 8),
         ),
       );
-    }
-
-    // ==========================================================
-    // FIREBASE AUTH ERROR
-    // ==========================================================
-
-    on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       debugPrint(
         'FIREBASE GOOGLE AUTH ERROR',
       );
 
-      debugPrint('Code: ${e.code}');
-      debugPrint('Message: ${e.message}');
+      debugPrint(
+        'Code: ${e.code}',
+      );
+
+      debugPrint(
+        'Message: ${e.message}',
+      );
 
       if (!mounted) return;
 
@@ -545,13 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const Duration(seconds: 5),
         ),
       );
-    }
-
-    // ==========================================================
-    // OTHER ERROR
-    // ==========================================================
-
-    catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       debugPrint(
         'UNKNOWN GOOGLE SIGN-IN ERROR: $e',
       );
@@ -571,9 +359,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const Duration(seconds: 5),
         ),
       );
-    }
-
-    finally {
+    } finally {
       if (mounted) {
         setState(() {
           isLoading = false;
@@ -598,13 +384,11 @@ class _LoginScreenState extends State<LoginScreen> {
         BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withValues(
+            color: Colors.black.withValues(
               alpha: 0.50,
             ),
             blurRadius: 6,
-            offset:
-            const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -617,25 +401,21 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            color:
-            Colors.grey.shade600,
+            color: Colors.grey.shade600,
             fontSize: 12,
           ),
           prefixIcon: Icon(
             icon,
             size: 18,
-            color:
-            Colors.grey.shade700,
+            color: Colors.grey.shade700,
           ),
           suffixIcon:
           isPassword
               ? IconButton(
             icon: Icon(
               obscurePassword
-                  ? Icons
-                  .visibility_off_outlined
-                  : Icons
-                  .visibility_outlined,
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               size: 18,
               color:
               Colors.grey.shade700,
@@ -649,8 +429,7 @@ class _LoginScreenState extends State<LoginScreen> {
           )
               : null,
           filled: true,
-          fillColor:
-          Colors.white,
+          fillColor: Colors.white,
           contentPadding:
           const EdgeInsets.symmetric(
             horizontal: 14,
@@ -659,9 +438,7 @@ class _LoginScreenState extends State<LoginScreen> {
           border:
           OutlineInputBorder(
             borderRadius:
-            BorderRadius.circular(
-              10,
-            ),
+            BorderRadius.circular(10),
             borderSide:
             BorderSide(
               color:
@@ -671,9 +448,7 @@ class _LoginScreenState extends State<LoginScreen> {
           enabledBorder:
           OutlineInputBorder(
             borderRadius:
-            BorderRadius.circular(
-              10,
-            ),
+            BorderRadius.circular(10),
             borderSide:
             BorderSide(
               color:
@@ -683,9 +458,7 @@ class _LoginScreenState extends State<LoginScreen> {
           focusedBorder:
           OutlineInputBorder(
             borderRadius:
-            BorderRadius.circular(
-              10,
-            ),
+            BorderRadius.circular(10),
             borderSide:
             const BorderSide(
               color: darkGreen,
@@ -710,12 +483,9 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       height: 43,
       child: Material(
-        color:
-        Colors.grey.shade300,
+        color: Colors.grey.shade300,
         borderRadius:
-        BorderRadius.circular(
-          24,
-        ),
+        BorderRadius.circular(24),
         elevation: 1,
         shadowColor:
         Colors.black.withValues(
@@ -723,9 +493,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: InkWell(
           borderRadius:
-          BorderRadius.circular(
-            24,
-          ),
+          BorderRadius.circular(24),
           onTap:
           isLoading
               ? null
@@ -734,9 +502,7 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration:
             BoxDecoration(
               borderRadius:
-              BorderRadius.circular(
-                24,
-              ),
+              BorderRadius.circular(24),
               border:
               Border.all(
                 color:
@@ -745,8 +511,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: Row(
               mainAxisAlignment:
-              MainAxisAlignment
-                  .center,
+              MainAxisAlignment.center,
               children: [
                 SvgPicture.asset(
                   iconPath,
@@ -802,7 +567,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Welcome!',
                   textAlign:
                   TextAlign.center,
-                  style: TextStyle(
+                  style:
+                  TextStyle(
                     fontSize: 27,
                     fontWeight:
                     FontWeight.bold,
@@ -819,7 +585,8 @@ class _LoginScreenState extends State<LoginScreen> {
               buildTextField(
                 controller:
                 emailController,
-                hintText: 'Email',
+                hintText:
+                'Email',
                 icon:
                 Icons.email_outlined,
               ),
@@ -884,9 +651,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration:
                 BoxDecoration(
                   borderRadius:
-                  BorderRadius.circular(
-                    15,
-                  ),
+                  BorderRadius.circular(15),
                   boxShadow: [
                     BoxShadow(
                       color:
@@ -895,10 +660,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       blurRadius: 8,
                       offset:
-                      const Offset(
-                        0,
-                        4,
-                      ),
+                      const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -994,7 +756,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 20,
               ),
 
-              // GOOGLE BUTTON
               buildSocialButton(
                 text:
                 'Continue with Google',
@@ -1008,7 +769,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 15,
               ),
 
-              // APPLE BUTTON
               buildSocialButton(
                 text:
                 'Continue with Apple',

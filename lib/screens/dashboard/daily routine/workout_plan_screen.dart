@@ -90,37 +90,6 @@ class _WorkoutPlanScreenState
   // ================================================================
   // SELECTED DAY
   // ================================================================
-  //
-  // The selected day is automatically set to TODAY.
-  //
-  // DateTime.weekday values:
-  //
-  // Monday    = 1
-  // Tuesday   = 2
-  // Wednesday = 3
-  // Thursday  = 4
-  // Friday    = 5
-  // Saturday  = 6
-  // Sunday    = 7
-  //
-  // Our list uses:
-  //
-  // Mon = 0
-  // Tue = 1
-  // Wed = 2
-  // Thu = 3
-  // Fri = 4
-  // Sat = 5
-  //
-  // Therefore:
-  //
-  // DateTime.now().weekday - 1
-  //
-  // gives the correct index for Monday-Saturday.
-  //
-  // Sunday is not part of the 6-day workout plan.
-  //
-  // ================================================================
 
   int _selectedDayIndex =
   DateTime.now().weekday <= 6
@@ -141,13 +110,10 @@ class _WorkoutPlanScreenState
   // DATA
   // ================================================================
 
-  // Loaded workouts for the user's risk level.
   List<WorkoutModel> _workouts = [];
 
-  // Today's progress for each workout.
   Map<String, double> _todayProgress = {};
 
-  // Loading state for progress.
   bool _progressLoading = true;
 
   // ================================================================
@@ -206,16 +172,6 @@ class _WorkoutPlanScreenState
   // ================================================================
   // NORMALIZE RISK LEVEL
   // ================================================================
-  //
-  // Makes sure:
-  //
-  // HIGH     -> high
-  // Moderate -> moderate
-  // LOW      -> low
-  //
-  // This is useful because Firestore document names are lowercase.
-  //
-  // ================================================================
 
   String _normalizedRiskLevel() {
     final level =
@@ -233,8 +189,6 @@ class _WorkoutPlanScreenState
         return 'low';
 
       default:
-      // If an unexpected value is received,
-      // use low as the safe default.
         return 'low';
     }
   }
@@ -258,6 +212,22 @@ class _WorkoutPlanScreenState
   }
 
   // ================================================================
+  // TIME-BASED GREETING
+  // ================================================================
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+
+    if (hour < 12) {
+      return 'Good Morning';
+    } else if (hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
+  // ================================================================
   // GET TODAY'S DAY NAME
   // ================================================================
 
@@ -268,7 +238,6 @@ class _WorkoutPlanScreenState
       return _days[weekday - 1];
     }
 
-    // Sunday is outside the 6-day workout plan.
     return 'Sun';
   }
 
@@ -331,7 +300,7 @@ class _WorkoutPlanScreenState
                           // ==================================================
 
                           Text(
-                            'Good Morning, Shehani!',
+                            '${_getGreeting()}, Shehani!',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight:
@@ -455,10 +424,6 @@ class _WorkoutPlanScreenState
       BuildContext context,
       bool isDarkMode,
       ) {
-    // ================================================================
-    // GET NORMALIZED RISK LEVEL
-    // ================================================================
-
     final String riskLevel =
     _normalizedRiskLevel();
 
@@ -485,10 +450,6 @@ class _WorkoutPlanScreenState
       ),
       builder:
           (context, snapshot) {
-        // ============================================================
-        // DEBUG INFORMATION
-        // ============================================================
-
         print(
           '====================================',
         );
@@ -529,10 +490,6 @@ class _WorkoutPlanScreenState
           '====================================',
         );
 
-        // ============================================================
-        // LOADING
-        // ============================================================
-
         if (snapshot.connectionState ==
             ConnectionState.waiting) {
           return const Center(
@@ -546,10 +503,6 @@ class _WorkoutPlanScreenState
             ),
           );
         }
-
-        // ============================================================
-        // ERROR
-        // ============================================================
 
         if (snapshot.hasError) {
           return Container(
@@ -610,16 +563,8 @@ class _WorkoutPlanScreenState
           );
         }
 
-        // ============================================================
-        // GET WORKOUTS
-        // ============================================================
-
         final workouts =
             snapshot.data ?? [];
-
-        // ============================================================
-        // SAVE WORKOUTS LOCALLY
-        // ============================================================
 
         if (_workouts.isEmpty &&
             workouts.isNotEmpty) {
@@ -634,10 +579,6 @@ class _WorkoutPlanScreenState
             },
           );
         }
-
-        // ============================================================
-        // NO WORKOUTS
-        // ============================================================
 
         if (workouts.isEmpty) {
           return Container(
@@ -700,10 +641,6 @@ class _WorkoutPlanScreenState
             ),
           );
         }
-
-        // ============================================================
-        // WORKOUT GRID
-        // ============================================================
 
         return _buildWorkoutGrid(
           context,
@@ -840,10 +777,6 @@ class _WorkoutPlanScreenState
 
     int completedCount = 0;
 
-    // ==============================================================
-    // CALCULATE PROGRESS FROM ACTUAL WORKOUTS
-    // ==============================================================
-
     if (_workouts.isNotEmpty) {
       double totalProgress =
       0.0;
@@ -871,7 +804,6 @@ class _WorkoutPlanScreenState
     (overallProgress * 100)
         .round();
 
-    // Number of workouts loaded
     final int totalWorkouts =
         _workouts.length;
 
@@ -906,10 +838,6 @@ class _WorkoutPlanScreenState
         crossAxisAlignment:
         CrossAxisAlignment.start,
         children: [
-          // ==========================================================
-          // TITLE + COMPLETED COUNT
-          // ==========================================================
-
           Row(
             children: [
               Text(
@@ -955,10 +883,6 @@ class _WorkoutPlanScreenState
           const SizedBox(
             height: 14,
           ),
-
-          // ==========================================================
-          // CIRCULAR PROGRESS + MESSAGE
-          // ==========================================================
 
           Row(
             crossAxisAlignment:
@@ -1105,8 +1029,6 @@ class _WorkoutPlanScreenState
           ),
         );
 
-        // Reload progress after
-        // returning from detail screen.
         await _loadWorkoutProgress();
       },
 
@@ -1139,10 +1061,6 @@ class _WorkoutPlanScreenState
           crossAxisAlignment:
           CrossAxisAlignment.start,
           children: [
-            // ========================================================
-            // IMAGE
-            // ========================================================
-
             Expanded(
               child: ClipRRect(
                 borderRadius:
@@ -1189,10 +1107,6 @@ class _WorkoutPlanScreenState
                       },
                     ),
 
-                    // ==================================================
-                    // PLAY BUTTON
-                    // ==================================================
-
                     Container(
                       width: 34,
                       height: 34,
@@ -1216,10 +1130,6 @@ class _WorkoutPlanScreenState
                         size: 18,
                       ),
                     ),
-
-                    // ==================================================
-                    // COMPLETED CHECK
-                    // ==================================================
 
                     if (completed)
                       Positioned(
@@ -1246,10 +1156,6 @@ class _WorkoutPlanScreenState
                           ),
                         ),
                       ),
-
-                    // ==================================================
-                    // PARTIAL PROGRESS
-                    // ==================================================
 
                     if (!completed &&
                         progress > 0)
@@ -1301,10 +1207,6 @@ class _WorkoutPlanScreenState
               ),
             ),
 
-            // ========================================================
-            // WORKOUT INFORMATION
-            // ========================================================
-
             Padding(
               padding:
               const EdgeInsets
@@ -1321,10 +1223,6 @@ class _WorkoutPlanScreenState
                 CrossAxisAlignment
                     .start,
                 children: [
-                  // --------------------------------------------------
-                  // WORKOUT NAME
-                  // --------------------------------------------------
-
                   Text(
                     workout.name,
                     maxLines: 1,
@@ -1344,10 +1242,6 @@ class _WorkoutPlanScreenState
                   const SizedBox(
                     height: 3,
                   ),
-
-                  // --------------------------------------------------
-                  // DURATION
-                  // --------------------------------------------------
 
                   Text(
                     '${workout.duration} min',

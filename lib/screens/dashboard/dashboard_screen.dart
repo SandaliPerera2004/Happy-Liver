@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../assessment/assessment_intro_screen.dart';
 import '../educational_video/educational_video_screen.dart';
+import 'package:happy_liver/screens/dashboard/dashboard_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

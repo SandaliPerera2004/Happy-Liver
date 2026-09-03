@@ -6,6 +6,8 @@ import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 import '../../widgets/bottom_navigation_bar.dart';
 import '../../services/theme_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../authentication/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -710,8 +712,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             isDarkMode:
             isDarkMode,
 
-            onTap: () {
-              // Handle logout
+            onTap: () async {
+              try {
+                // Sign out from Firebase
+                await FirebaseAuth.instance.signOut();
+
+                if (!context.mounted) return;
+
+                // Navigate to Login Screen
+                // and remove all previous screens
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(),
+                  ),
+                      (route) => false,
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Failed to log out: $e',
+                    ),
+                  ),
+                );
+              }
             },
           ),
         ],

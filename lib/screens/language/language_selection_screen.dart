@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:happy_liver/screens/authentication/login_screen.dart';
+import 'package:happy_liver/l10n/app_localizations.dart';
+import 'package:happy_liver/services/language_controller.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -13,16 +15,22 @@ class LanguageSelectionScreen extends StatefulWidget {
 
 class _LanguageSelectionScreenState
     extends State<LanguageSelectionScreen> {
-  String? selectedLanguage;
+
+  String? selectedLanguageCode;
 
   // =========================================================
   // SELECT LANGUAGE
   // =========================================================
 
-  void selectLanguage(String language) {
+  Future<void> selectLanguage(String languageCode) async {
     setState(() {
-      selectedLanguage = language;
+      selectedLanguageCode = languageCode;
     });
+
+    // Change the app language and save it locally
+    await LanguageController().changeLanguage(
+      languageCode,
+    );
   }
 
   // =========================================================
@@ -30,11 +38,11 @@ class _LanguageSelectionScreenState
   // =========================================================
 
   Future<void> continueNext() async {
-    if (selectedLanguage == null) {
+    if (selectedLanguageCode == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Please select a language',
+            AppLocalizations.of(context)!.pleaseSelectLanguage,
           ),
         ),
       );
@@ -46,20 +54,22 @@ class _LanguageSelectionScreenState
     // SAVE LANGUAGE SELECTION
     // =======================================================
 
-    final prefs =
-    await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
+    // Mark that language selection has been completed
     await prefs.setBool(
       'languageSelected',
       true,
     );
 
-    // Also save the actual selected language.
-    // This can be used later when multilingual
-    // functionality is implemented.
+    // Save language code
+    //
+    // en = English
+    // si = Sinhala
+    // ta = Tamil
     await prefs.setString(
       'selectedLanguage',
-      selectedLanguage!,
+      selectedLanguageCode!,
     );
 
     if (!mounted) return;
@@ -71,8 +81,7 @@ class _LanguageSelectionScreenState
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-        const LoginScreen(),
+        builder: (context) => const LoginScreen(),
       ),
     );
   }
@@ -83,26 +92,32 @@ class _LanguageSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final localizations =
+    AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
 
       body: SafeArea(
         child: Padding(
-          padding:
-          const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
 
           child: Column(
             mainAxisAlignment:
             MainAxisAlignment.center,
 
             children: [
-              const Text(
-                'Choose Your Language',
 
-                style: TextStyle(
+              // =================================================
+              // TITLE
+              // =================================================
+
+              Text(
+                localizations.chooseYourLanguage,
+
+                style: const TextStyle(
                   fontSize: 28,
-                  fontWeight:
-                  FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
 
@@ -110,19 +125,38 @@ class _LanguageSelectionScreenState
 
               const SizedBox(height: 40),
 
-              languageOption(
-                'English',
-              ),
+              // =================================================
+              // ENGLISH
+              // =================================================
 
               languageOption(
-                'සිංහල',
+                language: 'English',
+                languageCode: 'en',
               ),
 
+              // =================================================
+              // SINHALA
+              // =================================================
+
               languageOption(
-                'தமிழ்',
+                language: 'සිංහල',
+                languageCode: 'si',
+              ),
+
+              // =================================================
+              // TAMIL
+              // =================================================
+
+              languageOption(
+                language: 'தமிழ்',
+                languageCode: 'ta',
               ),
 
               const SizedBox(height: 40),
+
+              // =================================================
+              // CONTINUE BUTTON
+              // =================================================
 
               SizedBox(
                 width: double.infinity,
@@ -131,29 +165,22 @@ class _LanguageSelectionScreenState
                 child: ElevatedButton(
                   onPressed: continueNext,
 
-                  style:
-                  ElevatedButton.styleFrom(
-                    backgroundColor:
-                    Colors.green[900],
-                    foregroundColor:
-                    Colors.white,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green[900],
+                    foregroundColor: Colors.white,
 
-                    shape:
-                    RoundedRectangleBorder(
+                    shape: RoundedRectangleBorder(
                       borderRadius:
-                      BorderRadius.circular(
-                        12,
-                      ),
+                      BorderRadius.circular(12),
                     ),
                   ),
 
-                  child: const Text(
-                    'Continue',
+                  child: Text(
+                    localizations.continueButton,
 
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
-                      fontWeight:
-                      FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -169,27 +196,26 @@ class _LanguageSelectionScreenState
   // LANGUAGE OPTION
   // =========================================================
 
-  Widget languageOption(
-      String language,
-      ) {
+  Widget languageOption({
+    required String language,
+    required String languageCode,
+  }) {
     final bool isSelected =
-        selectedLanguage == language;
+        selectedLanguageCode == languageCode;
 
     return GestureDetector(
-      onTap: () {
-        selectLanguage(language);
+      onTap: () async {
+        await selectLanguage(languageCode);
       },
 
       child: Container(
         width: double.infinity,
 
-        margin:
-        const EdgeInsets.only(
+        margin: const EdgeInsets.only(
           bottom: 15,
         ),
 
-        padding:
-        const EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
@@ -202,9 +228,7 @@ class _LanguageSelectionScreenState
               : Colors.white,
 
           borderRadius:
-          BorderRadius.circular(
-            15,
-          ),
+          BorderRadius.circular(15),
 
           border: Border.all(
             width: 2,
@@ -217,17 +241,16 @@ class _LanguageSelectionScreenState
 
         child: Row(
           mainAxisAlignment:
-          MainAxisAlignment
-              .spaceBetween,
+          MainAxisAlignment.spaceBetween,
 
           children: [
+
             Text(
               language,
 
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight:
-                FontWeight.w500,
+                fontWeight: FontWeight.w500,
               ),
             ),
 

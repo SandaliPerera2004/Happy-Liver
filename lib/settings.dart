@@ -5,7 +5,6 @@ import 'language.dart';
 import 'help_feedback.dart';
 import 'screens/settings/about_us_screen.dart';
 import 'widgets/bottom_navigation_bar.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'services/theme_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -23,10 +22,59 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  // =========================================================
+  // LOCAL DARK MODE STATE
+  // =========================================================
+
+  late bool _isDarkMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _isDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  void didUpdateWidget(covariant SettingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isDarkMode != widget.isDarkMode) {
+      _isDarkMode = widget.isDarkMode;
+    }
+  }
+
+  // =========================================================
+  // DARK MODE CHANGE
+  // =========================================================
+
+  Future<void> _changeDarkMode(bool value) async {
+    // Update UI immediately
+    setState(() {
+      _isDarkMode = value;
+    });
+
+    try {
+      // Save dark mode preference
+      await ThemeController.setDarkMode(value);
+
+      // Update the rest of the application
+      await widget.onThemeChanged(value);
+    } catch (e) {
+      debugPrint('DARK MODE ERROR: $e');
+
+      // Revert if saving/updating fails
+      if (mounted) {
+        setState(() {
+          _isDarkMode = !value;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.isDarkMode
+      backgroundColor: _isDarkMode
           ? const Color(0xFF121212)
           : Colors.white,
 
@@ -56,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Icon(
                     Icons.dark_mode_outlined,
                     size: 30,
-                    color: widget.isDarkMode
+                    color: _isDarkMode
                         ? Colors.white
                         : Colors.black,
                   ),
@@ -68,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       "Dark mode",
                       style: TextStyle(
                         fontSize: 17,
-                        color: widget.isDarkMode
+                        color: _isDarkMode
                             ? Colors.white
                             : Colors.black,
                       ),
@@ -76,12 +124,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
 
                   Switch(
-                    value: widget.isDarkMode,
+                    value: _isDarkMode,
                     activeThumbColor: Colors.green,
-                    onChanged: (value) async {
-                      await ThemeController.setDarkMode(value);
-                      await widget.onThemeChanged(value);
-                    },
+                    onChanged: _changeDarkMode,
                   ),
                 ],
               ),
@@ -171,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: widget.isDarkMode
+                color: _isDarkMode
                     ? Colors.white
                     : Colors.black,
               ),
@@ -185,18 +230,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // =========================================================
       // SHARED BOTTOM NAVIGATION
       // =========================================================
-      //
-      // 0 = Home
-      // 1 = Daily Routine
-      // 2 = Profile
-      // 3 = Settings
-      //
-      // Settings = selectedIndex: 3
-      //
 
       bottomNavigationBar: HappyLiverBottomNavBar(
         selectedIndex: 3,
-        isDarkMode: widget.isDarkMode,
+        isDarkMode: _isDarkMode,
         onThemeChanged: widget.onThemeChanged,
       ),
     );
@@ -213,27 +250,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         horizontal: 16,
         vertical: 14,
       ),
-
       decoration: const BoxDecoration(
         color: Color(0xFFE5F8D8),
       ),
-
-      child: Row(
+      child: const Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: SvgPicture.asset(
-              'assets/icons/Arrow left-circle.svg',
-              width: 30,
-              height: 30,
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          const Text(
+          Text(
             "Settings",
             style: TextStyle(
               color: Colors.black,
@@ -267,7 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icon(
               icon,
               size: 30,
-              color: widget.isDarkMode
+              color: _isDarkMode
                   ? Colors.white
                   : Colors.black,
             ),
@@ -279,7 +301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title,
                 style: TextStyle(
                   fontSize: 17,
-                  color: widget.isDarkMode
+                  color: _isDarkMode
                       ? Colors.white
                       : Colors.black,
                 ),
@@ -289,7 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icon(
               Icons.arrow_forward_ios,
               size: 22,
-              color: widget.isDarkMode
+              color: _isDarkMode
                   ? Colors.white
                   : Colors.black,
             ),

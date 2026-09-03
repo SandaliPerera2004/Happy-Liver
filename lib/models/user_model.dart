@@ -47,7 +47,8 @@ class UserModel {
 
       // NEW
       assessmentCompleted:
-      data['assessmentCompleted'] ?? false,
+      data['assessmentCompleted'] == true ||
+          data['assessmentCompleted'] == 'true',
     );
   }
 

@@ -8,11 +8,10 @@ import 'package:happy_liver/screens/splash/splash_screen.dart';
 
 // Member 3 screens
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/exercise_timer_screen.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/workout%20plan/workout_plan_details.dart';
+import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/workout_plan_screen.dart';
 import 'package:happy_liver/services/user_service.dart';
 import 'package:happy_liver/settings.dart';
-import 'package:happy_liver/screens/dashboard/daily%20routine/daily_routine_screen.dart';
 import 'package:happy_liver/screens/dashboard/daily%20routine/diet_plan_screen.dart';
 import 'package:happy_liver/screens/dashboard/profile_screen.dart';
 import 'package:happy_liver/screens/profile/change_password_screen.dart';
@@ -25,13 +24,23 @@ import 'package:happy_liver/screens/start/app_start_screen.dart';
 import 'models/app_settings_model.dart';
 import 'services/app_settings_service.dart';
 import 'services/theme_controller.dart';
+import 'services/local_notification_service.dart';
 
-Future<void> main() async {
+// Localization
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
+
+// Language
+import 'package:happy_liver/services/language_controller.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await LocalNotificationService().initialize();
 
   runApp(const HappyLiverApp());
 }
@@ -47,18 +56,57 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
   final AppSettingsService _appSettingsService =
   AppSettingsService();
 
+  final LanguageController _languageController =
+  LanguageController();
+
   bool _isDarkMode = false;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadTheme();
+
+    // Listen for language changes
+    _languageController.addListener(
+      _onLanguageChanged,
+    );
+
+    _loadSettings();
   }
 
-  // Load saved dark mode setting from Firestore
-  Future<void> _loadTheme() async {
+  // =========================================================
+  // LANGUAGE CHANGE LISTENER
+  // =========================================================
+
+  void _onLanguageChanged() {
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
+  @override
+  void dispose() {
+    _languageController.removeListener(
+      _onLanguageChanged,
+    );
+
+    super.dispose();
+  }
+
+  // =========================================================
+  // LOAD SAVED SETTINGS
+  // =========================================================
+
+  Future<void> _loadSettings() async {
     try {
+      // Load saved language
+      await _languageController.loadLanguage();
+
+      // Load saved dark mode setting
       final settings =
       await _appSettingsService.getAppSettings();
 
@@ -69,6 +117,10 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint(
+        'Failed to load app settings: $e',
+      );
+
       if (!mounted) return;
 
       setState(() {
@@ -78,7 +130,21 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
     }
   }
 
-  // Change theme and save it to Firestore
+  // =========================================================
+  // CHANGE LANGUAGE
+  // =========================================================
+
+  Future<void> changeLanguage(
+      String languageCode) async {
+    await _languageController.changeLanguage(
+      languageCode,
+    );
+  }
+
+  // =========================================================
+  // CHANGE THEME
+  // =========================================================
+
   Future<void> changeTheme(bool value) async {
     setState(() {
       _isDarkMode = value;
@@ -89,7 +155,9 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
         darkMode: value,
       );
 
-      await _appSettingsService.updateAppSettings(settings);
+      await _appSettingsService.updateAppSettings(
+        settings,
+      );
     } catch (e) {
       debugPrint(
         'Failed to save dark mode setting: $e',
@@ -97,14 +165,36 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
     }
   }
 
+  // =========================================================
+  // BUILD
+  // =========================================================
+
   @override
   Widget build(BuildContext context) {
-    // Show a simple loading screen while reading
-    // the user's saved theme preference.
+    // =======================================================
+    // LOADING
+    // =======================================================
+
     if (_isLoading) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Happy Liver',
+
+        locale: _languageController.locale,
+
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+
+        supportedLocales: const [
+          Locale('en'),
+          Locale('si'),
+          Locale('ta'),
+        ],
+
         home: const Scaffold(
           body: Center(
             child: CircularProgressIndicator(
@@ -115,11 +205,42 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
       );
     }
 
+    // =======================================================
+    // MAIN MATERIAL APP
+    // =======================================================
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
+      // =====================================================
+      // LANGUAGE
+      // =====================================================
+
+      locale: _languageController.locale,
+
+      // =====================================================
+      // LOCALIZATION
+      // =====================================================
+
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
+      supportedLocales: const [
+        Locale('en'),
+        Locale('si'),
+        Locale('ta'),
+      ],
+
       title: 'Happy Liver',
 
+      // =====================================================
       // LIGHT THEME
+      // =====================================================
+
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
@@ -147,7 +268,10 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
         ),
       ),
 
+      // =====================================================
       // DARK THEME
+      // =====================================================
+
       themeMode: _isDarkMode
           ? ThemeMode.dark
           : ThemeMode.light,
@@ -181,7 +305,10 @@ class _HappyLiverAppState extends State<HappyLiverApp> {
         ),
       ),
 
-      // Member 1's SplashScreen
+      // =====================================================
+      // APP START
+      // =====================================================
+
       home: const AppStartScreen(),
     );
   }
