@@ -1,7 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const HappyLiverApp());
 }
 
@@ -20,19 +30,19 @@ class HappyLiverApp extends StatelessWidget {
           seedColor: const Color(0xFF8DBB72),
         ),
       ),
-      home: const DietPlanPage(),
+      home: const ScanPage(),
     );
   }
 }
 
-class DietPlanPage extends StatefulWidget {
-  const DietPlanPage({super.key});
+class ScanPage extends StatefulWidget {
+  const ScanPage({super.key});
 
   @override
-  State<DietPlanPage> createState() => _DietPlanPageState();
+  State<ScanPage> createState() => _ScanPageState();
 }
 
-class _DietPlanPageState extends State<DietPlanPage> {
+class _ScanPageState extends State<ScanPage> {
 final ImagePicker _picker = ImagePicker();
 XFile? selectedImage;
 
@@ -213,6 +223,38 @@ Widget build(BuildContext context)  {
               ),
             ),
 
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DietPlanScreen(),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(
+                    color: Color(0xFF6A9F59),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text(
+                  'Diet Plan',
+                  style: TextStyle(
+                    color: Color(0xFF5F9950),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
             // Bottom navigation
             Container(
               height: 72,
@@ -900,6 +942,52 @@ class _FoodHistoryPageState extends State<FoodHistoryPage> {
 
     if (widget.newMeal != null) {
       meals.insert(0, widget.newMeal!);
+      saveMealToFirebase(widget.newMeal!);
+    }
+  }
+  Future<void> saveMealToFirebase(Map<String, dynamic> meal) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in first.'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('foodHistory')
+          .doc(user.uid)
+          .collection('scans')
+          .add({
+        'foodName': meal['name'],
+        'calories': meal['calories'],
+        'protein': meal['protein'],
+        'carbs': meal['carbs'],
+        'fat': meal['fat'],
+        'score': meal['score'],
+        'time': meal['time'],
+        'scannedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Food saved to history!'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save food: $e'),
+        ),
+      );
     }
   }
   @override
@@ -1392,4 +1480,592 @@ class _HistoryNavItem extends StatelessWidget {
     );
   }
 }
+// ================= DIET PLAN PAGE =================
 
+class DietPlanScreen extends StatefulWidget {
+  const DietPlanScreen({super.key});
+
+
+  @override
+  State<DietPlanScreen> createState() => _DietPlanScreenState();
+}
+
+class _DietPlanScreenState extends State<DietPlanScreen> {
+  bool breakfastDone = false;
+  bool lunchDone = false;
+  bool dinnerDone = false;
+  bool snackDone = false;
+
+  int waterConsumed = 0;
+
+  final int waterTarget = 2000;
+  final int mealsTarget = 4;
+
+  Future<void> testFirebaseLogin() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: 'sithukavindya2218@gmail.com',
+        password: 'sithu2218',
+      );
+
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please log in first.'),
+          ),
+        );
+        return;
+      }
+
+      final userId = user.uid;
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Firebase login successful!'),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Firebase login failed: ${e.message}',
+          ),
+        ),
+      );
+    }
+  }
+  Future<void> createUserProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in first.'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .set({
+        'email': user.email ?? '',
+        'name': 'Sithumini',
+        'age': 0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User profile created successfully!'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to create profile: $e'),
+        ),
+      );
+    }
+  }
+  Future<void> saveTodayProgress() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in first.'),
+        ),
+      );
+      return;
+    }
+
+    final userId = user.uid;
+
+    final today = DateTime.now();
+
+    final dateId =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+    final mealsCompleted = [
+      breakfastDone,
+      lunchDone,
+      dinnerDone,
+      snackDone,
+    ].where((meal) => meal).length;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('dietPlans')
+          .doc(userId)
+          .collection('dailyProgress')
+          .doc(dateId)
+          .set({
+        'mealsCompleted': mealsCompleted,
+        'mealsTarget': mealsTarget,
+        'completed': mealsCompleted == mealsTarget,
+        'healthyChoices': mealsCompleted,
+        'calories': 0,
+        'waterConsumed': waterConsumed,
+        'waterTarget': waterTarget,
+        'dailyGoalCompleted':
+        mealsCompleted == mealsTarget &&
+            waterConsumed >= waterTarget,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Today\'s progress saved!'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save progress: $e'),
+        ),
+      );
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    final mealsCompleted = [
+      breakfastDone,
+      lunchDone,
+      dinnerDone,
+      snackDone,
+    ].where((meal) => meal).length;
+
+    final mealProgress = mealsCompleted / mealsTarget;
+
+    final waterProgress =
+    (waterConsumed / waterTarget).clamp(0.0, 1.0);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F4),
+
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC7DFAE),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF354238),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Diet Plan',
+          style: TextStyle(
+            color: Color(0xFF354238),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const SizedBox(height: 12),
+
+            const Text(
+              'Your Daily Diet Plan',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF354238),
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            const Text(
+              'Follow your plan and keep your liver healthy.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF666666),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ================= MEAL PROGRESS =================
+
+            _progressCard(
+              title: 'Meals Today',
+              value: '$mealsCompleted / $mealsTarget',
+              progress: mealProgress,
+              icon: Icons.restaurant_menu,
+            ),
+
+            const SizedBox(height: 14),
+
+            // ================= BREAKFAST =================
+
+            _mealTile(
+              title: 'Breakfast',
+              subtitle: 'Oats, fruit & low-fat yogurt',
+              completed: breakfastDone,
+              onChanged: (value) {
+                setState(() {
+                  breakfastDone = value;
+                });
+              },
+            ),
+
+            // ================= LUNCH =================
+
+            _mealTile(
+              title: 'Lunch',
+              subtitle: 'Brown rice, vegetables & grilled chicken',
+              completed: lunchDone,
+              onChanged: (value) {
+                setState(() {
+                  lunchDone = value;
+                });
+              },
+            ),
+
+            // ================= SNACK =================
+
+            _mealTile(
+              title: 'Healthy Snack',
+              subtitle: 'Fresh fruit & a handful of nuts',
+              completed: snackDone,
+              onChanged: (value) {
+                setState(() {
+                  snackDone = value;
+                });
+              },
+            ),
+
+            // ================= DINNER =================
+
+            _mealTile(
+              title: 'Dinner',
+              subtitle: 'Vegetables, whole grains & lean protein',
+              completed: dinnerDone,
+              onChanged: (value) {
+                setState(() {
+                  dinnerDone = value;
+                });
+              },
+            ),
+
+            const SizedBox(height: 14),
+
+            // ================= WATER =================
+
+            _progressCard(
+              title: 'Water',
+              value: '$waterConsumed / $waterTarget ml',
+              progress: waterProgress,
+              icon: Icons.water_drop_outlined,
+            ),
+
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        waterConsumed =
+                            (waterConsumed + 250)
+                                .clamp(0, waterTarget);
+                      });
+                    },
+                    child: const Text('+ 250 ml'),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // ================= SAVE PROGRESS =================
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await DietPlanService().saveDietPlan(
+                      riskLevel: 'Low',
+                      mealsPerDay: 4,
+                      waterTarget: 2000,
+                      dailyGoal: 'Complete all planned meals',
+                      weeklyGoal: 'Complete 6 out of 7 days',
+                    );
+
+                    await saveTodayProgress();
+                  } catch (e) {
+                    if (!mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to save diet plan: $e'),
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A9F59),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text(
+                  'Save Today\'s Progress',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ================= MY SCAN =================
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ScanPage(),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(
+                    color: Color(0xFF6A9F59),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text(
+                  'My Scan',
+                  style: TextStyle(
+                    color: Color(0xFF5F9950),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _progressCard({
+    required String title,
+    required String value,
+    required double progress,
+    required IconData icon,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFBFD8A8),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: const Color(0xFF6AA55A),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFE8EDE3),
+              valueColor:
+              const AlwaysStoppedAnimation<Color>(
+                Color(0xFF70A45B),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mealTile({
+    required String title,
+    required String subtitle,
+    required bool completed,
+    required Function(bool) onChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F0D8),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.restaurant,
+              color: Color(0xFF6AA55A),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF777777),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Checkbox(
+            value: completed,
+            activeColor: const Color(0xFF6A9F59),
+            onChanged: (value) {
+              onChanged(value ?? false);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+// ================= FIREBASE DIET PLAN SERVICE =================
+
+class DietPlanService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> saveDietPlan({
+    required String riskLevel,
+    required int mealsPerDay,
+    required int waterTarget,
+    required String dailyGoal,
+    required String weeklyGoal,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+
+    final planRef = _firestore
+        .collection('dietPlans')
+        .doc(user.uid);
+
+    await planRef.set({
+      'riskLevel': riskLevel,
+      'mealsPerDay': mealsPerDay,
+      'waterTarget': waterTarget,
+      'dailyGoal': dailyGoal,
+      'weeklyGoal': weeklyGoal,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    final today = DateTime.now();
+
+    final dateId =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+    await planRef
+        .collection('dailyProgress')
+        .doc(dateId)
+        .set({
+      'mealsCompleted': 0,
+      'mealsTarget': mealsPerDay,
+      'completed': false,
+      'healthyChoices': 0,
+      'calories': 0,
+      'waterConsumed': 0,
+      'waterTarget': waterTarget,
+      'dailyGoalCompleted': false,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+}
