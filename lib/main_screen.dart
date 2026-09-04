@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'weekly_report_screen.dart';
+
+import 'services/weekly_report_service.dart';
+import 'weekly_report_screen.dart' as report_screen;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,14 +13,19 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int selectedIndex = 0;
 
+  late final WeeklyReportService _reportService;
   late final List<Widget> pages;
 
   @override
   void initState() {
     super.initState();
 
+    _reportService = WeeklyReportService();
+
     pages = [
-      const HomePage(),
+      HomePage(
+        reportService: _reportService,
+      ),
       const DietPage(),
       const WorkoutPage(),
       const ProfilePage(),
@@ -35,10 +42,6 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: _bottomNavigation(),
     );
   }
-
-  // ============================================================
-  // BOTTOM NAVIGATION
-  // ============================================================
 
   Widget _bottomNavigation() {
     return Container(
@@ -82,10 +85,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // ============================================================
-  // NAVIGATION ITEM
-  // ============================================================
-
   Widget _navItem(
       IconData icon,
       IconData activeIcon,
@@ -118,9 +117,8 @@ class _MainScreenState extends State<MainScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 10,
-                  fontWeight: active
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+                  fontWeight:
+                  active ? FontWeight.w700 : FontWeight.w500,
                   color: active
                       ? const Color(0xFF22C55E)
                       : const Color(0xFF60756A),
@@ -139,7 +137,12 @@ class _MainScreenState extends State<MainScreen> {
 // ============================================================
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final WeeklyReportService reportService;
+
+  const HomePage({
+    super.key,
+    required this.reportService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +155,11 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => WeeklyReportScreen(),
+                  builder: (context) {
+                    return report_screen.WeeklyReportScreen(
+                      service: reportService,
+                    );
+                  },
                 ),
               );
             },
