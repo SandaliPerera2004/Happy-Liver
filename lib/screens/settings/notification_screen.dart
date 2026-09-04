@@ -4,9 +4,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/notification_settings_model.dart';
 import '../../services/notification_settings_service.dart';
 
-
 class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const NotificationSettingsScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<NotificationSettingsScreen> createState() =>
@@ -99,8 +105,7 @@ class _NotificationSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
+    final bool isDarkMode = widget.isDarkMode;
 
     return Scaffold(
       backgroundColor: isDarkMode
@@ -110,10 +115,9 @@ class _NotificationSettingsScreenState
       body: SafeArea(
         bottom: false,
         child: Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isDarkMode),
 
             Expanded(
               child: _isLoading
@@ -138,8 +142,11 @@ class _NotificationSettingsScreenState
         ),
       ),
 
-      bottomNavigationBar:
-      _buildBottomNavBar(isDarkMode),
+      // ============================================================
+      // BOTTOM NAVIGATION BAR
+      // ============================================================
+
+      bottomNavigationBar: _buildBottomNavBar(isDarkMode),
     );
   }
 
@@ -147,16 +154,20 @@ class _NotificationSettingsScreenState
   // HEADER
   // =========================================================
 
-  Widget _buildHeader(BuildContext context) {
-    // Keep the green header in BOTH modes.
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFFDFF3D8),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : const Color(0xFFDFF3D8),
       ),
       child: Row(
         children: [
@@ -166,17 +177,25 @@ class _NotificationSettingsScreenState
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black87,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             'Notifications',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
         ],
@@ -198,8 +217,6 @@ class _NotificationSettingsScreenState
       ),
 
       decoration: BoxDecoration(
-        // White in light mode
-        // Dark card in dark mode
         color: isDarkMode
             ? const Color(0xFF1E1E1E)
             : Colors.white,
@@ -219,6 +236,29 @@ class _NotificationSettingsScreenState
 
       child: Column(
         children: [
+
+          // =================================================
+          // DARK MODE
+          // =================================================
+
+          _buildToggleRow(
+            title: 'Dark Mode',
+            subtitle:
+            'Use a darker appearance throughout the app.',
+            value: isDarkMode,
+            isDarkMode: isDarkMode,
+            onChanged: (value) async {
+              await widget.onThemeChanged(value);
+            },
+          ),
+
+          Divider(
+            height: 1,
+            color: isDarkMode
+                ? Colors.white12
+                : const Color(0xFFECECEC),
+          ),
+
           // =================================================
           // ALLOW NOTIFICATIONS
           // =================================================
@@ -300,6 +340,7 @@ class _NotificationSettingsScreenState
             }
                 : (_) {},
           ),
+
           const SizedBox(height: 10),
         ],
       ),

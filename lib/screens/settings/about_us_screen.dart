@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
@@ -16,93 +17,144 @@ class AboutUsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          // =========================================================
+          // BACKGROUND
+          // =========================================================
 
-    return Scaffold(
-      // =========================================================
-      // BACKGROUND
-      // =========================================================
-      backgroundColor: isDarkMode
-          ? _darkBackground
-          : const Color(0xFFF5F6F8),
+          backgroundColor: isDarkMode
+              ? _darkBackground
+              : const Color(0xFFF5F6F8),
 
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(context),
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                _buildHeader(context, isDarkMode),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  28,
-                  20,
-                  20,
-                ),
-                child: Column(
-                  children: [
-                    _buildLogo(isDarkMode),
-
-                    const SizedBox(height: 28),
-
-                    _infoRow(
-                      'Evaluate potential fatty liver and cholesterol '
-                          'risk based on your responses.',
-                      isDarkMode,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      28,
+                      20,
+                      20,
                     ),
+                    child: Column(
+                      children: [
+                        _buildLogo(isDarkMode),
 
-                    const SizedBox(height: 12),
+                        const SizedBox(height: 28),
 
-                    _infoRow(
-                      'Receive lifestyle suggestions based on your '
-                          'assessment results.',
-                      isDarkMode,
-                    ),
+                        _infoRow(
+                          'Evaluate potential fatty liver and cholesterol '
+                              'risk based on your responses.',
+                          isDarkMode,
+                        ),
 
-                    const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                    _infoRowRichText(isDarkMode),
-                  ],
-                ),
-              ),
-            ),
+                        _infoRow(
+                          'Receive lifestyle suggestions based on your '
+                              'assessment results.',
+                          isDarkMode,
+                        ),
 
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                children: [
-                  Text(
-                    'Version 1.0.0',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDarkMode
-                          ? Colors.white70
-                          : _grayText,
+                        const SizedBox(height: 12),
+
+                        _infoRowRichText(isDarkMode),
+
+                        const SizedBox(height: 25),
+
+                        // =================================================
+                        // DARK MODE SWITCH
+                        // =================================================
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.dark_mode_outlined,
+                              size: 28,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : _darkText,
+                            ),
+
+                            const SizedBox(width: 16),
+
+                            Expanded(
+                              child: Text(
+                                'Dark mode',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : _darkText,
+                                ),
+                              ),
+                            ),
+
+                            Switch(
+                              value: isDarkMode,
+                              activeThumbColor: Colors.green,
+                              activeTrackColor:
+                              Colors.green.withOpacity(0.35),
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor:
+                              Colors.grey.withOpacity(0.25),
+                              onChanged: (value) async {
+                                await ThemeController.setDarkMode(
+                                  value,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Version 1.0.0',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDarkMode
+                              ? Colors.white70
+                              : _grayText,
+                        ),
+                      ),
 
-                  Text(
-                    '© 2026 HappyLiver',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDarkMode
-                          ? Colors.white70
-                          : _grayText,
-                    ),
+                      const SizedBox(height: 4),
+
+                      Text(
+                        '© 2026 HappyLiver',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDarkMode
+                              ? Colors.white70
+                              : _grayText,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
 
-      bottomNavigationBar:
-      _buildBottomNavBar(context, isDarkMode),
+          bottomNavigationBar:
+          _buildBottomNavBar(context, isDarkMode),
+        );
+      },
     );
   }
 
@@ -110,15 +162,21 @@ class AboutUsScreen extends StatelessWidget {
   // HEADER
   // ================================================================
 
-  Widget _buildHeader(BuildContext context) {
-    // Keep header green in both light and dark mode.
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-      color: _lightGreenHeader,
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : _lightGreenHeader,
+      ),
       child: Row(
         children: [
           GestureDetector(
@@ -127,17 +185,25 @@ class AboutUsScreen extends StatelessWidget {
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black87,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             'About us',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
         ],
@@ -202,7 +268,6 @@ class AboutUsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(14),
 
       decoration: BoxDecoration(
-        // White card → dark card
         color: isDarkMode
             ? _darkCard
             : Colors.white,
@@ -332,7 +397,6 @@ class AboutUsScreen extends StatelessWidget {
       ) {
     return Container(
       decoration: BoxDecoration(
-        // White → dark
         color: isDarkMode
             ? _darkCard
             : Colors.white,
@@ -432,8 +496,6 @@ class AboutUsScreen extends StatelessWidget {
             icon,
             size: 22,
 
-            // Selected remains green.
-            // Unselected becomes light grey in dark mode.
             color: selected
                 ? _green
                 : isDarkMode

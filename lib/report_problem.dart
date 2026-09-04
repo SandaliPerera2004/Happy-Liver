@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/settings/help_feedback_submitted_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class ReportProblem extends StatefulWidget {
   const ReportProblem({super.key});
@@ -31,221 +32,260 @@ class _ReportProblemState extends State<ReportProblem> {
 
   @override
   Widget build(BuildContext context) {
-    // Detect the current global theme.
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          // ==========================================================
+          // BACKGROUND
+          // ==========================================================
 
-    return Scaffold(
-      // ==========================================================
-      // BACKGROUND
-      // ==========================================================
+          backgroundColor:
+          isDarkMode ? _darkBackground : Colors.white,
 
-      backgroundColor: isDarkMode
-          ? _darkBackground
-          : Colors.white,
+          // ==========================================================
+          // BODY
+          // ==========================================================
 
-      // ==========================================================
-      // BODY
-      // ==========================================================
+          body: SafeArea(
+            top: true,
+            bottom: false,
+            child: Column(
+              children: [
+                _buildHeader(context, isDarkMode),
 
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(context),
-
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 38),
-
-                      // ==================================================
-                      // REPORT A PROBLEM TITLE
-                      // ==================================================
-
-                      Row(
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.help_outline,
-                            size: 30,
-                            color: isDarkMode
-                                ? Colors.white
-                                : Colors.black,
+                          const SizedBox(height: 38),
+
+                          // ==================================================
+                          // REPORT A PROBLEM TITLE
+                          // ==================================================
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.help_outline,
+                                size: 30,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+
+                              const SizedBox(width: 10),
+
+                              Text(
+                                "Report a problem",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
 
-                          const SizedBox(width: 10),
+                          const SizedBox(height: 32),
+
+                          // ==================================================
+                          // WHAT WENT WRONG?
+                          // ==================================================
 
                           Text(
-                            "Report a problem",
+                            "What went wrong?",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: isDarkMode
                                   ? Colors.white
                                   : Colors.black,
                             ),
                           ),
+
+                          const SizedBox(height: 26),
+
+                          // ==================================================
+                          // PROBLEM TEXT BOX
+                          // ==================================================
+
+                          Container(
+                            width: double.infinity,
+                            height: 116,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? _darkInput
+                                  : const Color(0xFFE0E0E0),
+                            ),
+                            child: TextField(
+                              controller: problemController,
+                              maxLines: 5,
+
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 14,
+                              ),
+
+                              cursorColor: _green,
+
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText:
+                                "Describe the problem...",
+                                hintStyle: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white54
+                                      : Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 50),
+
+                          // ==================================================
+                          // SUBMIT REPORT BUTTON
+                          // ==================================================
+
+                          Center(
+                            child: SizedBox(
+                              width: 137,
+                              height: 30,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (problemController.text
+                                      .trim()
+                                      .isEmpty) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Please describe the problem.",
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                        const FeedbackSubmittedScreen(),
+                                      ),
+                                    );
+                                  }
+                                },
+
+                                style:
+                                ElevatedButton.styleFrom(
+                                  backgroundColor: _green,
+                                  foregroundColor:
+                                  Colors.white,
+                                  elevation: 0,
+                                  padding: EdgeInsets.zero,
+                                  shape:
+                                  RoundedRectangleBorder(
+                                    borderRadius:
+                                    BorderRadius.circular(6),
+                                  ),
+                                ),
+
+                                child: const Text(
+                                  "Submit Report",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight:
+                                    FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          // ==================================================
+                          // DARK MODE SWITCH
+                          // ==================================================
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.dark_mode_outlined,
+                                size: 28,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+
+                              const SizedBox(width: 16),
+
+                              Expanded(
+                                child: Text(
+                                  "Dark mode",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight:
+                                    FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ),
+
+                              Switch(
+                                value: isDarkMode,
+                                activeThumbColor: Colors.green,
+                                activeTrackColor:
+                                Colors.green.withOpacity(0.35),
+                                inactiveThumbColor:
+                                Colors.grey,
+                                inactiveTrackColor:
+                                Colors.grey.withOpacity(0.25),
+                                onChanged: (value) async {
+                                  await ThemeController
+                                      .setDarkMode(value);
+                                },
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 100),
                         ],
                       ),
-
-                      const SizedBox(height: 32),
-
-                      // ==================================================
-                      // WHAT WENT WRONG?
-                      // ==================================================
-
-                      Text(
-                        "What went wrong?",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-
-                      const SizedBox(height: 26),
-
-                      // ==================================================
-                      // PROBLEM TEXT BOX
-                      // ==================================================
-
-                      Container(
-                        width: double.infinity,
-                        height: 116,
-                        padding: const EdgeInsets.all(12),
-
-                        decoration: BoxDecoration(
-                          color: isDarkMode
-                              ? _darkInput
-                              : const Color(0xFFE0E0E0),
-                        ),
-
-                        child: TextField(
-                          controller: problemController,
-                          maxLines: 5,
-
-                          style: TextStyle(
-                            color: isDarkMode
-                                ? Colors.white
-                                : Colors.black,
-                            fontSize: 14,
-                          ),
-
-                          cursorColor: _green,
-
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-
-                            hintText:
-                            "Describe the problem...",
-
-                            hintStyle: TextStyle(
-                              color: isDarkMode
-                                  ? Colors.white54
-                                  : Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 50),
-
-                      // ==================================================
-                      // SUBMIT REPORT BUTTON
-                      // ==================================================
-
-                      Center(
-                        child: SizedBox(
-                          width: 137,
-                          height: 30,
-
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (problemController.text
-                                  .trim()
-                                  .isEmpty) {
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Please describe the problem.",
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                    const FeedbackSubmittedScreen(),
-                                  ),
-                                );
-                              }
-                            },
-
-                            style:
-                            ElevatedButton.styleFrom(
-                              // Keep button green.
-                              backgroundColor: _green,
-
-                              foregroundColor:
-                              Colors.white,
-
-                              elevation: 0,
-
-                              padding: EdgeInsets.zero,
-
-                              shape:
-                              RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(6),
-                              ),
-                            ),
-
-                            child: const Text(
-                              "Submit Report",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight:
-                                FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 100),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
 
-      // ============================================================
-      // BOTTOM NAVIGATION
-      // ============================================================
+          // ============================================================
+          // BOTTOM NAVIGATION
+          // ============================================================
 
-      bottomNavigationBar:
-      _buildBottomNavBar(
-        context,
-        isDarkMode,
-      ),
+          bottomNavigationBar:
+          _buildBottomNavBar(
+            context,
+            isDarkMode,
+          ),
+        );
+      },
     );
   }
 
@@ -253,21 +293,21 @@ class _ReportProblemState extends State<ReportProblem> {
   // HEADER
   // ================================================================
 
-  Widget _buildHeader(BuildContext context) {
-    // Keep the green header unchanged in dark mode.
-
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-
-      decoration: const BoxDecoration(
-        color: _lightGreenHeader,
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : _lightGreenHeader,
       ),
-
       child: Row(
         children: [
           GestureDetector(
@@ -278,15 +318,23 @@ class _ReportProblemState extends State<ReportProblem> {
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             "Help & Feedback",
             style: TextStyle(
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -306,7 +354,6 @@ class _ReportProblemState extends State<ReportProblem> {
       ) {
     return Container(
       decoration: BoxDecoration(
-        // White → dark.
         color: isDarkMode
             ? _darkNav
             : Colors.white,

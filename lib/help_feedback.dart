@@ -2,159 +2,211 @@ import 'package:flutter/material.dart';
 import 'send_feedback.dart';
 import 'report_problem.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class HelpFeedback extends StatelessWidget {
   const HelpFeedback({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          // =========================
+          // BACKGROUND
+          // =========================
+          backgroundColor: isDarkMode
+              ? const Color(0xFF121212)
+              : Colors.white,
 
-    return Scaffold(
-      // =========================
-      // BACKGROUND
-      // =========================
-      backgroundColor: isDarkMode
-          ? const Color(0xFF121212)
-          : Colors.white,
+          // =========================
+          // BODY
+          // =========================
+          body: SafeArea(
+            top: true,
+            bottom: false,
+            child: Column(
+              children: [
+                _buildHeader(context, isDarkMode),
 
-      // =========================
-      // BODY
-      // =========================
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(context),
-
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                ),
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 55),
-
-                    // =========================
-                    // TITLE
-                    // =========================
-
-                    Text(
-                      "How can we help you?",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                      ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
                     ),
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 55),
 
-                    const SizedBox(height: 25),
+                        // =========================
+                        // TITLE
+                        // =========================
 
-                    // =========================
-                    // SEND FEEDBACK
-                    // =========================
-
-                    helpItem(
-                      title: "Send feedback",
-                      isDarkMode: isDarkMode,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                            const SendFeedback(),
+                        Text(
+                          "How can we help you?",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors.black,
                           ),
-                        );
-                      },
-                    ),
+                        ),
 
-                    const SizedBox(height: 12),
+                        const SizedBox(height: 25),
 
-                    // =========================
-                    // REPORT PROBLEM
-                    // =========================
+                        // =========================
+                        // SEND FEEDBACK
+                        // =========================
 
-                    helpItem(
-                      title: "Report a problem",
-                      isDarkMode: isDarkMode,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                            const ReportProblem(),
+                        helpItem(
+                          title: "Send feedback",
+                          isDarkMode: isDarkMode,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                const SendFeedback(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // =========================
+                        // REPORT PROBLEM
+                        // =========================
+
+                        helpItem(
+                          title: "Report a problem",
+                          isDarkMode: isDarkMode,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                const ReportProblem(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // =========================
+                        // DARK MODE
+                        // =========================
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.dark_mode_outlined,
+                              size: 28,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+
+                            const SizedBox(width: 16),
+
+                            Expanded(
+                              child: Text(
+                                "Dark mode",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                            ),
+
+                            Switch(
+                              value: isDarkMode,
+                              activeThumbColor: Colors.green,
+                              activeTrackColor:
+                              Colors.green.withOpacity(0.35),
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor:
+                              Colors.grey.withOpacity(0.25),
+                              onChanged: (value) async {
+                                await ThemeController.setDarkMode(
+                                  value,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+
+                        const Spacer(),
+
+                        // =========================
+                        // STILL NEED HELP
+                        // =========================
+
+                        Text(
+                          "Still need help?",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors.black,
                           ),
-                        );
-                      },
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // =========================
+                        // CONTACT US
+                        // =========================
+
+                        Text(
+                          "Contact us",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Keep contact color unchanged.
+                        const Text(
+                          "support@happyliver.com",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF6FA8DC),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(height: 115),
+                      ],
                     ),
-
-                    const Spacer(),
-
-                    // =========================
-                    // STILL NEED HELP
-                    // =========================
-
-                    Text(
-                      "Still need help?",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // =========================
-                    // CONTACT US
-                    // =========================
-
-                    Text(
-                      "Contact us",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Keep contact color unchanged.
-                    const Text(
-                      "support@happyliver.com",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF6FA8DC),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-
-                    const SizedBox(height: 115),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
 
-      // =========================
-      // BOTTOM NAVIGATION
-      // =========================
-      bottomNavigationBar:
-      _buildBottomNavBar(context, isDarkMode),
+          // =========================
+          // BOTTOM NAVIGATION
+          // =========================
+
+          bottomNavigationBar:
+          _buildBottomNavBar(context, isDarkMode),
+        );
+      },
     );
   }
 
@@ -162,16 +214,20 @@ class HelpFeedback extends StatelessWidget {
   // HEADER
   // =========================================================
 
-  Widget _buildHeader(BuildContext context) {
-    // Keep the green header unchanged.
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFFE5F8D8),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : const Color(0xFFE5F8D8),
       ),
       child: Row(
         children: [
@@ -183,15 +239,23 @@ class HelpFeedback extends StatelessWidget {
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             "Help & Feedback",
             style: TextStyle(
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -254,7 +318,6 @@ class HelpFeedback extends StatelessWidget {
       ) {
     return Container(
       decoration: BoxDecoration(
-        // White → dark
         color: isDarkMode
             ? const Color(0xFF1E1E1E)
             : Colors.white,
@@ -340,9 +403,6 @@ class HelpFeedback extends StatelessWidget {
           Icon(
             icon,
             size: 22,
-
-            // Selected remains green.
-            // Unselected becomes lighter in dark mode.
             color: selected
                 ? Colors.green
                 : isDarkMode

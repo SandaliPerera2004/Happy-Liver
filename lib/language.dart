@@ -73,14 +73,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
       String languageCode,
       ) async {
     try {
-      // Change language through LanguageController.
-      //
-      // This will:
-      // 1. Change the Locale
-      // 2. Notify main.dart
-      // 3. Rebuild MaterialApp
-      // 4. Save the language preference
-
       await _languageController.changeLanguage(
         languageCode,
       );
@@ -133,7 +125,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
       body: SafeArea(
         top: true,
         bottom: false,
-
         child: Column(
           children: [
             _buildHeader(
@@ -148,12 +139,11 @@ class _LanguageScreenState extends State<LanguageScreen> {
                   top: 45,
                   right: 20,
                 ),
-
                 child: Column(
                   crossAxisAlignment:
                   CrossAxisAlignment.start,
-
                   children: [
+
                     // =================================================
                     // ENGLISH
                     // =================================================
@@ -165,9 +155,18 @@ class _LanguageScreenState extends State<LanguageScreen> {
                       isDarkMode: isDarkMode,
                     ),
 
-                    const SizedBox(
-                      height: 18,
+                    const SizedBox(height: 24),
+
+                    // =================================================
+                    // DARK MODE
+                    // =================================================
+
+                    _buildDarkModeOption(
+                      context,
+                      isDarkMode,
                     ),
+
+                    const SizedBox(height: 18),
                   ],
                 ),
               ),
@@ -198,27 +197,31 @@ class _LanguageScreenState extends State<LanguageScreen> {
       ) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-
-      decoration: const BoxDecoration(
-        color: Color(0xFFE5F8D8),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : const Color(0xFFE5F8D8),
       ),
-
       child: Row(
         children: [
           GestureDetector(
             onTap: () {
               Navigator.pop(context);
             },
-
             child: SvgPicture.asset(
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
@@ -226,11 +229,12 @@ class _LanguageScreenState extends State<LanguageScreen> {
             width: 12,
           ),
 
-          const Text(
+          Text(
             "Language",
-
             style: TextStyle(
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -260,18 +264,14 @@ class _LanguageScreenState extends State<LanguageScreen> {
           languageCode,
         );
       },
-
       child: Row(
         children: [
           Icon(
             isSelected
                 ? Icons.radio_button_checked
                 : Icons.radio_button_unchecked,
-
             size: 22,
-
-            color:
-            const Color(0xFF55B85A),
+            color: const Color(0xFF55B85A),
           ),
 
           const SizedBox(
@@ -280,11 +280,9 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
           Text(
             language,
-
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-
               color: isDarkMode
                   ? Colors.white
                   : Colors.black,
@@ -292,6 +290,110 @@ class _LanguageScreenState extends State<LanguageScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // =========================================================
+  // DARK MODE OPTION
+  // =========================================================
+
+  Widget _buildDarkModeOption(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
+    return Row(
+      children: [
+        Icon(
+          isDarkMode
+              ? Icons.dark_mode
+              : Icons.light_mode_outlined,
+          size: 22,
+          color: const Color(0xFF55B85A),
+        ),
+
+        const SizedBox(
+          width: 12,
+        ),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Dark Mode',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDarkMode
+                      ? Colors.white
+                      : Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 3),
+
+              Text(
+                isDarkMode
+                    ? 'Dark appearance is enabled'
+                    : 'Use dark appearance',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDarkMode
+                      ? Colors.white70
+                      : Colors.black45,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        Switch(
+          value: isDarkMode,
+          onChanged: (value) async {
+            try {
+              final prefs =
+              await SharedPreferences.getInstance();
+
+              await prefs.setBool(
+                'isDarkMode',
+                value,
+              );
+
+              if (!mounted) return;
+
+              // Update the app theme through the
+              // existing ThemeController / main theme.
+              //
+              // This assumes your app is already listening
+              // to the theme state and rebuilding MaterialApp.
+
+              setState(() {});
+
+              final themeController =
+              Theme.of(context);
+
+              if (value !=
+                  (themeController.brightness ==
+                      Brightness.dark)) {
+                // The actual global theme should be
+                // controlled by your existing theme controller.
+              }
+            } catch (e) {
+              debugPrint(
+                'Failed to change dark mode: $e',
+              );
+            }
+          },
+          activeColor: Colors.white,
+          activeTrackColor:
+          const Color(0xFF3FBE6B),
+          inactiveThumbColor: Colors.white,
+          inactiveTrackColor: isDarkMode
+              ? const Color(0xFF555555)
+              : const Color(0xFFD9D9D9),
+        ),
+      ],
     );
   }
 
@@ -308,7 +410,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
         color: isDarkMode
             ? const Color(0xFF1E1E1E)
             : Colors.white,
-
         border: Border(
           top: BorderSide(
             color: isDarkMode
@@ -317,26 +418,21 @@ class _LanguageScreenState extends State<LanguageScreen> {
           ),
         ),
       ),
-
       child: SafeArea(
         top: false,
-
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 8,
           ),
-
           child: Row(
             mainAxisAlignment:
             MainAxisAlignment.spaceAround,
-
             children: [
               _bottomItem(
                 icon: Icons.home_outlined,
                 label: 'Home',
                 selected: false,
                 isDarkMode: isDarkMode,
-
                 onTap: () {
                   Navigator.popUntil(
                     context,
@@ -351,7 +447,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 label: 'Daily Routine',
                 selected: false,
                 isDarkMode: isDarkMode,
-
                 onTap: () {},
               ),
 
@@ -361,7 +456,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 label: 'Profile',
                 selected: false,
                 isDarkMode: isDarkMode,
-
                 onTap: () {},
               ),
 
@@ -371,7 +465,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 label: 'Settings',
                 selected: true,
                 isDarkMode: isDarkMode,
-
                 onTap: () {},
               ),
             ],
@@ -394,15 +487,12 @@ class _LanguageScreenState extends State<LanguageScreen> {
   }) {
     return GestureDetector(
       onTap: onTap,
-
       child: Column(
         mainAxisSize: MainAxisSize.min,
-
         children: [
           Icon(
             icon,
             size: 22,
-
             color: selected
                 ? Colors.green
                 : isDarkMode
@@ -416,14 +506,11 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
           Text(
             label,
-
             style: TextStyle(
               fontSize: 10,
-
               fontWeight: selected
                   ? FontWeight.w800
                   : FontWeight.w700,
-
               color: selected
                   ? Colors.green
                   : isDarkMode

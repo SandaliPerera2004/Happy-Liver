@@ -143,8 +143,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                    const NotificationSettingsScreen(),
+                    builder: (context) => NotificationSettingsScreen(
+                      isDarkMode: _isDarkMode,
+                      onThemeChanged: widget.onThemeChanged,
+                    ),
                   ),
                 );
               },
@@ -161,8 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                    const LanguageScreen(),
+                    builder: (context) => const LanguageScreen(),
                   ),
                 );
               },

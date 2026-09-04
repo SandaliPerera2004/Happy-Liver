@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'services/weekly_report_service.dart';
 import 'services/weekly_report_pdf_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class WeeklyReportScreen extends StatefulWidget {
   final WeeklyReportService service;
@@ -36,6 +37,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   static const Color darkText = Color(0xFF111811);
   static const Color greyText = Color(0xFF6F776F);
   static const Color orange = Color(0xFFFFA726);
+
+  // DARK MODE COLORS
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkCard = Color(0xFF1E1E1E);
+  static const Color darkCardLight = Color(0xFF252A26);
+  static const Color darkHeader = Color(0xFF1B3B1F);
+  static const Color darkSecondaryText = Color(0xFFB8C0B9);
 
   // ============================================================
   // INIT
@@ -206,6 +214,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // ============================================================
 
   Future<void> _selectDate() async {
+    final isDarkMode = ThemeController.isDarkMode.value;
+
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -217,7 +227,14 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           ) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: isDarkMode
+                ? const ColorScheme.dark(
+              primary: primaryGreen,
+              onPrimary: Colors.white,
+              surface: darkCard,
+              onSurface: Colors.white,
+            )
+                : const ColorScheme.light(
               primary: primaryGreen,
               onPrimary: Colors.white,
               surface: Colors.white,
@@ -254,32 +271,58 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.white,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-      ),
-      child: Scaffold(
-        backgroundColor: softGreen,
-        body: SafeArea(
-          top: true,
-          bottom: false,
-          child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
-            children: [
-              _buildAppBar(context),
-
-              Expanded(
-                child: _buildBody(),
-              ),
-            ],
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (
+          context,
+          isDarkMode,
+          child,
+          ) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: isDarkMode
+                ? darkBackground
+                : Colors.white,
+            statusBarIconBrightness: isDarkMode
+                ? Brightness.light
+                : Brightness.dark,
+            statusBarBrightness: isDarkMode
+                ? Brightness.dark
+                : Brightness.light,
           ),
-        ),
-        bottomNavigationBar:
-        _buildBottomNavigationBar(),
-      ),
+          child: Scaffold(
+            backgroundColor: isDarkMode
+                ? darkBackground
+                : softGreen,
+
+            body: SafeArea(
+              top: true,
+              bottom: false,
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.stretch,
+                children: [
+                  _buildAppBar(
+                    context,
+                    isDarkMode,
+                  ),
+
+                  Expanded(
+                    child: _buildBody(
+                      isDarkMode,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            bottomNavigationBar:
+            _buildBottomNavigationBar(
+              isDarkMode,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -287,15 +330,20 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // APP BAR
   // ============================================================
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
       height: 48,
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
       ),
-      decoration: const BoxDecoration(
-        color: headerGreen,
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? darkHeader
+            : headerGreen,
       ),
       child: Row(
         children: [
@@ -309,16 +357,24 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: isDarkMode
+                  ? const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              )
+                  : null,
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Expanded(
+          Expanded(
             child: Text(
               'Weekly Report',
               style: TextStyle(
-                color: Colors.black,
+                color: isDarkMode
+                    ? Colors.white
+                    : Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
@@ -327,9 +383,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
           GestureDetector(
             onTap: _downloadReport,
-            child: const Icon(
+            child: Icon(
               Icons.file_download_outlined,
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
               size: 25,
             ),
           ),
@@ -342,7 +400,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // BODY
   // ============================================================
 
-  Widget _buildBody() {
+  Widget _buildBody(bool isDarkMode) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -353,15 +411,17 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
 
     if (_error != null) {
-      return _buildError();
+      return _buildError(isDarkMode);
     }
 
     if (_report == null) {
-      return const Center(
+      return Center(
         child: Text(
           'No weekly report available.',
           style: TextStyle(
-            color: greyText,
+            color: isDarkMode
+                ? darkSecondaryText
+                : greyText,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -372,7 +432,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
     return RefreshIndicator(
       color: primaryGreen,
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode
+          ? darkCard
+          : Colors.white,
       onRefresh: _loadReport,
       child: SingleChildScrollView(
         physics:
@@ -385,27 +447,37 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         ),
         child: Column(
           children: [
-            _buildWeekSelector(),
+            _buildWeekSelector(
+              isDarkMode,
+            ),
 
             const SizedBox(height: 2),
 
-            _buildWeekOverview(report),
+            _buildWeekOverview(
+              report,
+              isDarkMode,
+            ),
 
             const SizedBox(height: 9),
 
-            // ==================================================
-            // DIET + WORKOUT CARDS
-            // ==================================================
-
-            _buildSummaryCards(report),
+            _buildSummaryCards(
+              report,
+              isDarkMode,
+            ),
 
             const SizedBox(height: 9),
 
-            _buildWeeklyProgress(report),
+            _buildWeeklyProgress(
+              report,
+              isDarkMode,
+            ),
 
             const SizedBox(height: 7),
 
-            _buildTipCard(report),
+            _buildTipCard(
+              report,
+              isDarkMode,
+            ),
 
             const SizedBox(height: 3),
           ],
@@ -418,7 +490,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // WEEK SELECTOR
   // ============================================================
 
-  Widget _buildWeekSelector() {
+  Widget _buildWeekSelector(
+      bool isDarkMode,
+      ) {
     return SizedBox(
       height: 32,
       child: Row(
@@ -427,11 +501,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             width: 54,
             child: GestureDetector(
               onTap: () => _changeWeek(-1),
-              child: const Center(
+              child: Center(
                 child: Text(
                   '<',
                   style: TextStyle(
-                    color: darkGreen,
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkGreen,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
@@ -446,8 +522,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               child: Center(
                 child: Text(
                   _formatWeekRange(),
-                  style: const TextStyle(
-                    color: darkGreen,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkGreen,
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
                   ),
@@ -460,11 +538,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             width: 54,
             child: GestureDetector(
               onTap: () => _changeWeek(1),
-              child: const Center(
+              child: Center(
                 child: Text(
                   '>',
                   style: TextStyle(
-                    color: darkGreen,
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkGreen,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
@@ -483,6 +563,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildWeekOverview(
       WeeklyReport report,
+      bool isDarkMode,
       ) {
     final weekStart =
     _getWeekStart(_selectedDate);
@@ -501,12 +582,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       width: double.infinity,
       height: 110,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(27),
+        color: isDarkMode
+            ? darkCard
+            : Colors.white,
+        borderRadius:
+        BorderRadius.circular(27),
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(0.035),
+            color: Colors.black.withOpacity(
+              isDarkMode ? 0.25 : 0.035,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -567,6 +652,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       name: names[index],
                       date: date,
                       daily: daily,
+                      isDarkMode: isDarkMode,
                     ),
                   );
                 },
@@ -582,6 +668,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     required String name,
     required DateTime date,
     required DailyReport? daily,
+    required bool isDarkMode,
   }) {
     final dietDone =
         daily?.dietFollowed ?? false;
@@ -589,13 +676,17 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     final workoutDone =
         daily?.workoutCompleted ?? false;
 
+    final textColor = isDarkMode
+        ? Colors.white
+        : darkText;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           name,
-          style: const TextStyle(
-            color: darkText,
+          style: TextStyle(
+            color: textColor,
             fontSize: 10,
             fontWeight: FontWeight.w900,
             height: 1.0,
@@ -606,8 +697,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
         Text(
           '${date.day}',
-          style: const TextStyle(
-            color: darkText,
+          style: TextStyle(
+            color: textColor,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             height: 1.0,
@@ -625,7 +716,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               Icons.restaurant,
               size: 14,
               color: dietDone
-                  ? Colors.black
+                  ? textColor
                   : Colors.grey.shade500,
             ),
 
@@ -635,7 +726,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               Icons.fitness_center,
               size: 14,
               color: workoutDone
-                  ? Colors.black
+                  ? textColor
                   : Colors.grey.shade500,
             ),
           ],
@@ -665,22 +756,30 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-
+  // ============================================================
+  // SUMMARY CARDS
+  // ============================================================
 
   Widget _buildSummaryCards(
       WeeklyReport report,
+      bool isDarkMode,
       ) {
     return Column(
       children: [
-        _buildDietCard(report),
+        _buildDietCard(
+          report,
+          isDarkMode,
+        ),
 
         const SizedBox(height: 8),
 
-        _buildWorkoutCard(report),
+        _buildWorkoutCard(
+          report,
+          isDarkMode,
+        ),
       ],
     );
   }
-
 
   // ============================================================
   // DIET CARD
@@ -688,6 +787,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildDietCard(
       WeeklyReport report,
+      bool isDarkMode,
       ) {
     final percentage = report.dietPercentage
         .toDouble()
@@ -698,12 +798,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       height: 350,
       padding: const EdgeInsets.all(7),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDarkMode
+            ? darkCard
+            : Colors.white,
+        borderRadius:
+        BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              isDarkMode ? 0.25 : 0.08,
+            ),
             blurRadius: 7,
             offset: const Offset(0, 3),
           ),
@@ -714,6 +818,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           _summaryHeader(
             icon: Icons.restaurant,
             title: 'Diet Summary',
+            isDarkMode: isDarkMode,
           ),
 
           const SizedBox(height: 7),
@@ -723,12 +828,14 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             value:
             '${report.dietFollowedDays}/7 days',
             percentage: percentage,
+            isDarkMode: isDarkMode,
           ),
 
           const SizedBox(height: 6),
 
           _healthyChoices(
             report.healthyChoices.round(),
+            isDarkMode,
           ),
 
           const SizedBox(height: 8),
@@ -736,6 +843,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           _averageCalories(
             report.averageCalories,
             report.dailyCalories,
+            isDarkMode,
           ),
         ],
       ),
@@ -748,6 +856,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildWorkoutCard(
       WeeklyReport report,
+      bool isDarkMode,
       ) {
     final percentage =
     report.workoutPercentage
@@ -759,12 +868,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       height: 350,
       padding: const EdgeInsets.all(7),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDarkMode
+            ? darkCard
+            : Colors.white,
+        borderRadius:
+        BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(
+              isDarkMode ? 0.25 : 0.08,
+            ),
             blurRadius: 7,
             offset: const Offset(0, 3),
           ),
@@ -775,6 +888,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           _summaryHeader(
             icon: Icons.fitness_center,
             title: 'Workout Summary',
+            isDarkMode: isDarkMode,
           ),
 
           const SizedBox(height: 6),
@@ -784,6 +898,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             value:
             '${report.workoutCompletedDays}/7 days',
             percentage: percentage,
+            isDarkMode: isDarkMode,
           ),
 
           const SizedBox(height: 6),
@@ -796,6 +911,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   report.workoutCompletedDays
                       .toString()
                       .padLeft(2, '0'),
+                  isDarkMode,
                 ),
               ),
 
@@ -805,6 +921,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 child: _workoutStat(
                   'Total Duration',
                   '${report.totalDuration}min',
+                  isDarkMode,
                 ),
               ),
             ],
@@ -818,6 +935,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 child: _workoutStat(
                   'Total calories',
                   '${report.totalCalories}',
+                  isDarkMode,
                 ),
               ),
 
@@ -827,6 +945,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 child: _workoutStat(
                   'Avg. Intensity',
                   report.intensityText,
+                  isDarkMode,
                 ),
               ),
             ],
@@ -851,6 +970,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   Widget _summaryHeader({
     required IconData icon,
     required String title,
+    required bool isDarkMode,
   }) {
     return Container(
       height: 34,
@@ -908,6 +1028,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     required String title,
     required String value,
     required double percentage,
+    required bool isDarkMode,
   }) {
     final safe =
     percentage.clamp(0.0, 100.0);
@@ -921,7 +1042,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         5,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F7F3),
+        color: isDarkMode
+            ? darkCardLight
+            : const Color(0xFFF3F7F3),
         borderRadius:
         BorderRadius.circular(13),
       ),
@@ -939,8 +1062,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   maxLines: 1,
                   overflow:
                   TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: darkText,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkText,
                     fontSize: 10,
                     fontWeight:
                     FontWeight.w800,
@@ -951,8 +1076,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
                 Text(
                   value,
-                  style: const TextStyle(
-                    color: darkText,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? darkSecondaryText
+                        : darkText,
                     fontSize: 10,
                     fontWeight:
                     FontWeight.w600,
@@ -974,7 +1101,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   value: safe / 100,
                   strokeWidth: 4.5,
                   backgroundColor:
-                  const Color(0xFFDCE3DC),
+                  isDarkMode
+                      ? const Color(0xFF39423B)
+                      : const Color(
+                    0xFFDCE3DC,
+                  ),
                   valueColor:
                   const AlwaysStoppedAnimation<
                       Color>(
@@ -984,8 +1115,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
                 Text(
                   '${safe.round()}%',
-                  style: const TextStyle(
-                    color: darkGreen,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkGreen,
                     fontSize: 11,
                     fontWeight:
                     FontWeight.w900,
@@ -1005,6 +1138,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _healthyChoices(
       int percentage,
+      bool isDarkMode,
       ) {
     final safe =
     percentage.clamp(0, 100).toDouble();
@@ -1016,7 +1150,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         vertical: 5,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? darkCardLight
+            : Colors.white,
         borderRadius:
         BorderRadius.circular(11),
       ),
@@ -1026,10 +1162,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Healthy Choices',
                 style: TextStyle(
-                  color: darkText,
+                  color: isDarkMode
+                      ? Colors.white
+                      : darkText,
                   fontSize: 10,
                   fontWeight:
                   FontWeight.w800,
@@ -1040,8 +1178,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
               Text(
                 '$percentage%',
-                style: const TextStyle(
-                  color: darkText,
+                style: TextStyle(
+                  color: isDarkMode
+                      ? Colors.white
+                      : darkText,
                   fontSize: 10,
                   fontWeight:
                   FontWeight.w800,
@@ -1059,7 +1199,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               value: safe / 100,
               minHeight: 5,
               backgroundColor:
-              const Color(0xFFE1E6E1),
+              isDarkMode
+                  ? const Color(0xFF39423B)
+                  : const Color(0xFFE1E6E1),
               valueColor:
               const AlwaysStoppedAnimation<
                   Color>(
@@ -1079,6 +1221,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   Widget _workoutStat(
       String title,
       String value,
+      bool isDarkMode,
       ) {
     return Container(
       height: 40,
@@ -1087,7 +1230,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         vertical: 3,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F7F3),
+        color: isDarkMode
+            ? darkCardLight
+            : const Color(0xFFF3F7F3),
         borderRadius:
         BorderRadius.circular(9),
       ),
@@ -1101,8 +1246,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             overflow:
             TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: greyText,
+            style: TextStyle(
+              color: isDarkMode
+                  ? darkSecondaryText
+                  : greyText,
               fontSize: 8,
               fontWeight:
               FontWeight.w600,
@@ -1117,8 +1264,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             overflow:
             TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: darkText,
+            style: TextStyle(
+              color: isDarkMode
+                  ? Colors.white
+                  : darkText,
               fontSize: 10,
               fontWeight:
               FontWeight.w900,
@@ -1136,6 +1285,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   Widget _averageCalories(
       int averageCalories,
       List<double> dailyCalories,
+      bool isDarkMode,
       ) {
     return Container(
       width: double.infinity,
@@ -1148,10 +1298,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         crossAxisAlignment:
         CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Average Calories',
             style: TextStyle(
-              color: darkText,
+              color: isDarkMode
+                  ? Colors.white
+                  : darkText,
               fontSize: 11,
               fontWeight: FontWeight.w800,
             ),
@@ -1163,21 +1315,27 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             children: [
               Text(
                 '$averageCalories',
-                style: const TextStyle(
-                  color: darkText,
+                style: TextStyle(
+                  color: isDarkMode
+                      ? Colors.white
+                      : darkText,
                   fontSize: 14,
-                  fontWeight: FontWeight.w900,
+                  fontWeight:
+                  FontWeight.w900,
                 ),
               ),
 
               const SizedBox(width: 2),
 
-              const Text(
+              Text(
                 'kcal/day',
                 style: TextStyle(
-                  color: greyText,
+                  color: isDarkMode
+                      ? darkSecondaryText
+                      : greyText,
                   fontSize: 9,
-                  fontWeight: FontWeight.w600,
+                  fontWeight:
+                  FontWeight.w600,
                 ),
               ),
 
@@ -1248,6 +1406,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildWeeklyProgress(
       WeeklyReport report,
+      bool isDarkMode,
       ) {
     final progress =
         report.progressComparedToLastWeek;
@@ -1262,13 +1421,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         vertical: 8,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? darkCard
+            : Colors.white,
         borderRadius:
         BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(.06),
+            color: Colors.black.withOpacity(
+              isDarkMode ? .25 : .06,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -1296,10 +1458,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               crossAxisAlignment:
               CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Weekly Progress',
                   style: TextStyle(
-                    color: darkText,
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkText,
                     fontSize: 13,
                     fontWeight:
                     FontWeight.w900,
@@ -1315,8 +1479,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   maxLines: 2,
                   overflow:
                   TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: darkText,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? darkSecondaryText
+                        : darkText,
                     fontSize: 10,
                     fontWeight:
                     FontWeight.w600,
@@ -1336,6 +1502,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Widget _buildTipCard(
       WeeklyReport report,
+      bool isDarkMode,
       ) {
     return Container(
       width: double.infinity,
@@ -1350,13 +1517,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         9,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? darkCard
+            : Colors.white,
         borderRadius:
         BorderRadius.circular(21),
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(.06),
+            color: Colors.black.withOpacity(
+              isDarkMode ? .25 : .06,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -1381,10 +1551,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               crossAxisAlignment:
               CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Tip of the Week',
                   style: TextStyle(
-                    color: darkText,
+                    color: isDarkMode
+                        ? Colors.white
+                        : darkText,
                     fontSize: 13,
                     fontWeight:
                     FontWeight.w900,
@@ -1398,8 +1570,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                   maxLines: 3,
                   overflow:
                   TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: darkText,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? darkSecondaryText
+                        : darkText,
                     fontSize: 10,
                     height: 1.35,
                     fontWeight:
@@ -1418,17 +1592,22 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // BOTTOM NAVIGATION
   // ============================================================
 
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(
+      bool isDarkMode,
+      ) {
     return SafeArea(
       top: false,
       child: Container(
         height: 69,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode
+              ? darkCard
+              : Colors.white,
           boxShadow: [
             BoxShadow(
-              color:
-              Colors.black.withOpacity(.09),
+              color: Colors.black.withOpacity(
+                isDarkMode ? .3 : .09,
+              ),
               blurRadius: 12,
               offset: const Offset(0, -3),
             ),
@@ -1442,6 +1621,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               Icons.home_rounded,
               label: 'Home',
               active: true,
+              isDarkMode: isDarkMode,
             ),
 
             _bottomItem(
@@ -1451,6 +1631,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               Icons.calendar_today_rounded,
               label: 'Daily Routine',
               active: false,
+              isDarkMode: isDarkMode,
             ),
 
             _bottomItem(
@@ -1460,6 +1641,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               Icons.person_rounded,
               label: 'Profile',
               active: false,
+              isDarkMode: isDarkMode,
             ),
 
             _bottomItem(
@@ -1469,6 +1651,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               Icons.settings_rounded,
               label: 'Settings',
               active: false,
+              isDarkMode: isDarkMode,
             ),
           ],
         ),
@@ -1481,9 +1664,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     required IconData activeIcon,
     required String label,
     required bool active,
+    required bool isDarkMode,
   }) {
     final Color color = active
         ? primaryGreen
+        : isDarkMode
+        ? const Color(0xFFB8C0B9)
         : const Color(0xFF667068);
 
     return Expanded(
@@ -1522,7 +1708,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   // ERROR
   // ============================================================
 
-  Widget _buildError() {
+  Widget _buildError(
+      bool isDarkMode,
+      ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(25),
@@ -1534,8 +1722,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               width: 70,
               height: 70,
               decoration:
-              const BoxDecoration(
-                color: Color(0xFFFFEEEE),
+              BoxDecoration(
+                color: isDarkMode
+                    ? const Color(0xFF351F1F)
+                    : const Color(0xFFFFEEEE),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1547,11 +1737,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
             const SizedBox(height: 16),
 
-            const Text(
+            Text(
               'Unable to load weekly report',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: darkText,
+                color: isDarkMode
+                    ? Colors.white
+                    : darkText,
                 fontSize: 19,
                 fontWeight:
                 FontWeight.w800,
@@ -1563,8 +1755,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             Text(
               _error ?? '',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: greyText,
+              style: TextStyle(
+                color: isDarkMode
+                    ? darkSecondaryText
+                    : greyText,
                 fontSize: 12,
               ),
             ),
@@ -1923,8 +2117,7 @@ class _CaloriesChartPainter
 
   @override
   bool shouldRepaint(
-      covariant _CaloriesChartPainter
-      oldDelegate,
+      covariant _CaloriesChartPainter oldDelegate,
       ) {
     return oldDelegate.values.toString() !=
         values.toString();
@@ -2087,8 +2280,7 @@ class _WorkoutChartPainter
 
   @override
   bool shouldRepaint(
-      covariant _WorkoutChartPainter
-      oldDelegate,
+      covariant _WorkoutChartPainter oldDelegate,
       ) {
     return true;
   }
@@ -2173,8 +2365,7 @@ class _ProgressIconPainter
 
   @override
   bool shouldRepaint(
-      covariant _ProgressIconPainter
-      oldDelegate,
+      covariant _ProgressIconPainter oldDelegate,
       ) {
     return oldDelegate.positive !=
         positive;
@@ -2246,8 +2437,7 @@ class _TipIconPainter
 
   @override
   bool shouldRepaint(
-      covariant _TipIconPainter
-      oldDelegate,
+      covariant _TipIconPainter oldDelegate,
       ) {
     return false;
   }

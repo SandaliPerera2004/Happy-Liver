@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/settings/help_feedback_submitted_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class SendFeedback extends StatefulWidget {
   const SendFeedback({super.key});
@@ -20,235 +21,315 @@ class _SendFeedbackState extends State<SendFeedback> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: isDarkMode
+              ? _darkBackground
+              : Colors.white,
 
-    return Scaffold(
-      backgroundColor: isDarkMode
-          ? _darkBackground
-          : Colors.white,
+          body: SafeArea(
+            top: true,
+            bottom: false,
+            child: Column(
+              children: [
+                _buildHeader(context, isDarkMode),
 
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(context),
-
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 38),
-
-                      Row(
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.chat_bubble_outline,
-                            size: 29,
-                            color: isDarkMode
-                                ? Colors.white
-                                : Colors.black,
+                          const SizedBox(height: 38),
+
+                          // ==================================================
+                          // SEND FEEDBACK TITLE
+                          // ==================================================
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 29,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+
+                              const SizedBox(width: 10),
+
+                              Text(
+                                "Send Feedback",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
 
-                          const SizedBox(width: 10),
+                          const SizedBox(height: 32),
+
+                          // ==================================================
+                          // QUESTION
+                          // ==================================================
 
                           Text(
-                            "Send Feedback",
+                            "What do you think about this app?",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: isDarkMode
                                   ? Colors.white
                                   : Colors.black,
                             ),
                           ),
+
+                          const SizedBox(height: 28),
+
+                          // ==================================================
+                          // FEEDBACK TEXT BOX
+                          // ==================================================
+
+                          Container(
+                            width: double.infinity,
+                            height: 115,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? _darkInput
+                                  : const Color(0xFFE0E0E0),
+                            ),
+                            child: TextField(
+                              maxLines: 5,
+
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 14,
+                              ),
+
+                              cursorColor: _green,
+
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText:
+                                "Tell us what you think...",
+                                hintStyle: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white54
+                                      : Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 38),
+
+                          // ==================================================
+                          // RATING
+                          // ==================================================
+
+                          Text(
+                            "How would you rate your\nexperience?",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              height: 1.5,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          Row(
+                            children: List.generate(
+                              5,
+                                  (index) {
+                                final int starNumber =
+                                    index + 1;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedRating =
+                                          starNumber;
+                                    });
+                                  },
+
+                                  child: Padding(
+                                    padding:
+                                    const EdgeInsets.only(
+                                      right: 3,
+                                    ),
+
+                                    child: Icon(
+                                      starNumber <=
+                                          selectedRating
+                                          ? Icons.star
+                                          : Icons.star_border,
+
+                                      size: 32,
+
+                                      color: starNumber <=
+                                          selectedRating
+                                          ? const Color(
+                                        0xFFFFB800,
+                                      )
+                                          : isDarkMode
+                                          ? Colors.white70
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(height: 45),
+
+                          // ==================================================
+                          // DARK MODE SWITCH
+                          // ==================================================
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.dark_mode_outlined,
+                                size: 28,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+
+                              const SizedBox(width: 16),
+
+                              Expanded(
+                                child: Text(
+                                  "Dark mode",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight:
+                                    FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ),
+
+                              Switch(
+                                value: isDarkMode,
+                                activeThumbColor: Colors.green,
+                                activeTrackColor:
+                                Colors.green.withOpacity(0.35),
+                                inactiveThumbColor:
+                                Colors.grey,
+                                inactiveTrackColor:
+                                Colors.grey.withOpacity(0.25),
+                                onChanged: (value) async {
+                                  await ThemeController
+                                      .setDarkMode(value);
+                                },
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          // ==================================================
+                          // SUBMIT FEEDBACK BUTTON
+                          // ==================================================
+
+                          Center(
+                            child: SizedBox(
+                              width: 203,
+                              height: 30,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                      const FeedbackSubmittedScreen(),
+                                    ),
+                                  );
+                                },
+
+                                style:
+                                ElevatedButton.styleFrom(
+                                  backgroundColor: _green,
+                                  foregroundColor:
+                                  Colors.white,
+                                  elevation: 0,
+
+                                  shape:
+                                  RoundedRectangleBorder(
+                                    borderRadius:
+                                    BorderRadius.circular(6),
+                                  ),
+
+                                  padding: EdgeInsets.zero,
+                                ),
+
+                                child: const Text(
+                                  "Submit Feedback",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight:
+                                    FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 100),
                         ],
                       ),
-
-                      const SizedBox(height: 32),
-
-                      Text(
-                        "What do you think about this app?",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      Container(
-                        width: double.infinity,
-                        height: 115,
-                        padding: const EdgeInsets.all(12),
-
-                        decoration: BoxDecoration(
-                          color: isDarkMode
-                              ? _darkInput
-                              : const Color(0xFFE0E0E0),
-                        ),
-
-                        child: TextField(
-                          maxLines: 5,
-
-                          style: TextStyle(
-                            color: isDarkMode
-                                ? Colors.white
-                                : Colors.black,
-                            fontSize: 14,
-                          ),
-
-                          cursorColor: _green,
-
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-
-                            hintText:
-                            "Tell us what you think...",
-
-                            hintStyle: TextStyle(
-                              color: isDarkMode
-                                  ? Colors.white54
-                                  : Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 38),
-
-                      Text(
-                        "How would you rate your\nexperience?",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          height: 1.5,
-                          color: isDarkMode
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      Row(
-                        children: List.generate(
-                          5,
-                              (index) {
-                            final int starNumber =
-                                index + 1;
-
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedRating =
-                                      starNumber;
-                                });
-                              },
-
-                              child: Padding(
-                                padding:
-                                const EdgeInsets.only(
-                                  right: 3,
-                                ),
-
-                                child: Icon(
-                                  starNumber <=
-                                      selectedRating
-                                      ? Icons.star
-                                      : Icons.star_border,
-
-                                  size: 32,
-
-                                  color: starNumber <=
-                                      selectedRating
-                                      ? const Color(0xFFFFB800)
-                                      : isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 65),
-
-                      Center(
-                        child: SizedBox(
-                          width: 203,
-                          height: 30,
-
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                  const FeedbackSubmittedScreen(),
-                                ),
-                              );
-                            },
-
-                            style:
-                            ElevatedButton.styleFrom(
-                              backgroundColor: _green,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-
-                              shape:
-                              RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(6),
-                              ),
-
-                              padding: EdgeInsets.zero,
-                            ),
-
-                            child: const Text(
-                              "Submit Feedback",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight:
-                                FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 100),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
 
-      bottomNavigationBar:
-      _buildBottomNavBar(
-        context,
-        isDarkMode,
-      ),
+          // ============================================================
+          // BOTTOM NAVIGATION
+          // ============================================================
+
+          bottomNavigationBar:
+          _buildBottomNavBar(
+            context,
+            isDarkMode,
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  // ================================================================
+  // HEADER
+  // ================================================================
+
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
 
@@ -257,8 +338,10 @@ class _SendFeedbackState extends State<SendFeedback> {
         vertical: 14,
       ),
 
-      decoration: const BoxDecoration(
-        color: _lightGreenHeader,
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : _lightGreenHeader,
       ),
 
       child: Row(
@@ -267,19 +350,28 @@ class _SendFeedbackState extends State<SendFeedback> {
             onTap: () {
               Navigator.pop(context);
             },
+
             child: SvgPicture.asset(
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             "Help & Feedback",
             style: TextStyle(
-              color: Colors.black,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -288,6 +380,10 @@ class _SendFeedbackState extends State<SendFeedback> {
       ),
     );
   }
+
+  // ================================================================
+  // BOTTOM NAVIGATION BAR
+  // ================================================================
 
   Widget _buildBottomNavBar(
       BuildContext context,
@@ -367,6 +463,10 @@ class _SendFeedbackState extends State<SendFeedback> {
       ),
     );
   }
+
+  // ================================================================
+  // BOTTOM NAV ITEM
+  // ================================================================
 
   Widget _bottomItem({
     required IconData icon,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:happy_liver/services/theme_controller.dart';
 
 class FeedbackSubmittedScreen extends StatelessWidget {
   const FeedbackSubmittedScreen({super.key});
@@ -11,43 +12,49 @@ class FeedbackSubmittedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          // =========================================================
+          // BACKGROUND
+          // =========================================================
 
-    return Scaffold(
-      // =========================================================
-      // BACKGROUND
-      // =========================================================
-      backgroundColor: isDarkMode
-          ? const Color(0xFF121212)
-          : const Color(0xFFF5F6F8),
+          backgroundColor: isDarkMode
+              ? const Color(0xFF121212)
+              : const Color(0xFFF5F6F8),
 
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(context),
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                _buildHeader(context, isDarkMode),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  40,
-                  80,
-                  40,
-                  40,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      40,
+                      80,
+                      40,
+                      40,
+                    ),
+                    child: _buildConfirmationCard(
+                      context,
+                      isDarkMode,
+                    ),
+                  ),
                 ),
-                child: _buildConfirmationCard(
-                  context,
-                  isDarkMode,
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
 
-      bottomNavigationBar:
-      _buildBottomNavBar(context, isDarkMode),
+          bottomNavigationBar:
+          _buildBottomNavBar(
+            context,
+            isDarkMode,
+          ),
+        );
+      },
     );
   }
 
@@ -55,15 +62,21 @@ class FeedbackSubmittedScreen extends StatelessWidget {
   // HEADER
   // ================================================================
 
-  Widget _buildHeader(BuildContext context) {
-    // Keep the green header unchanged in dark mode.
+  Widget _buildHeader(
+      BuildContext context,
+      bool isDarkMode,
+      ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
       ),
-      color: _lightGreenHeader,
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? const Color(0xFF1B3B1F)
+            : _lightGreenHeader,
+      ),
       child: Row(
         children: [
           GestureDetector(
@@ -72,17 +85,25 @@ class FeedbackSubmittedScreen extends StatelessWidget {
               'assets/icons/Arrow left-circle.svg',
               width: 30,
               height: 30,
+              colorFilter: ColorFilter.mode(
+                isDarkMode
+                    ? Colors.white
+                    : Colors.black87,
+                BlendMode.srcIn,
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          const Text(
+          Text(
             'Help & Feedback',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDarkMode
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
         ],
@@ -107,7 +128,6 @@ class FeedbackSubmittedScreen extends StatelessWidget {
       ),
 
       decoration: BoxDecoration(
-        // White card → dark card
         color: isDarkMode
             ? const Color(0xFF1E1E1E)
             : Colors.white,
@@ -131,8 +151,7 @@ class FeedbackSubmittedScreen extends StatelessWidget {
             width: 72,
             height: 72,
 
-            decoration: BoxDecoration(
-              // Keep the light green icon background.
+            decoration: const BoxDecoration(
               color: _lightGreenIconBg,
               shape: BoxShape.circle,
             ),
@@ -171,12 +190,9 @@ class FeedbackSubmittedScreen extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-
-              // Grey → light grey
               color: isDarkMode
                   ? Colors.white70
                   : const Color(0xFF8A948E),
-
               height: 1.4,
             ),
           ),
@@ -200,7 +216,6 @@ class FeedbackSubmittedScreen extends StatelessWidget {
               },
 
               style: ElevatedButton.styleFrom(
-                // Keep green button unchanged.
                 backgroundColor: _green,
                 elevation: 0,
 
@@ -219,6 +234,54 @@ class FeedbackSubmittedScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          const SizedBox(height: 25),
+
+          // ======================================================
+          // DARK MODE SWITCH
+          // ======================================================
+
+          Row(
+            children: [
+              Icon(
+                Icons.dark_mode_outlined,
+                size: 28,
+                color: isDarkMode
+                    ? Colors.white
+                    : Colors.black,
+              ),
+
+              const SizedBox(width: 16),
+
+              Expanded(
+                child: Text(
+                  'Dark mode',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                ),
+              ),
+
+              Switch(
+                value: isDarkMode,
+                activeThumbColor: Colors.green,
+                activeTrackColor:
+                Colors.green.withOpacity(0.35),
+                inactiveThumbColor: Colors.grey,
+                inactiveTrackColor:
+                Colors.grey.withOpacity(0.25),
+                onChanged: (value) async {
+                  await ThemeController.setDarkMode(
+                    value,
+                  );
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -234,7 +297,6 @@ class FeedbackSubmittedScreen extends StatelessWidget {
       ) {
     return Container(
       decoration: BoxDecoration(
-        // White → dark
         color: isDarkMode
             ? const Color(0xFF1E1E1E)
             : Colors.white,

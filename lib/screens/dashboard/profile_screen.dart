@@ -10,6 +10,7 @@ import '../../services/theme_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../authentication/login_screen.dart';
 import '../../services/weekly_report_service.dart';
+import '../../../achieved_goals_page.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -430,13 +431,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         // ==========================================================
 
         Expanded(
-          child: _statCard(
-            imageAsset:
-            'assets/images/target.png',
-            label: 'ACHIEVED GOALS',
-            value: '12/15',
-            isDarkMode:
-            isDarkMode,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AchievedGoalsPage(),
+                ),
+              );
+            },
+            child: _statCard(
+              imageAsset:
+              'assets/images/target.png',
+              label: 'ACHIEVED GOALS',
+              value: '12/15',
+              isDarkMode:
+              isDarkMode,
+            ),
           ),
         ),
       ],
