@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../profile/edit_profile_screen.dart';
 import '../profile/change_password_screen.dart';
+import '../../weekly_report_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 import '../../widgets/bottom_navigation_bar.dart';
 import '../../services/theme_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../authentication/login_screen.dart';
+import '../../services/weekly_report_service.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -39,18 +41,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   UserModel? _user;
   bool _isLoading = true;
 
-  // ================================================================
-  // PROFILE IMAGE URL
-  // ================================================================
-
   String? _profileImageUrl;
 
   @override
   void initState() {
     super.initState();
 
-    ThemeController.isDarkMode.value =
-        widget.isDarkMode;
+    ThemeController.isDarkMode.value = widget.isDarkMode;
 
     _loadUserProfile();
   }
@@ -63,14 +60,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     print('LOAD USER PROFILE CALLED');
 
     try {
-      final user =
-      await _userService.getCurrentUserProfile();
+      final user = await _userService.getCurrentUserProfile();
 
       print('USER RESULT: $user');
 
-      // Load profile picture URL
-      final imageUrl =
-      await _userService.getProfilePictureUrl();
+      final imageUrl = await _userService.getProfilePictureUrl();
 
       print('PROFILE IMAGE URL: $imageUrl');
 
@@ -107,9 +101,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable:
-      ThemeController.isDarkMode,
-
+      valueListenable: ThemeController.isDarkMode,
       builder: (
           context,
           isDarkMode,
@@ -122,20 +114,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
           body: SafeArea(
             bottom: false,
-
             child: Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding:
-                    const EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       bottom: 20,
                     ),
-
                     child: Column(
                       crossAxisAlignment:
                       CrossAxisAlignment.stretch,
-
                       children: [
                         // =================================================
                         // HEADER
@@ -151,24 +139,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         // =================================================
 
                         Padding(
-                          padding:
-                          const EdgeInsets.fromLTRB(
+                          padding: const EdgeInsets.fromLTRB(
                             _hPad,
                             24,
                             _hPad,
                             0,
                           ),
-
                           child: Column(
                             crossAxisAlignment:
                             CrossAxisAlignment.stretch,
-
                             children: [
                               // =================================================
                               // STATS
                               // =================================================
 
                               _buildStatsRow(
+                                context,
                                 isDarkMode,
                               ),
 
@@ -182,12 +168,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                               Text(
                                 'Account Settings',
-
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight:
                                   FontWeight.w700,
-
                                   color: isDarkMode
                                       ? Colors.white
                                       : _darkText,
@@ -224,9 +208,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           bottomNavigationBar:
           HappyLiverBottomNavBar(
             selectedIndex: 2,
-
             isDarkMode: isDarkMode,
-
             onThemeChanged:
             widget.onThemeChanged,
           ),
@@ -245,25 +227,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ) {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.only(
         top: 24,
         bottom: 28,
       ),
-
-      decoration:
-      const BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-
           colors: [
             _darkGreen,
             _green,
           ],
         ),
       ),
-
       child: Column(
         children: [
           // =========================================================
@@ -273,20 +250,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           Container(
             width: 96,
             height: 96,
-
-            decoration:
-            BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-
               border: Border.all(
                 color: Colors.black,
                 width: 3,
               ),
             ),
-
             child: ClipOval(
-              child:
-              _buildProfileImage(),
+              child: _buildProfileImage(),
             ),
           ),
 
@@ -300,11 +272,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
           Text(
             _user?.username ?? 'User',
-
             style: const TextStyle(
               fontSize: 22,
-              fontWeight:
-              FontWeight.w900,
+              fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
           ),
@@ -321,59 +291,44 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             onTap: () async {
               await Navigator.push(
                 context,
-
                 MaterialPageRoute(
                   builder: (_) =>
                       EditProfileScreen(
                         isDarkMode:
                         isDarkMode,
-
                         onThemeChanged:
                         widget.onThemeChanged,
                       ),
                 ),
               );
 
-              // Reload profile when returning
-              // from Edit Profile screen.
               _loadUserProfile();
             },
-
             child: Container(
               padding:
               const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 10,
               ),
-
-              decoration:
-              BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-
                 borderRadius:
-                BorderRadius.circular(
-                  30,
-                ),
+                BorderRadius.circular(30),
               ),
-
               child: Row(
                 mainAxisSize:
                 MainAxisSize.min,
-
                 children: [
                   Image.asset(
                     'assets/images/Edit.png',
                     width: 16,
                     height: 16,
                   ),
-
                   const SizedBox(
                     width: 8,
                   ),
-
                   const Text(
                     'Edit Profile',
-
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight:
@@ -395,21 +350,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ================================================================
 
   Widget _buildProfileImage() {
-    // --------------------------------------------------------------
-    // USER HAS A PROFILE IMAGE
-    // --------------------------------------------------------------
-
     if (_profileImageUrl != null &&
         _profileImageUrl!.trim().isNotEmpty) {
       return Image.network(
         _profileImageUrl!,
-
         width: 96,
         height: 96,
-
         fit: BoxFit.cover,
-
-        // If the URL fails, show default image.
         errorBuilder: (
             context,
             error,
@@ -417,26 +364,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ) {
           return Image.asset(
             'assets/images/profile_image.png',
-
             width: 96,
             height: 96,
-
             fit: BoxFit.cover,
           );
         },
       );
     }
 
-    // --------------------------------------------------------------
-    // NO PROFILE IMAGE
-    // --------------------------------------------------------------
-
     return Image.asset(
       'assets/images/profile_image.png',
-
       width: 96,
       height: 96,
-
       fit: BoxFit.cover,
     );
   }
@@ -446,24 +385,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ================================================================
 
   Widget _buildStatsRow(
+      BuildContext context,
       bool isDarkMode,
       ) {
     return Row(
       crossAxisAlignment:
       CrossAxisAlignment.start,
-
       children: [
+        // ==========================================================
+        // WEEKLY REPORT CARD
+        // ==========================================================
+
         Expanded(
-          child: _statCard(
-            imageAsset:
-            'assets/images/weekly.png',
-
-            label: 'WEEKLY REPORT',
-
-            value: '85%',
-
-            isDarkMode:
-            isDarkMode,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      WeeklyReportScreen(
+                        service:
+                        WeeklyReportService(),
+                      ),
+                ),
+              );
+            },
+            child: _statCard(
+              imageAsset:
+              'assets/images/weekly.png',
+              label: 'WEEKLY REPORT',
+              value: '85%',
+              isDarkMode:
+              isDarkMode,
+            ),
           ),
         ),
 
@@ -471,15 +425,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           width: 14,
         ),
 
+        // ==========================================================
+        // ACHIEVED GOALS CARD
+        // ==========================================================
+
         Expanded(
           child: _statCard(
             imageAsset:
             'assets/images/target.png',
-
             label: 'ACHIEVED GOALS',
-
             value: '12/15',
-
             isDarkMode:
             isDarkMode,
           ),
@@ -501,36 +456,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Container(
       padding:
       const EdgeInsets.all(16),
-
-      decoration:
-      BoxDecoration(
+      decoration: BoxDecoration(
         color: isDarkMode
             ? _darkCard
             : Colors.white,
-
         borderRadius:
         BorderRadius.circular(18),
-
         boxShadow: [
           BoxShadow(
             color: isDarkMode
-                ? Colors.black
-                .withOpacity(0.25)
-                : Colors.black
-                .withOpacity(0.05),
-
+                ? Colors.black.withOpacity(0.25)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
-
             offset:
             const Offset(0, 4),
           ),
         ],
       ),
-
       child: Column(
         crossAxisAlignment:
         CrossAxisAlignment.start,
-
         children: [
           Image.asset(
             imageAsset,
@@ -544,13 +489,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
           Text(
             label,
-
             style: TextStyle(
               fontSize: 15,
               fontWeight:
               FontWeight.w800,
               letterSpacing: 0.4,
-
               color: isDarkMode
                   ? Colors.white70
                   : _grayText,
@@ -563,12 +506,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
           Text(
             value,
-
             style: TextStyle(
               fontSize: 20,
               fontWeight:
               FontWeight.w800,
-
               color: isDarkMode
                   ? Colors.white
                   : _darkText,
@@ -588,31 +529,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       bool isDarkMode,
       ) {
     return Container(
-      decoration:
-      BoxDecoration(
+      decoration: BoxDecoration(
         color: isDarkMode
             ? _darkCard
             : Colors.white,
-
         borderRadius:
         BorderRadius.circular(18),
-
         boxShadow: [
           BoxShadow(
             color: isDarkMode
-                ? Colors.black
-                .withOpacity(0.25)
-                : Colors.black
-                .withOpacity(0.05),
-
+                ? Colors.black.withOpacity(0.25)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
-
             offset:
             const Offset(0, 4),
           ),
         ],
       ),
-
       child: Column(
         children: [
           // ========================================================
@@ -622,26 +555,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _settingsRow(
             iconAsset:
             'assets/images/change.png',
-
             iconBg:
             const Color(0xFFE9F9EE),
-
             label:
             'Change Password',
-
             isDarkMode:
             isDarkMode,
-
             onTap: () {
               Navigator.push(
                 context,
-
                 MaterialPageRoute(
                   builder: (_) =>
                       ChangePasswordScreen(
                         isDarkMode:
                         isDarkMode,
-
                         onThemeChanged:
                         widget.onThemeChanged,
                       ),
@@ -654,7 +581,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             height: 1,
             indent: 16,
             endIndent: 16,
-
             color: isDarkMode
                 ? Colors.white12
                 : Colors.grey.shade200,
@@ -667,16 +593,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _settingsRow(
             iconAsset:
             'assets/images/crown.png',
-
             iconBg:
             const Color(0xFFFFF6DE),
-
             label:
             'Premium Features',
-
             isDarkMode:
             isDarkMode,
-
             onTap: () {
               // Navigate to Premium Features screen
             },
@@ -686,7 +608,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             height: 1,
             indent: 16,
             endIndent: 16,
-
             color: isDarkMode
                 ? Colors.white12
                 : Colors.grey.shade200,
@@ -699,39 +620,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _settingsRow(
             iconAsset:
             'assets/images/logout.png',
-
             iconBg:
             const Color(0xFFFCEAEA),
-
             label:
             'Log Out',
-
             labelColor:
             const Color(0xFFE3453A),
-
             isDarkMode:
             isDarkMode,
-
             onTap: () async {
               try {
-                // Sign out from Firebase
-                await FirebaseAuth.instance.signOut();
+                await FirebaseAuth
+                    .instance
+                    .signOut();
 
                 if (!context.mounted) return;
 
-                // Navigate to Login Screen
-                // and remove all previous screens
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const LoginScreen(),
+                    builder: (_) =>
+                    const LoginScreen(),
                   ),
                       (route) => false,
                 );
               } catch (e) {
                 if (!context.mounted) return;
 
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(
                   SnackBar(
                     content: Text(
                       'Failed to log out: $e',
@@ -760,17 +677,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-
       borderRadius:
       BorderRadius.circular(18),
-
       child: Padding(
         padding:
         const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 14,
         ),
-
         child: Row(
           children: [
             // =======================================================
@@ -780,17 +694,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Container(
               width: 36,
               height: 36,
-
-              decoration:
-              BoxDecoration(
+              decoration: BoxDecoration(
                 color: iconBg,
-
                 borderRadius:
-                BorderRadius.circular(
-                  10,
-                ),
+                BorderRadius.circular(10),
               ),
-
               child: Center(
                 child: Image.asset(
                   iconAsset,
@@ -811,12 +719,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Expanded(
               child: Text(
                 label,
-
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight:
                   FontWeight.w600,
-
                   color: labelColor ??
                       (isDarkMode
                           ? Colors.white
@@ -832,7 +738,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Icon(
               Icons.chevron_right,
               size: 20,
-
               color: isDarkMode
                   ? Colors.white60
                   : _grayText,

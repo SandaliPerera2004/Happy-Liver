@@ -20,7 +20,7 @@ class AssessmentResultScreen extends StatelessWidget {
   });
 
   // ============================================================
-  // COLORS
+  // LIGHT MODE COLORS
   // ============================================================
 
   static const Color pageBg = Color(0xFFF5FAF6);
@@ -31,6 +31,55 @@ class AssessmentResultScreen extends StatelessWidget {
   static const Color red = Color(0xFFC62828);
   static const Color textDark = Color(0xFF18321F);
   static const Color mutedText = Color(0xFF5A665D);
+
+  // ============================================================
+  // DARK MODE COLORS
+  // ============================================================
+
+  static const Color darkPageBg = Color(0xFF0F1712);
+  static const Color darkCard = Color(0xFF18231C);
+  static const Color darkCardSecondary = Color(0xFF1E2C23);
+  static const Color darkBorder = Color(0xFF2D3B31);
+  static const Color darkText = Color(0xFFF1F7F2);
+  static const Color darkMutedText = Color(0xFFB7C4BA);
+  static const Color darkPaleGreen = Color(0xFF1D3424);
+  static const Color darkGreeting = Color(0xFF183222);
+  static const Color darkAnswerBg = Color(0xFF1E2C23);
+  static const Color darkGaugeTrack = Color(0xFF334137);
+
+  // ============================================================
+  // DYNAMIC COLORS
+  // ============================================================
+
+  Color get backgroundColor =>
+      isDarkMode ? darkPageBg : pageBg;
+
+  Color get cardColor =>
+      isDarkMode ? darkCard : Colors.white;
+
+  Color get secondaryCardColor =>
+      isDarkMode ? darkCardSecondary : Colors.white;
+
+  Color get primaryTextColor =>
+      isDarkMode ? darkText : textDark;
+
+  Color get secondaryTextColor =>
+      isDarkMode ? darkMutedText : mutedText;
+
+  Color get borderColor =>
+      isDarkMode ? darkBorder : const Color(0xFFDCEFD9);
+
+  Color get softGreenColor =>
+      isDarkMode ? darkPaleGreen : paleGreen;
+
+  Color get greetingColor =>
+      isDarkMode ? darkGreeting : const Color(0xFFCFF7D3);
+
+  Color get answerBackgroundColor =>
+      isDarkMode ? darkAnswerBg : const Color(0xFFF1FAF0);
+
+  Color get gaugeTrackColor =>
+      isDarkMode ? darkGaugeTrack : const Color(0xFFE4F3DD);
 
   // ============================================================
   // RISK HELPERS
@@ -63,6 +112,19 @@ class AssessmentResultScreen extends StatelessWidget {
   }
 
   Color _riskBackground(RiskLevel risk) {
+    if (isDarkMode) {
+      switch (risk) {
+        case RiskLevel.low:
+          return const Color(0xFF193523);
+
+        case RiskLevel.moderate:
+          return const Color(0xFF3A2A18);
+
+        case RiskLevel.high:
+          return const Color(0xFF3A2023);
+      }
+    }
+
     switch (risk) {
       case RiskLevel.low:
         return const Color(0xFFE8F5E9);
@@ -158,7 +220,7 @@ class AssessmentResultScreen extends StatelessWidget {
     final overallRisk = _overallRisk();
 
     return Scaffold(
-      backgroundColor: pageBg,
+      backgroundColor: backgroundColor,
 
       // ========================================================
       // CUSTOM HEADER
@@ -170,8 +232,7 @@ class AssessmentResultScreen extends StatelessWidget {
       ),
 
       // ========================================================
-      // IMPORTANT:
-      // ENTIRE PAGE IS INSIDE ONE SCROLL VIEW
+      // BODY
       // ========================================================
 
       body: SafeArea(
@@ -214,18 +275,12 @@ class AssessmentResultScreen extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // ==================================================
-              // VIEW LAST ASSESSMENT
-              // ==================================================
-
+              // View Last Assessment
               _buildHistoryButton(context),
 
               const SizedBox(height: 12),
 
-              // ==================================================
-              // RECOMMENDATIONS BUTTON
-              // ==================================================
-
+              // Recommendations
               _buildRecommendationsButton(context),
 
               const SizedBox(height: 10),
@@ -259,32 +314,36 @@ class AssessmentResultScreen extends StatelessWidget {
         10,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFCFF7D3),
+        color: greetingColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFD4EBD1),
+          color: isDarkMode
+              ? darkBorder
+              : const Color(0xFFD4EBD1),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Great job! 🎉',
                   style: TextStyle(
-                    color: darkGreen,
+                    color: isDarkMode
+                        ? const Color(0xFF72D66F)
+                        : darkGreen,
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                SizedBox(height: 1),
+                const SizedBox(height: 1),
                 Text(
                   "You've completed your Happy Liver health assessment.",
                   style: TextStyle(
-                    color: mutedText,
+                    color: secondaryTextColor,
                     fontSize: 13,
                     height: 1.35,
                     fontWeight: FontWeight.w500,
@@ -293,12 +352,16 @@ class AssessmentResultScreen extends StatelessWidget {
               ],
             ),
           ),
+
           const SizedBox(width: 3),
+
           Container(
             width: 64,
             height: 64,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDarkMode
+                  ? const Color(0xFF22362A)
+                  : Colors.white,
               shape: BoxShape.circle,
             ),
             child: Padding(
@@ -311,9 +374,11 @@ class AssessmentResultScreen extends StatelessWidget {
                     error,
                     stackTrace,
                     ) {
-                  return const Icon(
+                  return Icon(
                     Icons.favorite_rounded,
-                    color: darkGreen,
+                    color: isDarkMode
+                        ? const Color(0xFF72D66F)
+                        : darkGreen,
                     size: 36,
                   );
                 },
@@ -362,14 +427,16 @@ class AssessmentResultScreen extends StatelessWidget {
         20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFDCEFD9),
+          color: borderColor,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(
+              isDarkMode ? 35 : 10,
+            ),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -377,12 +444,14 @@ class AssessmentResultScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'OVERALL RISK',
               style: TextStyle(
-                color: darkGreen,
+                color: isDarkMode
+                    ? const Color(0xFF72D66F)
+                    : darkGreen,
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.1,
@@ -398,6 +467,7 @@ class AssessmentResultScreen extends StatelessWidget {
                 score: score,
                 gradientColors: _riskGradient(risk),
                 indicatorColor: _riskColor(risk),
+                trackColor: gaugeTrackColor,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -406,8 +476,8 @@ class AssessmentResultScreen extends StatelessWidget {
 
                   Text(
                     '$score%',
-                    style: const TextStyle(
-                      color: textDark,
+                    style: TextStyle(
+                      color: primaryTextColor,
                       fontSize: 45,
                       fontWeight: FontWeight.w900,
                       height: 1.0,
@@ -430,8 +500,8 @@ class AssessmentResultScreen extends StatelessWidget {
                   Text(
                     subtext1,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: mutedText,
+                    style: TextStyle(
+                      color: secondaryTextColor,
                       fontSize: 12.5,
                     ),
                   ),
@@ -439,8 +509,8 @@ class AssessmentResultScreen extends StatelessWidget {
                   Text(
                     subtext2,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: mutedText,
+                    style: TextStyle(
+                      color: secondaryTextColor,
                       fontSize: 12.5,
                     ),
                   ),
@@ -486,6 +556,7 @@ class AssessmentResultScreen extends StatelessWidget {
             _riskColor(result.fattyLiverRisk),
             statusBgColor:
             _riskBackground(result.fattyLiverRisk),
+            isDarkMode: isDarkMode,
           ),
         ),
 
@@ -506,6 +577,7 @@ class AssessmentResultScreen extends StatelessWidget {
             _riskColor(result.cholesterolRisk),
             statusBgColor:
             _riskBackground(result.cholesterolRisk),
+            isDarkMode: isDarkMode,
           ),
         ),
       ],
@@ -539,14 +611,16 @@ class AssessmentResultScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: const Color(0xFFDCEFD9),
+          color: borderColor,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(
+              isDarkMode ? 30 : 10,
+            ),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -559,12 +633,14 @@ class AssessmentResultScreen extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: paleGreen,
+              color: softGreenColor,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.lightbulb_outline_rounded,
-              color: darkGreen,
+              color: isDarkMode
+                  ? const Color(0xFF72D66F)
+                  : darkGreen,
               size: 24,
             ),
           ),
@@ -576,10 +652,12 @@ class AssessmentResultScreen extends StatelessWidget {
               crossAxisAlignment:
               CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'OVERALL INSIGHT',
                   style: TextStyle(
-                    color: darkGreen,
+                    color: isDarkMode
+                        ? const Color(0xFF72D66F)
+                        : darkGreen,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     letterSpacing: .5,
@@ -590,8 +668,8 @@ class AssessmentResultScreen extends StatelessWidget {
 
                 Text(
                   insight,
-                  style: const TextStyle(
-                    color: mutedText,
+                  style: TextStyle(
+                    color: secondaryTextColor,
                     fontSize: 12.5,
                     height: 1.4,
                   ),
@@ -619,29 +697,39 @@ class AssessmentResultScreen extends StatelessWidget {
           _showLatestAssessmentDialog(context);
         },
         style: OutlinedButton.styleFrom(
-          foregroundColor: darkGreen,
-          side: const BorderSide(
-            color: darkGreen,
+          foregroundColor: isDarkMode
+              ? const Color(0xFF72D66F)
+              : darkGreen,
+          side: BorderSide(
+            color: isDarkMode
+                ? const Color(0xFF72D66F)
+                : darkGreen,
             width: 1.5,
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: cardColor,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment:
           MainAxisAlignment.center,
           children: [
             Icon(
               Icons.history_rounded,
               size: 22,
+              color: isDarkMode
+                  ? const Color(0xFF72D66F)
+                  : darkGreen,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'View Last Assessment',
               style: TextStyle(
+                color: isDarkMode
+                    ? const Color(0xFF72D66F)
+                    : darkGreen,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -667,15 +755,18 @@ class AssessmentResultScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RecommendationsScreen(
-                isDarkMode: isDarkMode,
-                onThemeChanged: onThemeChanged,
-              ),
+              builder: (context) =>
+                  RecommendationsScreen(
+                    isDarkMode: isDarkMode,
+                    onThemeChanged: onThemeChanged,
+                  ),
             ),
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: darkGreen,
+          backgroundColor: isDarkMode
+              ? const Color(0xFF23851A)
+              : darkGreen,
           foregroundColor: Colors.white,
           elevation: 3,
           shadowColor: darkGreen.withAlpha(76),
@@ -684,7 +775,8 @@ class AssessmentResultScreen extends StatelessWidget {
           ),
         ),
         child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+          MainAxisAlignment.center,
           children: [
             Text(
               'View Recommendations',
@@ -715,7 +807,9 @@ class AssessmentResultScreen extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
-        return const _LatestAssessmentDialog();
+        return _LatestAssessmentDialog(
+          isDarkMode: isDarkMode,
+        );
       },
     );
   }
@@ -727,7 +821,11 @@ class AssessmentResultScreen extends StatelessWidget {
 
 class _LatestAssessmentDialog
     extends StatefulWidget {
-  const _LatestAssessmentDialog();
+  final bool isDarkMode;
+
+  const _LatestAssessmentDialog({
+    required this.isDarkMode,
+  });
 
   @override
   State<_LatestAssessmentDialog> createState() =>
@@ -736,8 +834,43 @@ class _LatestAssessmentDialog
 
 class _LatestAssessmentDialogState
     extends State<_LatestAssessmentDialog> {
-  late Future<DocumentSnapshot<Map<String, dynamic>>?>
+  late Future<
+      DocumentSnapshot<Map<String, dynamic>>?>
   _assessmentFuture;
+
+  // ============================================================
+  // DYNAMIC COLORS
+  // ============================================================
+
+  Color get backgroundColor =>
+      widget.isDarkMode
+          ? AssessmentResultScreen.darkPageBg
+          : AssessmentResultScreen.pageBg;
+
+  Color get cardColor =>
+      widget.isDarkMode
+          ? AssessmentResultScreen.darkCard
+          : Colors.white;
+
+  Color get primaryTextColor =>
+      widget.isDarkMode
+          ? AssessmentResultScreen.darkText
+          : AssessmentResultScreen.textDark;
+
+  Color get secondaryTextColor =>
+      widget.isDarkMode
+          ? AssessmentResultScreen.darkMutedText
+          : AssessmentResultScreen.mutedText;
+
+  Color get borderColor =>
+      widget.isDarkMode
+          ? AssessmentResultScreen.darkBorder
+          : const Color(0xFFDCEFD9);
+
+  Color get softGreenColor =>
+      widget.isDarkMode
+          ? AssessmentResultScreen.darkPaleGreen
+          : AssessmentResultScreen.paleGreen;
 
   @override
   void initState() {
@@ -761,11 +894,13 @@ class _LatestAssessmentDialogState
           maxHeight: 680,
         ),
         decoration: BoxDecoration(
-          color: AssessmentResultScreen.pageBg,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(35),
+              color: Colors.black.withAlpha(
+                widget.isDarkMode ? 70 : 35,
+              ),
               blurRadius: 25,
               offset: const Offset(0, 10),
             ),
@@ -781,12 +916,13 @@ class _LatestAssessmentDialogState
 
             if (snapshot.connectionState ==
                 ConnectionState.waiting) {
-              return const SizedBox(
+              return SizedBox(
                 height: 250,
                 child: Center(
                   child: CircularProgressIndicator(
-                    color:
-                    AssessmentResultScreen.darkGreen,
+                    color: widget.isDarkMode
+                        ? const Color(0xFF72D66F)
+                        : AssessmentResultScreen.darkGreen,
                   ),
                 ),
               );
@@ -817,9 +953,7 @@ class _LatestAssessmentDialogState
               return _buildNoAssessment();
             }
 
-            return _buildAssessmentContent(
-              data,
-            );
+            return _buildAssessmentContent(data);
           },
         ),
       ),
@@ -836,14 +970,13 @@ class _LatestAssessmentDialogState
       children: [
         _buildDialogHeader(),
 
-        const Padding(
-          padding: EdgeInsets.all(30),
+        Padding(
+          padding: const EdgeInsets.all(30),
           child: Text(
             'Unable to load your assessment history.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color:
-              AssessmentResultScreen.mutedText,
+              color: secondaryTextColor,
               fontSize: 15,
             ),
           ),
@@ -862,23 +995,25 @@ class _LatestAssessmentDialogState
       children: [
         _buildDialogHeader(),
 
-        const Padding(
-          padding: EdgeInsets.all(30),
+        Padding(
+          padding: const EdgeInsets.all(30),
           child: Column(
             children: [
               Icon(
                 Icons.assignment_outlined,
-                color:
-                AssessmentResultScreen.darkGreen,
+                color: widget.isDarkMode
+                    ? const Color(0xFF72D66F)
+                    : AssessmentResultScreen.darkGreen,
                 size: 50,
               ),
-              SizedBox(height: 12),
+
+              const SizedBox(height: 12),
+
               Text(
                 'No completed assessment found.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color:
-                  AssessmentResultScreen.mutedText,
+                  color: secondaryTextColor,
                   fontSize: 15,
                 ),
               ),
@@ -901,10 +1036,11 @@ class _LatestAssessmentDialogState
         10,
         16,
       ),
-      decoration: const BoxDecoration(
-        color:
-        AssessmentResultScreen.darkGreen,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: widget.isDarkMode
+            ? const Color(0xFF145A0D)
+            : AssessmentResultScreen.darkGreen,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
@@ -962,7 +1098,6 @@ class _LatestAssessmentDialogState
         _buildDialogHeader(),
 
         // ======================================================
-        // IMPORTANT:
         // ONLY THIS PART SCROLLS
         // ======================================================
 
@@ -1006,11 +1141,12 @@ class _LatestAssessmentDialogState
                   // QUESTIONS
                   // =================================================
 
-                  const Text(
+                  Text(
                     'Questions & Answers',
                     style: TextStyle(
-                      color:
-                      AssessmentResultScreen.darkGreen,
+                      color: widget.isDarkMode
+                          ? const Color(0xFF72D66F)
+                          : AssessmentResultScreen.darkGreen,
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1021,9 +1157,7 @@ class _LatestAssessmentDialogState
                   if (answers.isEmpty)
                     _buildNoAnswers()
                   else
-                    ..._buildQuestionCards(
-                      answers,
-                    ),
+                    ..._buildQuestionCards(answers),
                 ],
               ),
             ),
@@ -1051,10 +1185,10 @@ class _LatestAssessmentDialogState
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFDCEFD9),
+          color: borderColor,
         ),
       ),
       child: Row(
@@ -1063,15 +1197,15 @@ class _LatestAssessmentDialogState
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color:
-              AssessmentResultScreen.paleGreen,
+              color: softGreenColor,
               borderRadius:
               BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.calendar_month_rounded,
-              color:
-              AssessmentResultScreen.darkGreen,
+              color: widget.isDarkMode
+                  ? const Color(0xFF72D66F)
+                  : AssessmentResultScreen.darkGreen,
               size: 23,
             ),
           ),
@@ -1083,11 +1217,10 @@ class _LatestAssessmentDialogState
               crossAxisAlignment:
               CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Completed',
                   style: TextStyle(
-                    color:
-                    AssessmentResultScreen.mutedText,
+                    color: secondaryTextColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1099,9 +1232,8 @@ class _LatestAssessmentDialogState
                   timeText.isEmpty
                       ? dateText
                       : '$dateText • $timeText',
-                  style: const TextStyle(
-                    color:
-                    AssessmentResultScreen.textDark,
+                  style: TextStyle(
+                    color: primaryTextColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -1128,6 +1260,7 @@ class _LatestAssessmentDialogState
           child: _HistoryRiskCard(
             title: 'Fatty Liver',
             risk: fattyRisk,
+            isDarkMode: widget.isDarkMode,
           ),
         ),
 
@@ -1137,6 +1270,7 @@ class _LatestAssessmentDialogState
           child: _HistoryRiskCard(
             title: 'Cholesterol',
             risk: cholesterolRisk,
+            isDarkMode: widget.isDarkMode,
           ),
         ),
       ],
@@ -1151,15 +1285,17 @@ class _LatestAssessmentDialogState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: borderColor,
+        ),
       ),
-      child: const Text(
+      child: Text(
         'No answer details are available for this assessment.',
         textAlign: TextAlign.center,
         style: TextStyle(
-          color:
-          AssessmentResultScreen.mutedText,
+          color: secondaryTextColor,
           fontSize: 14,
         ),
       ),
@@ -1200,8 +1336,7 @@ class _LatestAssessmentDialogState
               'Question unavailable';
 
       final section =
-          value['section']?.toString() ??
-              '';
+          value['section']?.toString() ?? '';
 
       final answersList =
       _convertAnswers(value['answers']);
@@ -1211,6 +1346,7 @@ class _LatestAssessmentDialogState
         section: section,
         question: question,
         answers: answersList,
+        isDarkMode: widget.isDarkMode,
       );
     }).toList();
   }
@@ -1327,14 +1463,15 @@ class _LatestAssessmentDialogState
 // HISTORY RISK CARD
 // ============================================================
 
-class _HistoryRiskCard
-    extends StatelessWidget {
+class _HistoryRiskCard extends StatelessWidget {
   final String title;
   final RiskLevel risk;
+  final bool isDarkMode;
 
   const _HistoryRiskCard({
     required this.title,
     required this.risk,
+    required this.isDarkMode,
   });
 
   Color _riskColor() {
@@ -1351,6 +1488,19 @@ class _HistoryRiskCard
   }
 
   Color _riskBackground() {
+    if (isDarkMode) {
+      switch (risk) {
+        case RiskLevel.low:
+          return const Color(0xFF193523);
+
+        case RiskLevel.moderate:
+          return const Color(0xFF3A2A18);
+
+        case RiskLevel.high:
+          return const Color(0xFF3A2023);
+      }
+    }
+
     switch (risk) {
       case RiskLevel.low:
         return const Color(0xFFE8F5E9);
@@ -1381,11 +1531,15 @@ class _HistoryRiskCard
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? AssessmentResultScreen.darkCard
+            : Colors.white,
         borderRadius:
         BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFDCEFD9),
+          color: isDarkMode
+              ? AssessmentResultScreen.darkBorder
+              : const Color(0xFFDCEFD9),
         ),
       ),
       child: Column(
@@ -1394,9 +1548,10 @@ class _HistoryRiskCard
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color:
-              AssessmentResultScreen.textDark,
+            style: TextStyle(
+              color: isDarkMode
+                  ? AssessmentResultScreen.darkText
+                  : AssessmentResultScreen.textDark,
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -1440,31 +1595,59 @@ class _QuestionAnswerCard
   final String section;
   final String question;
   final List<String> answers;
+  final bool isDarkMode;
 
   const _QuestionAnswerCard({
     required this.questionNumber,
     required this.section,
     required this.question,
     required this.answers,
+    required this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = isDarkMode
+        ? AssessmentResultScreen.darkCard
+        : Colors.white;
+
+    final primaryTextColor = isDarkMode
+        ? AssessmentResultScreen.darkText
+        : AssessmentResultScreen.textDark;
+
+    final secondaryTextColor = isDarkMode
+        ? AssessmentResultScreen.darkMutedText
+        : AssessmentResultScreen.mutedText;
+
+    final borderColor = isDarkMode
+        ? AssessmentResultScreen.darkBorder
+        : const Color(0xFFE0ECE1);
+
+    final softGreenColor = isDarkMode
+        ? AssessmentResultScreen.darkPaleGreen
+        : AssessmentResultScreen.paleGreen;
+
+    final answerBackgroundColor = isDarkMode
+        ? AssessmentResultScreen.darkAnswerBg
+        : const Color(0xFFF1FAF0);
+
     return Container(
       margin: const EdgeInsets.only(
         bottom: 10,
       ),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius:
         BorderRadius.circular(17),
         border: Border.all(
-          color: const Color(0xFFE0ECE1),
+          color: borderColor,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(7),
+            color: Colors.black.withAlpha(
+              isDarkMode ? 30 : 7,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -1487,8 +1670,7 @@ class _QuestionAnswerCard
                 height: 34,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color:
-                  AssessmentResultScreen.paleGreen,
+                  color: softGreenColor,
                   borderRadius:
                   BorderRadius.circular(10),
                 ),
@@ -1497,9 +1679,10 @@ class _QuestionAnswerCard
                     'Q',
                     '',
                   ),
-                  style: const TextStyle(
-                    color:
-                    AssessmentResultScreen.darkGreen,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? const Color(0xFF72D66F)
+                        : AssessmentResultScreen.darkGreen,
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
                   ),
@@ -1516,9 +1699,10 @@ class _QuestionAnswerCard
                     if (section.isNotEmpty)
                       Text(
                         section,
-                        style: const TextStyle(
-                          color:
-                          AssessmentResultScreen.green,
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? const Color(0xFF72D66F)
+                              : AssessmentResultScreen.green,
                           fontSize: 11,
                           fontWeight:
                           FontWeight.w700,
@@ -1529,9 +1713,8 @@ class _QuestionAnswerCard
 
                     Text(
                       question,
-                      style: const TextStyle(
-                        color:
-                        AssessmentResultScreen.textDark,
+                      style: TextStyle(
+                        color: primaryTextColor,
                         fontSize: 14,
                         height: 1.35,
                         fontWeight:
@@ -1550,11 +1733,10 @@ class _QuestionAnswerCard
           // ANSWERS
           // ====================================================
 
-          const Text(
+          Text(
             'Your answer:',
             style: TextStyle(
-              color:
-              AssessmentResultScreen.mutedText,
+              color: secondaryTextColor,
               fontSize: 11,
               fontWeight: FontWeight.w700,
             ),
@@ -1568,18 +1750,19 @@ class _QuestionAnswerCard
               padding:
               const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color:
-                AssessmentResultScreen.pageBg,
+                color: isDarkMode
+                    ? AssessmentResultScreen.darkCardSecondary
+                    : AssessmentResultScreen.pageBg,
                 borderRadius:
                 BorderRadius.circular(10),
               ),
-              child: const Text(
+              child: Text(
                 'No answer recorded',
                 style: TextStyle(
-                  color:
-                  AssessmentResultScreen.mutedText,
+                  color: secondaryTextColor,
                   fontSize: 12,
-                  fontStyle: FontStyle.italic,
+                  fontStyle:
+                  FontStyle.italic,
                 ),
               ),
             )
@@ -1598,26 +1781,27 @@ class _QuestionAnswerCard
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                    const Color(0xFFF1FAF0),
+                    color: answerBackgroundColor,
                     borderRadius:
                     BorderRadius.circular(10),
                     border: Border.all(
-                      color:
-                      const Color(0xFFDCEFD9),
+                      color: isDarkMode
+                          ? AssessmentResultScreen.darkBorder
+                          : const Color(0xFFDCEFD9),
                     ),
                   ),
                   child: Row(
                     crossAxisAlignment:
                     CrossAxisAlignment.start,
                     children: [
-                      const Padding(
+                      Padding(
                         padding:
-                        EdgeInsets.only(
+                        const EdgeInsets.only(
                           top: 2,
                         ),
                         child: Icon(
-                          Icons.check_circle_rounded,
+                          Icons
+                              .check_circle_rounded,
                           color:
                           AssessmentResultScreen.green,
                           size: 16,
@@ -1629,10 +1813,9 @@ class _QuestionAnswerCard
                       Expanded(
                         child: Text(
                           answer,
-                          style:
-                          const TextStyle(
+                          style: TextStyle(
                             color:
-                            AssessmentResultScreen.textDark,
+                            primaryTextColor,
                             fontSize: 12.5,
                             height: 1.3,
                             fontWeight:
@@ -1664,6 +1847,7 @@ class _DonutRiskTile
   final List<Color> gradientColors;
   final Color statusColor;
   final Color statusBgColor;
+  final bool isDarkMode;
 
   const _DonutRiskTile({
     required this.title,
@@ -1673,6 +1857,7 @@ class _DonutRiskTile
     required this.gradientColors,
     required this.statusColor,
     required this.statusBgColor,
+    required this.isDarkMode,
   });
 
   @override
@@ -1684,15 +1869,21 @@ class _DonutRiskTile
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? AssessmentResultScreen.darkCard
+            : Colors.white,
         borderRadius:
         BorderRadius.circular(22),
         border: Border.all(
-          color: const Color(0xFFE2EDE3),
+          color: isDarkMode
+              ? AssessmentResultScreen.darkBorder
+              : const Color(0xFFE2EDE3),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(8),
+            color: Colors.black.withAlpha(
+              isDarkMode ? 30 : 8,
+            ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1703,9 +1894,10 @@ class _DonutRiskTile
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color:
-              AssessmentResultScreen.darkGreen,
+            style: TextStyle(
+              color: isDarkMode
+                  ? const Color(0xFF72D66F)
+                  : AssessmentResultScreen.darkGreen,
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: .3,
@@ -1737,10 +1929,10 @@ class _DonutRiskTile
                       child: Center(
                         child: Text(
                           '$score%',
-                          style:
-                          const TextStyle(
-                            color:
-                            AssessmentResultScreen.textDark,
+                          style: TextStyle(
+                            color: isDarkMode
+                                ? AssessmentResultScreen.darkText
+                                : AssessmentResultScreen.textDark,
                             fontSize: 25,
                             fontWeight:
                             FontWeight.w900,
@@ -1787,9 +1979,10 @@ class _DonutRiskTile
           Text(
             description,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color:
-              AssessmentResultScreen.mutedText,
+            style: TextStyle(
+              color: isDarkMode
+                  ? AssessmentResultScreen.darkMutedText
+                  : AssessmentResultScreen.mutedText,
               fontSize: 11,
               height: 1.35,
             ),
@@ -1809,11 +2002,13 @@ class _GradientGaugePainter
   final int score;
   final List<Color> gradientColors;
   final Color indicatorColor;
+  final Color trackColor;
 
   const _GradientGaugePainter({
     required this.score,
     required this.gradientColors,
     required this.indicatorColor,
+    required this.trackColor,
   });
 
   @override
@@ -1836,8 +2031,12 @@ class _GradientGaugePainter
       radius: radius,
     );
 
+    // ========================================================
+    // BACKGROUND TRACK
+    // ========================================================
+
     final background = Paint()
-      ..color = const Color(0xFFE4F3DD)
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 20
       ..strokeCap = StrokeCap.round;
@@ -1849,6 +2048,10 @@ class _GradientGaugePainter
       false,
       background,
     );
+
+    // ========================================================
+    // GRADIENT
+    // ========================================================
 
     final gradient = SweepGradient(
       startAngle: math.pi,
@@ -1875,6 +2078,10 @@ class _GradientGaugePainter
       progress,
     );
 
+    // ========================================================
+    // INDICATOR
+    // ========================================================
+
     final angle =
         math.pi + progressSweep;
 
@@ -1888,7 +2095,8 @@ class _GradientGaugePainter
     canvas.drawCircle(
       point,
       7,
-      Paint()..color = Colors.white,
+      Paint()
+        ..color = Colors.white,
     );
 
     canvas.drawCircle(
@@ -1908,7 +2116,9 @@ class _GradientGaugePainter
         oldDelegate.gradientColors !=
             gradientColors ||
         oldDelegate.indicatorColor !=
-            indicatorColor;
+            indicatorColor ||
+        oldDelegate.trackColor !=
+            trackColor;
   }
 }
 
@@ -1950,6 +2160,10 @@ class _GradientDonutPainter
     const totalSweep =
         5 * math.pi / 3;
 
+    // ========================================================
+    // BACKGROUND DONUT
+    // ========================================================
+
     final background = Paint()
       ..color =
       gradientColors.first.withAlpha(30)
@@ -1964,6 +2178,10 @@ class _GradientDonutPainter
       false,
       background,
     );
+
+    // ========================================================
+    // GRADIENT
+    // ========================================================
 
     final gradient = SweepGradient(
       startAngle: startAngle,

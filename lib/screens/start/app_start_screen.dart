@@ -38,17 +38,39 @@ class _AppStartScreenState extends State<AppStartScreen> {
     if (!mounted) return;
 
     // =========================================================
-    // TEMPORARY TESTING FLOW
-    // Always start from the beginning
+    // CHECK FIREBASE AUTHENTICATION
     // =========================================================
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-        const LanguageSelectionScreen(),
-      ),
-    );
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    // =========================================================
+    // NO LOGGED-IN USER
+    // =========================================================
+
+    if (user == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+          const LanguageSelectionScreen(),
+        ),
+      );
+
+      return;
+    }
+
+    // =========================================================
+    // RETURNING LOGGED-IN USER
+    // =========================================================
+
+    debugPrint('====================================');
+    debugPrint('RETURNING USER DETECTED');
+    debugPrint('UID: ${user.uid}');
+    debugPrint('EMAIL: ${user.email}');
+    debugPrint('CHECKING ASSESSMENT STATUS...');
+    debugPrint('====================================');
+
+    await _routeLoggedInUser(user);
   }
 
   // =========================================================
