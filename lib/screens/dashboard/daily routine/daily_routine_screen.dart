@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../profile_screen.dart';
-import 'diet_plan_screen.dart';
+import 'package:happy_liver/diet_plan_screen.dart';
 import 'workout_plan_screen.dart';
 import '../../../../widgets/bottom_navigation_bar.dart';
 import '../../../../services/assessment_firestore_service.dart';
@@ -35,34 +35,19 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
   static const Color _darkBackground = Color(0xFF121212);
   static const Color _darkCard = Color(0xFF1E1E1E);
 
-  // =========================================================
-  // RISK LEVEL
-  // =========================================================
-
   String _riskLevel = 'Low';
-
   bool _isLoadingRisk = true;
-
-  // =========================================================
-  // INIT
-  // =========================================================
 
   @override
   void initState() {
     super.initState();
-
     _loadRiskLevel();
   }
-
-  // =========================================================
-  // LOAD LATEST ASSESSMENT RISK
-  // =========================================================
 
   Future<void> _loadRiskLevel() async {
     try {
       final AssessmentResult? latestResult =
-      await AssessmentFirestoreService
-          .getLatestAssessmentResult();
+      await AssessmentFirestoreService.getLatestAssessmentResult();
 
       if (!mounted) return;
 
@@ -71,7 +56,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
           _riskLevel = 'Low';
           _isLoadingRisk = false;
         });
-
         return;
       }
 
@@ -80,10 +64,8 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
       if (latestResult.fattyLiverRisk == RiskLevel.high ||
           latestResult.cholesterolRisk == RiskLevel.high) {
         overallRisk = RiskLevel.high;
-      } else if (latestResult.fattyLiverRisk ==
-          RiskLevel.moderate ||
-          latestResult.cholesterolRisk ==
-              RiskLevel.moderate) {
+      } else if (latestResult.fattyLiverRisk == RiskLevel.moderate ||
+          latestResult.cholesterolRisk == RiskLevel.moderate) {
         overallRisk = RiskLevel.moderate;
       } else {
         overallRisk = RiskLevel.low;
@@ -112,41 +94,23 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
     }
   }
 
-  // =========================================================
-  // RISK LEVEL → STRING
-  // =========================================================
-
   String _riskLevelToString(RiskLevel risk) {
     switch (risk) {
       case RiskLevel.high:
         return 'High';
-
       case RiskLevel.moderate:
         return 'Moderate';
-
       case RiskLevel.low:
         return 'Low';
     }
   }
 
-  // =========================================================
-  // BUILD
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // =========================================================
-      // BACKGROUND
-      // =========================================================
-
       backgroundColor: widget.isDarkMode
           ? _darkBackground
           : const Color(0xFFF5F6F8),
-
-      // =========================================================
-      // BODY
-      // =========================================================
 
       body: SafeArea(
         bottom: false,
@@ -165,10 +129,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // =================================================
-                    // HERO
-                    // =================================================
-
                     _buildHero(),
 
                     const SizedBox(height: 24),
@@ -206,7 +166,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
                       description:
                       'Discover effective workouts to keep you active.',
                       onTap: () {
-                        // Wait until the risk has been loaded.
                         if (_isLoadingRisk) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -240,10 +199,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
         ),
       ),
 
-      // =========================================================
-      // SHARED BOTTOM NAVIGATION
-      // =========================================================
-
       bottomNavigationBar: HappyLiverBottomNavBar(
         selectedIndex: 1,
         isDarkMode: widget.isDarkMode,
@@ -251,10 +206,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
       ),
     );
   }
-
-  // ================================================================
-  // HEADER
-  // ================================================================
 
   Widget _buildHeader(BuildContext context) {
     return Container(
@@ -292,10 +243,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
     );
   }
 
-  // ================================================================
-  // HERO
-  // ================================================================
-
   Widget _buildHero() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -324,10 +271,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
     );
   }
 
-  // ================================================================
-  // ROUTINE CARD
-  // ================================================================
-
   Widget _routineCard({
     required BuildContext context,
     required String imageAsset,
@@ -341,18 +284,12 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: widget.isDarkMode
-              ? _darkCard
-              : _cardBg,
+          color: widget.isDarkMode ? _darkCard : _cardBg,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ======================================================
-            // IMAGE
-            // ======================================================
-
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
@@ -364,10 +301,6 @@ class _DailyRoutineScreenState extends State<DailyRoutineScreen> {
             ),
 
             const SizedBox(width: 14),
-
-            // ======================================================
-            // TEXT + ARROW
-            // ======================================================
 
             Expanded(
               child: Column(

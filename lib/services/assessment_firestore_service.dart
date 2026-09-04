@@ -136,6 +136,30 @@ class AssessmentFirestoreService {
     });
 
     // =======================================================
+    // SAVE OVERALL RISK FOR DIET PLAN
+    // =======================================================
+
+    final overallRisk =
+    result.fattyLiverRisk == RiskLevel.high ||
+        result.cholesterolRisk == RiskLevel.high
+        ? RiskLevel.high
+        : result.fattyLiverRisk == RiskLevel.moderate ||
+        result.cholesterolRisk == RiskLevel.moderate
+        ? RiskLevel.moderate
+        : RiskLevel.low;
+
+    await _firestore
+        .collection('dietPlans')
+        .doc(userId)
+        .set(
+      {
+        'riskLevel': overallRisk.name,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    // =======================================================
     // MARK USER ASSESSMENT COMPLETED
     // =======================================================
 

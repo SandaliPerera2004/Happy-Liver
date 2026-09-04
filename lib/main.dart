@@ -32,9 +32,13 @@ import 'l10n/app_localizations.dart';
 
 // Language
 import 'package:happy_liver/services/language_controller.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables from .env
+  await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
