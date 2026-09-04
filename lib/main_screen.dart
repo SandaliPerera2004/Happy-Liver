@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'services/weekly_report_service.dart';
+import 'achieved_goals_page.dart';
 import 'weekly_report_screen.dart' as report_screen;
 
 class MainScreen extends StatefulWidget {
@@ -133,7 +134,7 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 // ============================================================
-// HOME PAGE
+// HOME / EVALUATION
 // ============================================================
 
 class HomePage extends StatelessWidget {
@@ -150,38 +151,100 @@ class HomePage extends StatelessWidget {
       backgroundColor: const Color(0xFFF7FFF9),
       body: SafeArea(
         child: Center(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return report_screen.WeeklyReportScreen(
-                      service: reportService,
-                    );
-                  },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 25,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ==================================================
+                // WEEKLY REPORT
+                // ==================================================
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return report_screen.WeeklyReportScreen(
+                              service: reportService,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.bar_chart,
+                    ),
+                    label: const Text(
+                      'Weekly Report',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF22C55E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                  ),
                 ),
-              );
-            },
-            icon: const Icon(
-              Icons.bar_chart,
-            ),
-            label: const Text(
-              'Weekly Report',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF22C55E),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+
+                const SizedBox(height: 15),
+
+                // ==================================================
+                // ACHIEVED GOALS
+                // ==================================================
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                          const AchievedGoalsPage(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.emoji_events_outlined,
+                    ),
+                    label: const Text(
+                      'Achieved Goals',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE3F8D9),
+                      foregroundColor: const Color(0xFF16713A),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        side: const BorderSide(
+                          color: Color(0xFF39C96B),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

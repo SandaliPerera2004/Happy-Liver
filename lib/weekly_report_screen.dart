@@ -40,7 +40,7 @@ class _WeeklyReportScreenState
   Color(0xFFE7F9E8);
 
   static const Color softGreen =
-  Color(0xFFF3FBF2);
+  Color(0xFF4ABA3C);
 
   static const Color darkText =
   Color(0xFF111811);
@@ -577,7 +577,7 @@ class _WeeklyReportScreenState
       height: 110,
       decoration:
       BoxDecoration(
-        color: Colors.white,
+        color: Colors.white70,
         borderRadius:
         BorderRadius.circular(
           27,
@@ -819,7 +819,7 @@ class _WeeklyReportScreenState
       ),
       decoration:
       BoxDecoration(
-        color: Colors.white,
+        color: Colors.white70,
         borderRadius:
         BorderRadius.circular(
           20,
@@ -900,7 +900,7 @@ class _WeeklyReportScreenState
       ),
       decoration:
       BoxDecoration(
-        color: Colors.white,
+        color: Colors.white70,
         borderRadius:
         BorderRadius.circular(
           20,
@@ -1021,7 +1021,7 @@ class _WeeklyReportScreenState
       decoration:
       BoxDecoration(
         color:
-        const Color(0xFFB9F2CF),
+        const Color(0xff4aba3c),
         borderRadius:
         BorderRadius.circular(
           15,
@@ -1034,7 +1034,7 @@ class _WeeklyReportScreenState
             height: 22,
             decoration:
             const BoxDecoration(
-              color: Colors.white,
+              color: Colors.white70,
               shape: BoxShape.circle,
             ),
             child: Icon(
