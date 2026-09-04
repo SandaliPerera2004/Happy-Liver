@@ -1,0 +1,1213 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'scan_page.dart';
+
+class DietPlanScreen extends StatefulWidget {
+  const DietPlanScreen({super.key});
+
+  @override
+  State<DietPlanScreen> createState() => _DietPlanScreenState();
+}
+
+class _DietPlanScreenState extends State<DietPlanScreen> {
+  bool breakfastDone = false;
+  bool lunchDone = false;
+  bool dinnerDone = false;
+  bool snackDone = false;
+
+  int waterConsumed = 0;
+
+  final int waterTarget = 2000;
+  final int mealsTarget = 4;
+
+  String riskLevel = 'Low';
+
+  String? selectedBreakfast;
+  String? selectedLunch;
+  String? selectedSnack;
+  String? selectedDinner;
+
+// ============================================================
+// SRI LANKAN FOOD OPTIONS
+// ============================================================
+
+  final Map<String, Map<String, List<String>>> foodOptions = {
+    'Low': {
+      'Breakfast': [
+        'Kola kanda + boiled egg',
+        'String hoppers + dhal curry',
+        'Kurakkan roti + egg',
+        'Red rice + dhal + mallung',
+      ],
+      'Lunch': [
+        'Red rice + fish + 2 vegetables',
+        'Red rice + dhal + mallung + fish',
+        'Brown rice + chicken + vegetables',
+        'Rice + dhal + pumpkin + gotukola',
+      ],
+      'Snack': [
+        'Fresh papaya',
+        'Guava + small handful of nuts',
+        'Low-fat curd + fruit',
+        'Boiled green gram',
+      ],
+      'Dinner': [
+        'Vegetable soup + boiled egg',
+        'String hoppers + dhal + vegetables',
+        'Kurakkan roti + vegetable curry',
+        'Small portion red rice + fish + vegetables',
+      ],
+    },
+
+    'Medium': {
+      'Breakfast': [
+        'Kola kenda + boiled egg',
+        'String hoppers + dhal (less coconut)',
+        'Kurakkan roti + egg + vegetables',
+        'Green gram + fresh fruit',
+      ],
+      'Lunch': [
+        'Small portion red rice + fish + vegetables',
+        'Red rice + dhal + mallung',
+        'Brown rice + skinless chicken + vegetables',
+        'Rice + fish curry + 2 vegetable curries',
+      ],
+      'Snack': [
+        'Guava',
+        'Papaya',
+        'Boiled green gram',
+        'Low-fat curd without added sugar',
+      ],
+      'Dinner': [
+        'Vegetable soup + egg',
+        'String hoppers + dhal + mallung',
+        'Kurakkan roti + vegetables',
+        'Small red rice portion + fish + vegetables',
+      ],
+    },
+
+    'High': {
+      'Breakfast': [
+        'Kola kenda + boiled egg',
+        'Green gram + fresh fruit',
+        'Kurakkan roti + egg + mallung',
+        'Small portion string hoppers + dhal',
+      ],
+      'Lunch': [
+        'Small red rice portion + fish + vegetables',
+        'Red rice + dhal + mallung',
+        'Brown rice + skinless chicken + vegetables',
+        'Small rice portion + 2 vegetable curries + fish',
+      ],
+      'Snack': [
+        'Guava',
+        'Papaya',
+        'Boiled green gram',
+        'Low-fat plain curd',
+      ],
+      'Dinner': [
+        'Vegetable soup + boiled egg',
+        'Mallung + fish + small portion kurakkan roti',
+        'String hoppers + dhal + vegetables',
+        'Vegetable curry + grilled/steamed fish',
+      ],
+    },
+  };
+
+  final Map<String, String> foodImages = {
+    // Breakfast
+    'Kola kanda + boiled egg':
+    'assets/food/kola_kanda.jpg.jpg',
+    'Kola kenda + boiled egg':
+    'assets/food/kola_kanda.jpg.jpg',
+
+    'String hoppers + dhal curry':
+    'assets/food/string_hoppers_with_coconut.jpg.jpg',
+    'String hoppers + dhal (less coconut)':
+    'assets/food/string_hoppers_with_coconut.jpg.jpg',
+    'Small portion string hoppers + dhal':
+    'assets/food/string_hoppers_with_coconut.jpg.jpg',
+
+    'Kurakkan roti + egg':
+    'assets/food/kurakkan_roti.jpg.jpg',
+    'Kurakkan roti + egg + vegetables':
+    'assets/food/kurakkan_roti.jpg.jpg',
+    'Kurakkan roti + egg + mallung':
+    'assets/food/kurakkan_roti.jpg.jpg',
+
+    'Green gram + fresh fruit':
+    'assets/food/green_gram.jpg.jpg',
+
+    // Rice meals
+    'Red rice + dhal + mallung':
+    'assets/food/red_rice.jpg.jpg',
+    'Red rice + fish + 2 vegetables':
+    'assets/food/red_rice.jpg.jpg',
+    'Red rice + dhal + mallung + fish':
+    'assets/food/red_rice.jpg.jpg',
+    'Small portion red rice + fish + vegetables':
+    'assets/food/red_rice.jpg.jpg',
+    'Brown rice + chicken + vegetables':
+    'assets/food/brown_rice.jpg.jpg',
+    'Brown rice + skinless chicken + vegetables':
+    'assets/food/brown_rice.jpg.jpg',
+    'Rice + dhal + pumpkin + gotukola':
+    'assets/food/red_rice.jpg.jpg',
+    'Rice + fish curry + 2 vegetable curries':
+    'assets/food/red_rice.jpg.jpg',
+    'Rice + dhal + mallung':
+    'assets/food/red_rice.jpg.jpg',
+    'Small rice portion + 2 vegetable curries + fish':
+    'assets/food/red_rice.jpg.jpg',
+    'Vegetable curry + grilled/steamed fish':
+    'assets/food/fish_vegetables.jpg.jpg',
+
+    // Snacks
+    'Fresh papaya':
+    'assets/food/papaya.jpg.jpg',
+    'Papaya':
+    'assets/food/papaya.jpg.jpg',
+    'Guava':
+    'assets/food/guava.jpg.jpg',
+    'Guava + small handful of nuts':
+    'assets/food/guava.jpg.jpg',
+    'Low-fat curd + fruit':
+    'assets/food/curd_fruit.jpg.jpg',
+    'Low-fat curd without added sugar':
+    'assets/food/curd_fruit.jpg.jpg',
+    'Low-fat plain curd':
+    'assets/food/curd_fruit.jpg.jpg',
+    'Boiled green gram':
+    'assets/food/green_gram.jpg.jpg',
+
+    // Dinner
+    'Vegetable soup + boiled egg':
+    'assets/food/vegetable_soup.jpg.jpg',
+    'Vegetable soup + egg':
+    'assets/food/vegetable_soup.jpg.jpg',
+    'String hoppers + dhal + vegetables':
+    'assets/food/string_hoppers_with_coconut.jpg.jpg',
+    'String hoppers + dhal + mallung':
+    'assets/food/string_hoppers_with_coconut.jpg.jpg',
+    'Kurakkan roti + vegetable curry':
+    'assets/food/kurakkan_roti.jpg.jpg',
+    'Kurakkan roti + vegetables':
+    'assets/food/kurakkan_roti.jpg.jpg',
+    'Mallung + fish + small portion kurakkan roti':
+    'assets/food/kurakkan_roti.jpg.jpg',
+  };
+  @override
+  void initState() {
+    super.initState();
+    loadRiskLevel();
+  }
+
+// ============================================================
+// LOAD RISK LEVEL FROM FIRESTORE
+// ============================================================
+
+  Future<void> loadRiskLevel() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('dietPlans')
+          .doc(user.uid)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.data();
+
+        if (data != null && data['riskLevel'] != null) {
+          setState(() {
+            riskLevel = data['riskLevel'].toString();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Could not load risk level: $e');
+    }
+  }
+
+// ============================================================
+// OPEN FOOD SELECTION POPUP
+// ============================================================
+
+  void showFoodOptions(String mealType) {
+    final options = foodOptions[riskLevel]?[mealType] ??
+        foodOptions['Low']![mealType]!;
+
+    String? currentSelection;
+
+    if (mealType == 'Breakfast') {
+      currentSelection = selectedBreakfast;
+    } else if (mealType == 'Lunch') {
+      currentSelection = selectedLunch;
+    } else if (mealType == 'Snack') {
+      currentSelection = selectedSnack;
+    } else if (mealType == 'Dinner') {
+      currentSelection = selectedDinner;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setPopupState) {
+            return Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 25),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8F8F4),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(25),
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle
+                    Center(
+                      child: Container(
+                        width: 45,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFBDBDBD),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          width: 45,
+                          height: 45,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F0D8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.restaurant,
+                            color: Color(0xFF6AA55A),
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                mealType,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF354238),
+                                ),
+                              ),
+                              Text(
+                                'Choose a meal suitable for your $riskLevel risk level',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF777777),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    const Text(
+                      'Recommended choices',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // FOOD OPTIONS
+                    ...options.map(
+                          (food) => GestureDetector(
+                        onTap: () {
+                          setPopupState(() {
+                            currentSelection = food;
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: currentSelection == food
+                                ? const Color(0xFFE3F0D8)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: currentSelection == food
+                                  ? const Color(0xFF6A9F59)
+                                  : const Color(0xFFE0E0E0),
+                              width: currentSelection == food ? 1.5 : 1,
+                            ),
+                          ),
+
+                          // IMAGE + FOOD NAME + CHECK
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: foodImages.containsKey(food)
+                                    ? Image.asset(
+                                  foodImages[food]!,
+                                  width: 70,
+                                  height: 70,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F0D8),
+                                    borderRadius:
+                                    BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    mealType == 'Snack'
+                                        ? Icons.apple
+                                        : Icons.restaurant,
+                                    color: const Color(0xFF6AA55A),
+                                    size: 25,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Expanded(
+                                child: Text(
+                                  food,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+
+                              Icon(
+                                currentSelection == food
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color: currentSelection == food
+                                    ? const Color(0xFF6A9F59)
+                                    : const Color(0xFFAAAAAA),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 5),
+
+                    // CHOOSE BUTTON
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: currentSelection == null
+                            ? null
+                            : () {
+                          setState(() {
+                            if (mealType == 'Breakfast') {
+                              selectedBreakfast = currentSelection;
+                            } else if (mealType == 'Lunch') {
+                              selectedLunch = currentSelection;
+                            } else if (mealType == 'Snack') {
+                              selectedSnack = currentSelection;
+                            } else if (mealType == 'Dinner') {
+                              selectedDinner = currentSelection;
+                            }
+                          });
+
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6A9F59),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor:
+                          const Color(0xFFCCCCCC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: const Text(
+                          'Choose this meal',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// ============================================================
+// SAVE TODAY'S PROGRESS
+// ============================================================
+
+  Future<void> saveTodayProgress() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in first.'),
+        ),
+      );
+      return;
+    }
+
+    final today = DateTime.now();
+
+    final dateId =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day
+        .toString().padLeft(2, '0')}';
+
+    final mealsCompleted = [
+      breakfastDone,
+      lunchDone,
+      dinnerDone,
+      snackDone,
+    ]
+        .where((meal) => meal)
+        .length;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('dietPlans')
+          .doc(user.uid)
+          .collection('dailyProgress')
+          .doc(dateId)
+          .set({
+        'mealsCompleted': mealsCompleted,
+        'mealsTarget': mealsTarget,
+        'completed': mealsCompleted == mealsTarget,
+        'healthyChoices': mealsCompleted,
+        'breakfast': selectedBreakfast,
+        'lunch': selectedLunch,
+        'snack': selectedSnack,
+        'dinner': selectedDinner,
+        'calories': 0,
+        'waterConsumed': waterConsumed,
+        'waterTarget': waterTarget,
+        'dailyGoalCompleted':
+        mealsCompleted == mealsTarget &&
+            waterConsumed >= waterTarget,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Today's progress saved!"),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save progress: $e'),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mealsCompleted = [
+      breakfastDone,
+      lunchDone,
+      dinnerDone,
+      snackDone,
+    ]
+        .where((meal) => meal)
+        .length;
+
+    final mealProgress = mealsCompleted / mealsTarget;
+
+    final waterProgress =
+    (waterConsumed / waterTarget).clamp(0.0, 1.0);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F4),
+
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC7DFAE),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF354238),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Diet Plan',
+          style: TextStyle(
+            color: Color(0xFF354238),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const SizedBox(height: 12),
+
+            const Text(
+              'Your Daily Diet Plan',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF354238),
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              'Choose meals that suit your $riskLevel risk level.',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF666666),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+// ================= RISK LEVEL =================
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F0D8),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.health_and_safety_outlined,
+                    color: Color(0xFF5F9950),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  const Expanded(
+                    child: Text(
+                      'Your Risk Level',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6A9F59),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Text(
+                      riskLevel,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            // ================= MEAL PROGRESS =================
+
+            _progressCard(
+              title: 'Meals Today',
+              value: '$mealsCompleted / $mealsTarget',
+              progress: mealProgress,
+              icon: Icons.restaurant_menu,
+            ),
+
+            const SizedBox(height: 16),
+
+            // ================= BREAKFAST =================
+
+            _mealTile(
+              title: 'Breakfast',
+              selectedFood: selectedBreakfast,
+              completed: breakfastDone,
+              onTap: () => showFoodOptions('Breakfast'),
+              onChanged: (value) {
+                setState(() {
+                  breakfastDone = value;
+                });
+              },
+            ),
+
+            // ================= LUNCH =================
+
+            _mealTile(
+              title: 'Lunch',
+              selectedFood: selectedLunch,
+              completed: lunchDone,
+              onTap: () => showFoodOptions('Lunch'),
+              onChanged: (value) {
+                setState(() {
+                  lunchDone = value;
+                });
+              },
+            ),
+
+            // ================= SNACK =================
+
+            _mealTile(
+              title: 'Healthy Snack',
+              selectedFood: selectedSnack,
+              completed: snackDone,
+              onTap: () => showFoodOptions('Snack'),
+              onChanged: (value) {
+                setState(() {
+                  snackDone = value;
+                });
+              },
+            ),
+
+            // ================= DINNER =================
+
+            _mealTile(
+              title: 'Dinner',
+              selectedFood: selectedDinner,
+              completed: dinnerDone,
+              onTap: () => showFoodOptions('Dinner'),
+              onChanged: (value) {
+                setState(() {
+                  dinnerDone = value;
+                });
+              },
+            ),
+
+            const SizedBox(height: 14),
+
+            // ================= WATER =================
+
+            _progressCard(
+              title: 'Water',
+              value: '$waterConsumed / $waterTarget ml',
+              progress: waterProgress,
+              icon: Icons.water_drop_outlined,
+            ),
+
+            const SizedBox(height: 10),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    waterConsumed =
+                        (waterConsumed + 250)
+                            .clamp(0, waterTarget);
+                  });
+                },
+                child: const Text('+ 250 ml'),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ================= GOALS =================
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFFBFD8A8),
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Daily Goal',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    'Complete all 4 planned meals and reach your water target.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Weekly Goal',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    'Complete your daily plan at least 6 out of 7 days.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ================= SAVE =================
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () async {
+                  print("SAVE BUTTON CLICKED");
+
+                  try {
+                    await DietPlanService().saveDietPlan(
+                      riskLevel: riskLevel,
+                      mealsPerDay: 4,
+                      waterTarget: waterTarget,
+                      dailyGoal: 'Complete all planned meals',
+                      weeklyGoal: 'Complete 6 out of 7 days',
+                    );
+
+                    await saveTodayProgress();
+
+                    if (!mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Today's progress saved successfully!"),
+                        backgroundColor: Color(0xFF6A9F59),
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to save progress: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A9F59),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text(
+                  "Save Today's Progress",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ================= MY SCAN =================
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ScanPage(),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(
+                    color: Color(0xFF6A9F59),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text(
+                  'My Scan',
+                  style: TextStyle(
+                    color: Color(0xFF5F9950),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+
+      // ================= BOTTOM NAVIGATION =================
+
+      bottomNavigationBar: Container(
+        height: 72,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: Color(0xFFE5E5E5),
+            ),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(
+              icon: Icons.home_outlined,
+              label: 'Home',
+              selected: false,
+            ),
+            _NavItem(
+              icon: Icons.calendar_month_outlined,
+              label: 'Daily Routine',
+              selected: true,
+            ),
+            _NavItem(
+              icon: Icons.person_outline,
+              label: 'Profile',
+              selected: false,
+            ),
+            _NavItem(
+              icon: Icons.settings_outlined,
+              label: 'Settings',
+              selected: false,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  // ============================================================
+  // PROGRESS CARD
+  // ============================================================
+
+  Widget _progressCard({
+    required String title,
+    required String value,
+    required double progress,
+    required IconData icon,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFBFD8A8),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: const Color(0xFF6AA55A),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFE8EDE3),
+              valueColor:
+              const AlwaysStoppedAnimation<Color>(
+                Color(0xFF70A45B),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // MEAL TILE
+  // ============================================================
+  String? getFoodImage(String? food) {
+    if (food == null) return null;
+
+    if (food.toLowerCase().contains('kola kenda')) {
+      return 'assets/food/kola_kanda.jpg.jpg';
+    }
+
+    if (food.toLowerCase().contains('string hoppers')) {
+      return 'assets/food/string_hoppers_with_coconut.jpg.jpg';
+    }
+
+    if (food.toLowerCase().contains('kurakkan roti')) {
+      return 'assets/food/kurakkan_roti.jpg.jpg';
+    }
+
+    if (food.toLowerCase().contains('red rice')) {
+      return 'assets/food/red_rice.jpg.jpg';
+    }
+
+    return null;
+  }
+  Widget _mealTile({
+    required String title,
+    required String? selectedFood,
+    required bool completed,
+    required VoidCallback onTap,
+    required Function(bool) onChanged,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selectedFood != null
+                ? const Color(0xFFBFD8A8)
+                : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          children: [
+
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: selectedFood != null && foodImages.containsKey(selectedFood)
+                  ? Image.asset(
+                foodImages[selectedFood]!,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+              )
+                  : Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F0D8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  title == 'Healthy Snack'
+                      ? Icons.apple
+                      : Icons.restaurant,
+                  color: const Color(0xFF6AA55A),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    selectedFood ??
+                        'Tap to choose a meal',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: selectedFood != null
+                          ? const Color(0xFF5F9950)
+                          : const Color(0xFF888888),
+                      fontWeight: selectedFood != null
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+            Checkbox(
+              value: completed,
+              activeColor: const Color(0xFF6A9F59),
+              onChanged: selectedFood == null
+                  ? null
+                  : (value) {
+                onChanged(value ?? false);
+              },
+            ),
+          ],
+        )
+      ),
+    );
+  }
+}
+class DietPlanService {
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
+
+  Future<void> saveDietPlan({
+    required String riskLevel,
+    required int mealsPerDay,
+    required int waterTarget,
+    required String dailyGoal,
+    required String weeklyGoal,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+
+    final planRef =
+    _firestore.collection('dietPlans').doc(user.uid);
+
+    await planRef.set({
+      'riskLevel': riskLevel,
+      'mealsPerDay': mealsPerDay,
+      'waterTarget': waterTarget,
+      'dailyGoal': dailyGoal,
+      'weeklyGoal': weeklyGoal,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+}
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    this.selected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          size: 23,
+          color: selected
+              ? const Color(0xFF68A85B)
+              : const Color(0xFF555555),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: selected
+                ? const Color(0xFF68A85B)
+                : const Color(0xFF555555),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
